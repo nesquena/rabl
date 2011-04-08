@@ -1,0 +1,3 @@
+module Rabl
+  # Your code goes here...
+end
