@@ -1,7 +1,7 @@
 module Rabl
   class Engine
     # Constructs a new ejs engine based on given vars, handler and declarations
-    # Rabl::Engine.new("...source...", { :format => "xml" })
+    # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options={})
       @_source = source
       @_options = options.reverse_merge(:format => "json")
@@ -13,7 +13,7 @@ module Rabl
       @_locals = locals
       @_scope = scope
       @_options = @_options.merge(:scope => @_scope, :locals => @_locals, :engine => self)
-      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers]);
+      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_object = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
@@ -118,7 +118,7 @@ module Rabl
     def fetch_source(file)
       root_path = Rails.root if defined?(Rails)
       root_path = Padrino.root if defined?(Padrino)
-      view_path = File.join(root_path, "app/views/")
+      view_path = @_options[:view_path] || File.join(root_path, "app/views/")
       file_path = Dir[File.join(view_path, file + "*.rabl")].first
       File.read(file_path) if file_path
     end
