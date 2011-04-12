@@ -18,6 +18,19 @@ This general templating system solves all of those problems.
 
 ## Usage ##
 
+### Object Assignment ###
+
+To declare the data object to use in the template:
+
+     # app/views/users/show.json.rabl
+     object @user
+
+or a collection works:
+
+     object @users
+
+and this will be used as the default data object for the rendering.
+
 ### Attributes ###
 
 Basic usage of the templater:

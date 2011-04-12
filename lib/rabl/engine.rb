@@ -6,7 +6,8 @@ module Rabl
       @_handler = handler
       @_options = { :handler => @_handler, :vars => @_vars, :engine => self }
       self.copy_instance_variables_from(@_handler, [:@assigns, :@helpers]);
-      @_object = vars[:object] || instance_variable_get("@#{@_handler.controller.controller_name}")
+      @_object = vars[:object] || self.default_object
+      # raise @user.inspect + " - " + @_handler.instance_variable_get(:@options).inspect + " - " + @_handler.inspect
       instance_eval(source_string) if source_string.present?
       instance_eval(&block) if block_given?
     end
@@ -88,6 +89,15 @@ module Rabl
     def object_to_hash(object, source=nil, &block)
       return object unless object.is_a?(ActiveRecord::Base) || object.first.is_a?(ActiveRecord::Base)
       self.class.new(@_vars.merge(:object => object), @_handler, source, &block).to_hash(:root => false)
+    end
+
+    protected
+
+    # Returns a guess at the default object for this template
+    def default_object
+      @_handler.respond_to?(:controller) ?
+        instance_variable_get("@#{@_handler.controller.controller_name}") :
+        nil
     end
   end
 end
