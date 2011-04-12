@@ -25,6 +25,12 @@ or add to your Gemfile:
 
 and run `bundle install` to install the dependency.
 
+If you are using Rails 2.X or Padrino, RABL works out of the box. With Sinatra, or any other tilt-based framework, simply register:
+
+    Rabl.register!
+
+and RABL will be initialized.
+
 ## Usage ##
 
 ### Object Assignment ###
