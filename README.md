@@ -1,16 +1,17 @@
 # RABL #
 
-RABL is a ruby templating system for Rails that takes a different approach for generating JSON and other formats. Rather than using the ActiveRecord 'to_json', I generally find myself wanting to use a more expressive and flexible system for generating my Public APIs. This is especially true when I the json doesn't match to the exact schema defined in the database.
+RABL is a ruby templating system for Rails and [Padrino](http://padrinorb.com) that takes a new approach to generating JSON and other formats. Rather than using the ActiveRecord 'to_json', I generally find myself wanting a more expressive and powerful system for generating my APIs. This is especially important when the json representation is complex or doesn't match the exact schema defined in the database itself.
 
 There were a few things in particular I wanted to do easily:
 
- * Create arbitrary nodes named based on combining data in the object
- * Include nodes only if a condition is met
- * Pass arguments to methods and store the result as a node
- * Include partial templates to reduce code duplication
- * Easily rename attributes from their name in the model
+ * Create arbitrary nodes named based on combining data in an object
+ * Include nodes only if a certain condition is met
+ * Pass arguments to methods and store the result as a child node
+ * Partial templates and inheritance to reduce code duplication
+ * Easily renaming attributes from their name in the model
+ * Simple way to append attributes from a child into the parent
 
-This general templating system solves all of those problems.
+The list goes on. Anyone who has used the 'to_json' approach used in ActiveRecord for generating a json response has felt the pain of the extremely restrictive system. RABL is a general templating system created to solve all of those problems. When I created RABL, I wanted a simple, expressive DRY ruby DSL for defining JSON responses for my APIs.
 
 ## Installation ##
 
@@ -25,17 +26,17 @@ or add to your Gemfile:
 
 and run `bundle install` to install the dependency.
 
-If you are using Rails 2.X or Padrino, RABL works out of the box. With Sinatra, or any other tilt-based framework, simply register:
+If you are using Rails 2.X or Padrino, RABL works without configuration. With Sinatra, or any other tilt-based framework, simply register:
 
     Rabl.register!
 
-and RABL will be initialized.
+and RABL will be initialized and ready for use.
 
 ## Usage ##
 
 ### Object Assignment ###
 
-To declare the data object to use in the template:
+To declare the data object for use in the template:
 
      # app/views/users/show.json.rabl
      object @user
@@ -48,40 +49,43 @@ and this will be used as the default data object for the rendering.
 
 ### Attributes ###
 
-Basic usage of the templater:
+Basic usage of the templater to define a few simple attributes for the response:
 
     # app/views/users/show.json.rabl
     attributes :id, :foo, :bar
 
-or with aliased attributes:
+or use with aliased attributes:
 
     # Take the value of model attribute `foo` and name the node `bar`
     # { bar : 5 }
     attribute :foo => :bar
 
-or multiple aliased attributes:
+or even multiple aliased attributes:
 
     # { baz : <bar value>, animal : <dog value> }
     attributes :bar => :baz, :dog => :animal
 
 ### Child Nodes ###
 
-You can also add children nodes from an arbitrary object:
+You can also add child nodes from an arbitrary source:
 
     child @posts => :foobar do
       attributes :id, :title
     end
 
-or use existing model associations:
+or simply use existing model associations:
 
+    # Renders all the 'posts' association 
+    # from the model into a node called 'foobar'
     child :posts => :foobar do
       attributes :id, :title
     end
 
-### Glued Attributes ###
+### Gluing Attributes ###
 
-You can also append attributes to the root node:
+You can also append child attributes back to the root node:
 
+    # Appends post_id and post_name to parent json object
     glue @post do
       attributes :id => :post_id, :name => :post_name
     end
@@ -90,18 +94,18 @@ Use glue to add additional attributes to the parent object.
 
 ### Custom Nodes ###
 
-This will generate a json response with the attributes specified. You can also include arbitrary code:
+This will generate a json response based on the result of the code block:
 
     # app/views/users/show.json.rabl
     code :full_name do |u|
       u.first_name + " " + u.last_name
     end
 
-You can use custom "code" nodes to create flexible representations of a value utilizing data from the model.
+You can use custom "code" nodes to create flexible representations of a value utilizing all the data from the model.
 
 ### Partials ###
 
-Often you need to access sub-objects in order to construct your own custom nodes for more complex associations. You can get access to the hash representation of another object:
+Often you need to access sub-objects in order to construct your own custom nodes for more complex associations. You can get access to the rabl representation of another object with:
 
     code :location do
       { :city => @city, :address => partial("web/users/address", :object => @address) }
@@ -113,11 +117,11 @@ or an object associated to the parent model:
       { :city => m.city, :address => partial("web/users/address", :object => m.address) }
     end
 
-You can use these to construct arbitrarily complex nodes for APIs.
+You can use this method to construct arbitrarily complex nodes for your APIs.
 
 ### Inheritance ###
 
-Another common limitation of many json builders is code redundancy. Typically every representation of an object across endpoints share common attributes or nodes. The nodes for a 'post' object are probably the same or similar in most references throughout the various endpoints.
+Another common issue of many template builders is unnecessary code redundancy. Typically many representations of an object across multiple endpoints share common attributes or nodes. The nodes for a 'post' object are probably the same or similar in most references throughout the various endpoints.
 
 RABL has the ability to extend other "base" rabl templates and additional attributes:
 
@@ -128,7 +132,7 @@ RABL has the ability to extend other "base" rabl templates and additional attrib
       m.age > 21
     end
 
-You can also extend other rabl templates in constructing nodes to reduce duplication:
+You can also extend other rabl templates while constructing child nodes to reduce duplication:
 
     # app/views/users/show.json.rabl
     child @address do
@@ -140,3 +144,4 @@ Using partials and inheritance can significantly reduce code duplication in your
 ## Issues ##
 
  * I am sloppy and once again failed to unit test this. Don't use it in production until I do obviously.
+ * No support for Rails 3
