@@ -75,7 +75,7 @@ You can also add child nodes from an arbitrary source:
 
 or simply use existing model associations:
 
-    # Renders all the 'posts' association 
+    # Renders all the 'posts' association
     # from the model into a node called 'foobar'
     child :posts => :foobar do
       attributes :id, :title
@@ -143,13 +143,21 @@ Using partials and inheritance can significantly reduce code duplication in your
 
 ## Issues ##
 
- * I am sloppy and once again failed to unit test this. Don't use it in production until I do obviously.
- * No support for Rails 3
+Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
+
+ * I am sloppy and failed to unit test this as I cobbled it together. Don't use it in production until I do, for now this is a fun experiment.
+ * No support for Rails 3 yet, need a Railstie
+ * No configuration options yet for how to create the json (root nodes) :(
+ * Better Tilt template support (precompiling templates)
+ * Benchmarks and performance optimizations
+ * XML Support and potentially others
 
 ## Authors and Contributors ##
 
 * [Nathan Esquenazi](https://github.com/nesquena) - Creator of the project
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
+
+More to come hopefully! Please fork and contribute, any help is appreciated!
 
 ## Inspirations ##
 
