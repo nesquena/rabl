@@ -18,19 +18,24 @@ This general templating system solves all of those problems.
 
 ## Usage ##
 
+### Attributes ###
+
 Basic usage of the templater:
 
     # app/views/users/show.json.rabl
     attributes :id, :foo, :bar
 
-This will generate a json response with the attributes specified. You can also include arbitrary code:
+or with aliased attributes:
 
-    # app/views/users/show.json.rabl
-    code :full_name do |u|
-      u.first_name + " " + u.last_name
-    end
+    # Take the value of model attribute `foo` and name the node `bar`
+    # { bar : 5 }
+    attribute :foo => :bar
+    # { baz : <bar value> }
+    attributes :bar => :baz
 
-You can also add children nodes:
+### Child Nodes ###
+
+You can also add children nodes from an arbitrary object:
 
     child @posts => :foobar do
       attributes :id, :title
@@ -42,35 +47,64 @@ or use existing model associations:
       attributes :id, :title
     end
 
-or get access to the hash representation of another object:
-
-    code :location do
-      { :place => partial("web/users/address", :object => @address) }
-    end
+### Glued Attributes ###
 
 You can also append attributes to the root node:
 
     glue @post do
-      attribute :id => :post_id
+      attributes :id => :post_id, :name => :post_name
     end
 
-There is also the ability to extend other rabl templates with additional attributes:
+Use glue to add additional attributes to the parent object.
 
-    extends "base"
+### Custom Nodes ###
 
-    code :release_year do |m|
-      date = m.release_date || m.series_start
-      date.try(:year)
+This will generate a json response with the attributes specified. You can also include arbitrary code:
+
+    # app/views/users/show.json.rabl
+    code :full_name do |u|
+      u.first_name + " " + u.last_name
     end
 
-You can also extend other rabl templates to reduce duplication:
+You can use custom "code" nodes to create flexible representations of a value utilizing data from the model.
+
+## Partials ##
+
+Often you need to access sub-objects in order to construct your own custom nodes for more complex associations. You can get access to the hash representation of another object:
+
+    code :location do
+      { :city => @city, :address => partial("web/users/address", :object => @address) }
+    end
+
+or an object associated to the parent model:
+
+    code :location do |m|
+      { :city => m.city, :address => partial("web/users/address", :object => m.address) }
+    end
+
+You can use these to construct arbitrarily complex nodes for APIs.
+
+## Inheritance ##
+
+Another common limitation of many json builders is code redundancy. Typically every representation of an object across endpoints share common attributes or nodes. The nodes for a 'post' object are probably the same or similar in most references throughout the various endpoints.
+
+RABL has the ability to extend other "base" rabl templates and additional attributes:
+
+    # app/views/users/advanced.json.rabl
+    extends "users/base" # another RABL template in "app/views/users/base.json.rabl"
+
+    code :can_drink do |m|
+      m.age > 21
+    end
+
+You can also extend other rabl templates in constructing nodes to reduce duplication:
 
     # app/views/users/show.json.rabl
     child @address do
       extends "address/item"
     end
 
-Use extend and liberally to cleanup your representations and keep them uniform.
+Using partials and inheritance can significantly reduce code duplication in your templates.
 
 ## Issues ##
 
