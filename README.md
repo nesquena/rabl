@@ -71,7 +71,7 @@ This will generate a json response with the attributes specified. You can also i
 
 You can use custom "code" nodes to create flexible representations of a value utilizing data from the model.
 
-## Partials ##
+### Partials ###
 
 Often you need to access sub-objects in order to construct your own custom nodes for more complex associations. You can get access to the hash representation of another object:
 
@@ -87,7 +87,7 @@ or an object associated to the parent model:
 
 You can use these to construct arbitrarily complex nodes for APIs.
 
-## Inheritance ##
+### Inheritance ###
 
 Another common limitation of many json builders is code redundancy. Typically every representation of an object across endpoints share common attributes or nodes. The nodes for a 'post' object are probably the same or similar in most references throughout the various endpoints.
 
