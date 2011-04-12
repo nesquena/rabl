@@ -1,0 +1,7 @@
+= TODO
+
+ - Test the code, child and glue options
+ - Add support for child collection with "root" for each
+ - Child should support collections of children
+ - Child should support symbol associations inside object
+ - Add support for Rails 3
