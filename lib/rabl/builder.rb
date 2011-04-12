@@ -74,18 +74,11 @@ module Rabl
       @_result.merge!(glued_attributes)
     end
 
-    # Renders a partial hash based on another rabl template
-    # partial("users/show", :object => @user)
-    def partial(file, options={}, &block)
-      source = File.read(Rails.root.join("app/views/" + file + ".json.rabl"))
-      self.object_to_hash(options[:object], source, &block)
-    end
-
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
       options = options.merge!(:object => @_object)
-      result = partial(file, options, &block)
+      result = @options[:engine].partial(file, options, &block)
       @_result.merge!(result)
     end
 
@@ -110,7 +103,7 @@ module Rabl
     # data_name(@users) => :user
     def data_name(data)
       return data.values.first if data.is_a?(Hash)
-      return data.first.class.model_name.element.pluralize if data.respond_to?(:valid?)
+      return data.first.class.model_name.element.pluralize if data.respond_to?(:first) && data.first.respond_to?(:valid?)
       data.class.model_name.element
     end
   end

@@ -4,7 +4,7 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" })
     def initialize(source, options={})
       @_source = source
-      @_options = options
+      @_options = options.reverse_merge(:format => "json")
     end
 
     # Renders the representation based on source, object, scope and locals
@@ -12,12 +12,12 @@ module Rabl
     def render(scope, locals, &block)
       @_locals = locals
       @_scope = scope
-      @_options = @_options.merge(:scope => @_scope, :locals => @_locals, :engine => self, :format => "json")
+      @_options = @_options.merge(:scope => @_scope, :locals => @_locals, :engine => self)
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers]);
       @_object = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
-      self.send("to_#{@_options[:format]}")
+      self.send("to_" + @_options[:format])
     end
 
     # Sets the object to be used as the data source for this template
@@ -71,7 +71,7 @@ module Rabl
     # Renders a partial hash based on another rabl template
     # partial("users/show", :object => @user)
     def partial(file, options={}, &block)
-      source = File.read(Rails.root.join("app/views/" + file + ".json.rabl"))
+      source = self.fetch_source(file)
       self.object_to_hash(options[:object], source, &block)
     end
 
@@ -88,15 +88,15 @@ module Rabl
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options={})
-      options.reverse_merge!(:root => true)
+      options = options.reverse_merge(:root => true)
       to_hash(options).to_json
     end
 
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     def object_to_hash(object, source=nil, &block)
-      return object unless is_record?(object) || is_record?(object.try(:first))
-      self.class.new(source, :format => "hash").render(@_scope,  @_options.merge(:object => object, :root => false), &block)
+      return object unless is_record?(object) || is_record?(object.respond_to?(:first) && object.first)
+      self.class.new(source, :format => "hash", :root => false).render(@_scope, :object => object, &block)
     end
 
     protected
@@ -111,6 +111,16 @@ module Rabl
     # Returns true if item is a ORM record; false otherwise
     def is_record?(obj)
       obj && obj.respond_to?(:valid?)
+    end
+
+    # Returns source for a given relative file
+    # fetch_source("show") => "...contents..."
+    def fetch_source(file)
+      root_path = Rails.root if defined?(Rails)
+      root_path = Padrino.root if defined?(Padrino)
+      view_path = File.join(root_path, "app/views/")
+      file_path = Dir[File.join(view_path, file + "*.rabl")].first
+      File.read(file_path) if file_path
     end
   end
 end
