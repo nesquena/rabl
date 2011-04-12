@@ -14,7 +14,16 @@ This general templating system solves all of those problems.
 
 ## Installation ##
 
+Install as a gem:
+
     gem install rabl
+
+or add to your Gemfile:
+
+    # Gemfile
+    gem 'rabl'
+
+and run `bundle install` to install the dependency.
 
 ## Usage ##
 
