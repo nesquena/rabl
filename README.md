@@ -30,8 +30,11 @@ or with aliased attributes:
     # Take the value of model attribute `foo` and name the node `bar`
     # { bar : 5 }
     attribute :foo => :bar
-    # { baz : <bar value> }
-    attributes :bar => :baz
+
+or multiple aliased attributes:
+
+    # { baz : <bar value>, animal : <dog value> }
+    attributes :bar => :baz, :dog => :animal
 
 ### Child Nodes ###
 
