@@ -42,13 +42,6 @@ or use existing model associations:
       attributes :id, :title
     end
 
-You can also extend other rabl templates to reduce duplication:
-
-    # app/views/users/show.json.rabl
-    child @address do
-      extends "address/item"
-    end
-
 or get access to the hash representation of another object:
 
     code :location do
@@ -69,6 +62,15 @@ There is also the ability to extend other rabl templates with additional attribu
       date = m.release_date || m.series_start
       date.try(:year)
     end
+
+You can also extend other rabl templates to reduce duplication:
+
+    # app/views/users/show.json.rabl
+    child @address do
+      extends "address/item"
+    end
+
+Use extend and liberally to cleanup your representations and keep them uniform.
 
 ## Issues ##
 
