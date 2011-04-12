@@ -6,8 +6,14 @@ require 'rabl/builder'
 module Rabl
   def self.register!
     require 'rabl/template' if defined?(Rails)
-    require 'rabl/register_tilt' if defined?(Tilt)
+    require 'rabl/register'
   end
 end
 
-Rabl.register!
+# Register
+if defined?(Padrino)
+  require 'padrino-core'
+  Padrino.after_load { Rabl.register! }
+else
+  Rabl.register!
+end

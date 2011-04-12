@@ -1,3 +1,5 @@
+# Rails Template
+
 require 'action_view/base'
 require 'action_view/template'
 
