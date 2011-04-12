@@ -32,7 +32,7 @@ module Rabl
       end if @options.has_key?(:extends)
 
       @_root_name ||= @_object.class.model_name.element
-      options[:root] ? { @_root_name => @_result } : @_result
+      (@options[:root] || options[:root]) ? { @_root_name => @_result } : @_result
     end
 
     # Indicates an attribute or method should be included in the json output
@@ -110,7 +110,7 @@ module Rabl
     # data_name(@users) => :user
     def data_name(data)
       return data.values.first if data.is_a?(Hash)
-      return data.first.class.model_name.element.pluralize if data.first.is_a?(ActiveRecord::Base)
+      return data.first.class.model_name.element.pluralize if data.respond_to?(:valid?)
       data.class.model_name.element
     end
   end

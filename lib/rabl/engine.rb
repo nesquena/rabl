@@ -1,15 +1,23 @@
 module Rabl
   class Engine
     # Constructs a new ejs engine based on given vars, handler and declarations
-    def initialize(vars, handler, source_string=nil, &block)
-      @_vars = vars
-      @_handler = handler
-      @_options = { :handler => @_handler, :vars => @_vars, :engine => self }
-      self.copy_instance_variables_from(@_handler, [:@assigns, :@helpers]);
-      @_object = vars[:object] || self.default_object
-      # raise @user.inspect + " - " + @_handler.instance_variable_get(:@options).inspect + " - " + @_handler.inspect
-      instance_eval(source_string) if source_string.present?
+    # Rabl::Engine.new("...source...", { :format => "xml" })
+    def initialize(source, options={})
+      @_source = source
+      @_options = options
+    end
+
+    # Renders the representation based on source, object, scope and locals
+    # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
+    def render(scope, locals, &block)
+      @_locals = locals
+      @_scope = scope
+      @_options = @_options.merge(:scope => @_scope, :locals => @_locals, :engine => self, :format => "json")
+      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers]);
+      @_object = locals[:object] || self.default_object
+      instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
+      self.send("to_#{@_options[:format]}")
     end
 
     # Sets the object to be used as the data source for this template
@@ -70,7 +78,7 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true)
     def to_hash(options={})
-      if @_object.is_a?(ActiveRecord::Base)
+      if is_record?(@_object)
         Rabl::Builder.new(@_object, @_options).to_hash(options)
       elsif @_object.respond_to?(:each)
         @_object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
@@ -87,17 +95,22 @@ module Rabl
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     def object_to_hash(object, source=nil, &block)
-      return object unless object.is_a?(ActiveRecord::Base) || object.first.is_a?(ActiveRecord::Base)
-      self.class.new(@_vars.merge(:object => object), @_handler, source, &block).to_hash(:root => false)
+      return object unless is_record?(object) || is_record?(object.try(:first))
+      self.class.new(source, :format => "hash").render(@_scope,  @_options.merge(:object => object, :root => false), &block)
     end
 
     protected
 
     # Returns a guess at the default object for this template
     def default_object
-      @_handler.respond_to?(:controller) ?
-        instance_variable_get("@#{@_handler.controller.controller_name}") :
+      @_scope.respond_to?(:controller) ?
+        instance_variable_get("@#{@_scope.controller.controller_name}") :
         nil
+    end
+
+    # Returns true if item is a ORM record; false otherwise
+    def is_record?(obj)
+      obj && obj.respond_to?(:valid?)
     end
   end
 end

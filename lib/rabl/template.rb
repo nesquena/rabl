@@ -7,9 +7,8 @@ module ActionView
       include Compilable
 
       def compile(template) %{
-        ::Rabl::Engine.new(assigns.merge(local_assigns), self) do
-          #{template.source}
-        end.to_#{template.format}
+        ::Rabl::Engine.new(#{template.source.inspect}, { :format => #{template.format.inspect} }).
+          render(self, assigns.merge(local_assigns))
       } end
     end
   end
