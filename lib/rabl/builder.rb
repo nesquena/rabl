@@ -1,4 +1,4 @@
-module JRB
+module Rabl
   class Builder
     # Constructs a new ejs hash based on given object and options
     def initialize(object, options, &block)
@@ -74,14 +74,14 @@ module JRB
       @_result.merge!(glued_attributes)
     end
 
-    # Renders a partial hash based on another jrb template
+    # Renders a partial hash based on another rabl template
     # partial("users/show", :object => @user)
     def partial(file, options={}, &block)
-      source = File.read(Rails.root.join("app/views/" + file + ".json.jrb"))
+      source = File.read(Rails.root.join("app/views/" + file + ".json.rabl"))
       self.object_to_hash(options[:object], source, &block)
     end
 
-    # Extends an existing jrb template with additional attributes in the block
+    # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
       options = options.merge!(:object => @_object)

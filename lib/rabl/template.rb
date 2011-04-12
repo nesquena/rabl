@@ -3,11 +3,11 @@ require 'action_view/template'
 
 module ActionView
   module TemplateHandlers
-    class JRBHandler < TemplateHandler
+    class RablHandler < TemplateHandler
       include Compilable
 
       def compile(template) %{
-        ::JRB::Engine.new(assigns.merge(local_assigns), self) do
+        ::Rabl::Engine.new(assigns.merge(local_assigns), self) do
           #{template.source}
         end.to_#{template.format}
       } end
@@ -15,4 +15,4 @@ module ActionView
   end
 end
 
-ActionView::Template.register_template_handler :jrb, ActionView::TemplateHandlers::JRBHandler
+ActionView::Template.register_template_handler :rabl, ActionView::TemplateHandlers::RablHandler

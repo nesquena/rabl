@@ -1,4 +1,4 @@
-module JRB
+module Rabl
   class Engine
     # Constructs a new ejs engine based on given vars, handler and declarations
     def initialize(vars, handler, source_string=nil, &block)
@@ -52,17 +52,17 @@ module JRB
       @_options[:glue].push({ :data => data, :block => block })
     end
 
-    # Extends an existing jrb template with additional attributes in the block
+    # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options={}, &block)
       @_options[:extends] ||= []
       @_options[:extends].push({ :file => file, :options => options, :block => block })
     end
 
-    # Renders a partial hash based on another jrb template
+    # Renders a partial hash based on another rabl template
     # partial("users/show", :object => @user)
     def partial(file, options={}, &block)
-      source = File.read(Rails.root.join("app/views/" + file + ".json.jrb"))
+      source = File.read(Rails.root.join("app/views/" + file + ".json.rabl"))
       self.object_to_hash(options[:object], source, &block)
     end
 
@@ -70,9 +70,9 @@ module JRB
     # to_hash(:root => true)
     def to_hash(options={})
       if @_object.is_a?(ActiveRecord::Base)
-        JRB::Builder.new(@_object, @_options).to_hash(options)
+        Rabl::Builder.new(@_object, @_options).to_hash(options)
       elsif @_object.respond_to?(:each)
-        @_object.map { |object| JRB::Builder.new(object, @_options).to_hash(options) }
+        @_object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
       end
     end
 
