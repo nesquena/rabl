@@ -1,10 +1,10 @@
 module JRB
   class Engine
-    # Constructs a new ejs generator based on given vars, handler and declarations
+    # Constructs a new ejs engine based on given vars, handler and declarations
     def initialize(vars, handler, source_string=nil, &block)
       @_vars = vars
       @_handler = handler
-      @_options = { :handler => @_handler, :vars => @_vars, :generator => self }
+      @_options = { :handler => @_handler, :vars => @_vars, :engine => self }
       self.copy_instance_variables_from(@_handler, [:@assigns, :@helpers]);
       @_object = vars[:object] || instance_variable_get("@#{@_handler.controller.controller_name}")
       instance_eval(source_string) if source_string.present?

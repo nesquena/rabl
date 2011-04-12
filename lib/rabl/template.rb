@@ -7,7 +7,7 @@ module ActionView
       include Compilable
 
       def compile(template) %{
-        ::JRB::Generator.new(assigns.merge(local_assigns), self) do
+        ::JRB::Engine.new(assigns.merge(local_assigns), self) do
           #{template.source}
         end.to_#{template.format}
       } end

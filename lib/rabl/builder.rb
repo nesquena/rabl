@@ -1,6 +1,6 @@
 module JRB
   class Builder
-    # Constructs a new ejs generator based on given object and options
+    # Constructs a new ejs hash based on given object and options
     def initialize(object, options, &block)
       @_object = object
       @_result = {}
@@ -94,7 +94,7 @@ module JRB
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     def object_to_hash(object, source=nil, &block)
-      @options[:generator].object_to_hash(object, source, &block)
+      @options[:engine].object_to_hash(object, source, &block)
     end
 
     # data_object(data) => <AR Object>
