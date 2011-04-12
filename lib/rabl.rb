@@ -1,8 +1,13 @@
 require 'rabl/version'
 require 'rabl/engine'
 require 'rabl/builder'
-require 'rabl/template' if defined?(Rails)
 
+# Rabl.register!
 module Rabl
-  # Nothing yet
+  def self.register!
+    require 'rabl/template' if defined?(Rails)
+    require 'rabl/register_tilt' if defined?(Tilt)
+  end
 end
+
+Rabl.register!
