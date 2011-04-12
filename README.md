@@ -145,3 +145,18 @@ Using partials and inheritance can significantly reduce code duplication in your
 
  * I am sloppy and once again failed to unit test this. Don't use it in production until I do obviously.
  * No support for Rails 3
+
+## Authors and Contributors ##
+
+* [Nathan Esquenazi](https://github.com/nesquena) - Creator of the project
+* [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
+
+## Inspirations ##
+
+There are a few excellent libraries that helped inspire RABL and they are listed below:
+
+ * [Tequila](https://github.com/inem/tequila)
+ * [JSON Builder](https://github.com/dewski/json_builder)
+ * [Argonaut](https://github.com/jbr/argonaut)
+
+Thanks again for all of these great projects.
