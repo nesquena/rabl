@@ -18,9 +18,58 @@ This general templating system solves all of those problems.
 
 ## Usage ##
 
+Basic usage of the templater:
 
+    # app/views/users/show.json.rabl
+    attributes :id, :foo, :bar
+
+This will generate a json response with the attributes specified. You can also include arbitrary code:
+
+    # app/views/users/show.json.rabl
+    code :full_name do |u|
+      u.first_name + " " + u.last_name
+    end
+
+You can also add children nodes:
+
+    child @posts => :foobar do
+      attributes :id, :title
+    end
+
+or use existing model associations:
+
+    child :posts => :foobar do
+      attributes :id, :title
+    end
+
+You can also extend other rabl templates to reduce duplication:
+
+    # app/views/users/show.json.rabl
+    child @address do
+      extends "address/item"
+    end
+
+or get access to the hash representation of another object:
+
+    code :location do
+      { :place => partial("web/users/address", :object => @address) }
+    end
+
+You can also append attributes to the root node:
+
+    glue @post do
+      attribute :id => :post_id
+    end
+
+There is also the ability to extend other rabl templates with additional attributes:
+
+    extends "base"
+
+    code :release_year do |m|
+      date = m.release_date || m.series_start
+      date.try(:year)
+    end
 
 ## Issues ##
 
  * I am sloppy and once again failed to unit test this. Don't use it in production until I do obviously.
-

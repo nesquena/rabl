@@ -1,3 +1,8 @@
+require 'rabl/version'
+require 'rabl/engine'
+require 'rabl/builder'
+require 'rabl/template' if defined?(Rails)
+
 module Rabl
-  # Your code goes here...
+  # Nothing yet
 end
