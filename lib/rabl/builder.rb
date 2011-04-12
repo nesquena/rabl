@@ -44,7 +44,7 @@ module Rabl
       else # array of attributes
         options = args.extract_options!
         args.each do |attribute|
-          @_result[options[:as] || attribute] = @_object.try(attribute) if @_object.respond_to?(attribute)
+          @_result[options[:as] || attribute] = @_object.send(attribute) if @_object && @_object.respond_to?(attribute)
         end
       end
     end
