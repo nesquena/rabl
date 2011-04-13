@@ -1,12 +1,17 @@
-require File.expand_path('../teststrap',__FILE__)
+require File.expand_path('../teststrap',   __FILE__)
+require File.expand_path('../models/user', __FILE__)
 
 context "Rabl::Builder" do
 
   helper(:builder)    { |obj,opt| Rabl::Builder.new obj, opt        }
   helper(:get_result) { |obj| obj.instance_variable_get("@_result") }
 
+  setup do
+    @user = User.new
+    builder User.new, {}
+  end
+
   context "#initialize" do
-    setup { builder Object.new, {:a => 1 } }
     asserts_topic.assigns :_object
     asserts_topic.assigns :options
     asserts_topic.assigns :_result
@@ -15,16 +20,11 @@ context "Rabl::Builder" do
   context "#attribute" do
 
     context "when given an array" do
-      setup do
-        obj = mock!.name.returns('name').subject
-        mock(obj).address { 'address' }
-        builder obj, {}
-      end
 
       asserts "that the node" do
-        topic.attribute :name, :address
+        topic.attribute :name, :city
         get_result(topic)
-      end.equivalent_to({:name => 'name', :address => 'address'})
+      end.equivalent_to({:name => 'rabl', :city => 'irvine'})
 
       denies "that with a non-existent attribute the node" do
         topic.attribute :fake
@@ -36,21 +36,14 @@ context "Rabl::Builder" do
     context "when given a Hash" do
 
       asserts "that using :as, the node" do
-        obj = mock!.city.returns('city').subject
-        b = builder obj, {}
-
-        b.attribute :city, :as => 'foo'
-        get_result(b)
-      end.equals({'foo'=>'city'})
+        topic.attribute :city, :as => 'foo'
+        get_result(topic)
+      end.equals({'foo'=>'irvine'})
 
       asserts "with multiple attributes, the node" do
-        obj = mock!.foo.returns('foo').subject
-        mock(obj).bar { 'bar' }
-        b = builder obj, {}
-
-        b.attributes :foo => :a, :bar => :b
-        get_result(b)
-      end.equivalent_to({:a => 'foo', :b => 'bar'})
+        topic.attributes :city => :a, :age => :b
+        get_result(topic)
+      end.equivalent_to({:a => 'irvine', :b => 24, 'foo' => 'irvine'})
 
     end
 
@@ -59,17 +52,80 @@ context "Rabl::Builder" do
   context "#code" do
 
     asserts "that it has node :foo" do
-      b = builder Object.new, {}
-      b.code(:foo) { "bar" }
-      get_result(b)[:foo]
-    end.equals 'bar'
+      topic.code(:foo) { "bar" }
+      get_result(topic)
+    end.equivalent_to({:foo => 'bar'})
 
     asserts "that using object it has node :boo" do
-      obj = mock!.boo.returns('baz').subject
-      b = builder obj, {}
-      b.code(:baz) { |u| u.boo }
-      get_result(b)[:baz]
-    end.equals 'baz'
+      topic.code(:baz) { |u| u.city }
+      get_result(topic)
+    end.equivalent_to({:foo => 'bar', :baz => 'irvine'})
+  end
+
+  context "#child" do
+
+    denies "that it generates if no data present" do
+      topic.child nil
+    end
+
+    asserts "that it generates with a hash" do
+      engine = mock!.object_to_hash(@user,nil).returns('xyz').subject
+      b = builder @user, { :engine => engine }
+
+      b.child(@user => :user) { attribute :name }
+      get_result(b)
+    end.equivalent_to({ :user => 'xyz'})
+
+    asserts "that it generates with an object" do
+      engine = mock!.object_to_hash(@user,nil).returns('xyz').subject
+      mock(engine).model_name(@user) { :user }
+      b = builder @user, { :engine => engine }
+
+      b.child(@user) { attribute :name }
+      get_result(b)
+    end.equivalent_to({ :user => 'xyz'})
+  end
+
+  context "#glue" do
+
+    denies "that it generates if no data present" do
+      topic.glue nil
+    end
+
+    asserts "that it generates the glue attributes" do
+      engine = mock!.object_to_hash(@user, nil).returns({:user => 'xyz'}).subject
+      b = builder @user, { :engine => engine }
+
+      b.glue(@user) { attribute :name }
+      get_result(b)
+    end.equivalent_to({ :user => 'xyz' })
+
+    asserts "that it does not generate new attributes if no glue attributes are present" do
+      engine = mock!.object_to_hash(@user, nil).returns({}).subject
+      b = builder @user, { :engine => engine }
+
+      b.glue(@user) { attribute :name }
+      get_result(b)
+    end.equals({})
+  end
+
+  context "#extend" do
+
+    asserts "that it does not genereate if no data is present" do
+      engine = mock!.partial('users/show',{ :object => @user}).returns({}).subject
+      b = builder @user, { :engine => engine }
+
+      b.extends('users/show') { attribute :name }
+      get_result(b)
+    end.equals({})
+
+    asserts "that it generates if data is present" do
+      engine = mock!.partial('users/show',{ :object => @user}).returns({:user => 'xyz'}).subject
+      b = builder @user, { :engine => engine }
+
+      b.extends('users/show') { attribute :name }
+      get_result(b)
+    end.equivalent_to({:user => 'xyz'})
   end
 
 end
