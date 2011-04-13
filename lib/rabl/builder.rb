@@ -55,8 +55,7 @@ module Rabl
     # code(:foo) { "bar" }
     # code(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
     def code(name, options={}, &block)
-      append_node = !options[:if] || options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object))
-      @_result[name] = block.call(@_object) if append_node
+      @_result[name] = block.call(@_object) if resolve_condition(options)
     end
     alias_method :node, :code
 
@@ -109,6 +108,16 @@ module Rabl
       return data.values.first if data.is_a?(Hash)
       return data.first.class.model_name.element.pluralize if data.respond_to?(:first) && data.first.respond_to?(:valid?)
       data.class.model_name.element
+    end
+
+    # resolve_condition(:if => true) => true
+    # resolve_condition(:if => lambda { |m| false }) => false
+    # resolve_condition(:unless => lambda { |m| true }) => true
+    def resolve_condition(options)
+      return true if options[:if].nil? && options[:unless].nil?
+      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
+      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
+      result
     end
   end
 end
