@@ -110,7 +110,7 @@ module Rabl
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     def object_to_hash(object, source=nil, &block)
-      return object unless is_record?(object) || is_record?(object.respond_to?(:first) && object.first)
+      return object unless is_record?(object) || object.respond_to?(:each)
       self.class.new(source, :format => "hash", :root => false).render(@_scope, :object => object, &block)
     end
 
