@@ -42,9 +42,10 @@ module Rabl
 
     # Creates an arbitrary code node that is included in the json output
     # code(:foo) { "bar" }
-    def code(name, &block)
+    # code(:foo, :if => lambda { ... }) { "bar" }
+    def code(name, options={}, &block)
       @_options[:code] ||= {}
-      @_options[:code][name] = block
+      @_options[:code][name] = { :options => options, :block => block }
     end
 
     # Creates a child node that is included in json output
