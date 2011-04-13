@@ -99,6 +99,13 @@ module Rabl
       self.class.new(source, :format => "hash", :root => false).render(@_scope, :object => object, &block)
     end
 
+    # Includes a helper module for RABL
+    # helper ExampleHelper
+    def helper(*klazzes)
+      klazzes.each { |klazz| self.class.send(:include, klazz) }
+    end
+    alias_method :helpers, :helper
+
     protected
 
     # Returns a guess at the default object for this template
