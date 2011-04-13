@@ -154,8 +154,11 @@ Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full l
 
 ## Authors and Contributors ##
 
+Thanks to [Miso](http://gomiso.com) for allowing me to create this for our applications and release this project!
+
 * [Nathan Esquenazi](https://github.com/nesquena) - Creator of the project
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
+* [Tim Lee](https://github.com/timothy1ee) - RABL is an awesome name and was chosen by the Miso CTO.
 
 More to come hopefully! Please fork and contribute, any help is appreciated!
 
