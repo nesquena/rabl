@@ -101,6 +101,12 @@ This will generate a json response based on the result of the code block:
       u.first_name + " " + u.last_name
     end
 
+or a custom node that exists only if a condition is true:
+
+    code(:foo, :if => lambda { |m| m.has_foo? }) do |m|
+      m.foo
+    end
+
 You can use custom "code" nodes to create flexible representations of a value utilizing all the data from the model.
 
 ### Partials ###
