@@ -1,6 +1,6 @@
 # RABL #
 
-RABL is a ruby templating system for Rails and [Padrino](http://padrinorb.com) that takes a new approach to generating JSON and other formats. Rather than using the ActiveRecord 'to_json', I generally find myself wanting a more expressive and powerful system for generating my APIs. This is especially important when the json representation is complex or doesn't match the exact schema defined in the database itself.
+RABL (Ruby API Builder Language) is a ruby templating system for Rails and [Padrino](http://padrinorb.com) that takes a new approach to generating JSON and other formats. Rather than using the ActiveRecord 'to_json', I generally find myself wanting a more expressive and powerful system for generating my APIs. This is especially important when the json representation is complex or doesn't match the exact schema defined in the database itself.
 
 There were a few things in particular I wanted to do easily:
 
