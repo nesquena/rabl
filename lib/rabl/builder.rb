@@ -31,7 +31,7 @@ module Rabl
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
 
-      @_root_name ||= model_name(@_object)
+      @_root_name ||= data_name(@_object)
       (@options[:root] || options[:root]) ? { @_root_name => @_result } : @_result
     end
 
@@ -106,8 +106,7 @@ module Rabl
     # data_name(@users) => :user
     def data_name(data)
       return data.values.first if data.is_a?(Hash)
-      return model_name(data.first).pluralize if data.respond_to?(:first) && data.first.respond_to?(:valid?)
-      model_name(data)
+      @options[:engine].model_name(data)
     end
 
     # resolve_condition(:if => true) => true
@@ -118,12 +117,6 @@ module Rabl
       result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
       result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
       result
-    end
-
-    # model_name(@user) => "user"
-    # model_name([]) => "array"
-    def model_name(data)
-       data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
     end
   end
 end

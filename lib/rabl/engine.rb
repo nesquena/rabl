@@ -93,11 +93,11 @@ module Rabl
       to_hash(options).to_json
     end
 
-    # Returns a hash based representation of any data object given ejs template block
-    # object_to_hash(@user) { attribute :full_name } => { ... }
-    def object_to_hash(object, source=nil, &block)
-      return object unless is_record?(object) || is_record?(object.respond_to?(:first) && object.first)
-      self.class.new(source, :format => "hash", :root => false).render(@_scope, :object => object, &block)
+    # Returns a json representation of the data object
+    # to_xml(:root => true)
+    def to_xml(options={})
+      options = options.reverse_merge(:root => false)
+      to_hash(options).to_xml(:root => model_name(@_object))
     end
 
     # Includes a helper module for RABL
@@ -106,6 +106,24 @@ module Rabl
       klazzes.each { |klazz| self.class.send(:include, klazz) }
     end
     alias_method :helpers, :helper
+
+    # Returns a hash based representation of any data object given ejs template block
+    # object_to_hash(@user) { attribute :full_name } => { ... }
+    def object_to_hash(object, source=nil, &block)
+      return object unless is_record?(object) || is_record?(object.respond_to?(:first) && object.first)
+      self.class.new(source, :format => "hash", :root => false).render(@_scope, :object => object, &block)
+    end
+
+    # model_name(@user) => "user"
+    # model_name([@user]) => "user"
+    # model_name([]) => "array"
+    def model_name(data)
+      if data.respond_to?(:first) && data.first.respond_to?(:valid?)
+        model_name(data.first).pluralize
+      else # actual data object
+        data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
+      end
+    end
 
     protected
 
