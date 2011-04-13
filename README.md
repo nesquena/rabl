@@ -26,7 +26,9 @@ or add to your Gemfile:
 
 and run `bundle install` to install the dependency.
 
-If you are using Rails 2.X or Padrino, RABL works without configuration. With Sinatra, or any other tilt-based framework, simply register:
+If you are using **Rails 2.X, Rails 3 or Padrino**, RABL works without configuration.
+
+With Sinatra, or any other tilt-based framework, simply register:
 
     Rabl.register!
 
@@ -153,11 +155,10 @@ Using partials and inheritance can significantly reduce code duplication in your
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
 
  * I am sloppy and failed to unit test this as I cobbled it together. Don't use it in production until I do, for now this is a fun experiment.
- * No support for Rails 3 yet, need a Railstie
  * No configuration options yet for how to create the json (root nodes) :(
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
- * XML Support and potentially others
+ * XML Support and potentially other formats
 
 ## Authors and Contributors ##
 
