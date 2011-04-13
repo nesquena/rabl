@@ -74,7 +74,7 @@ module Rabl
       return false unless data.present?
       object = data_object(data)
       glued_attributes = self.object_to_hash(object, &block)
-      @_result.merge!(glued_attributes)
+      @_result.merge!(glued_attributes) if glued_attributes
     end
 
     # Extends an existing rabl template with additional attributes in the block
@@ -82,7 +82,7 @@ module Rabl
     def extends(file, options={}, &block)
       options = options.merge(:object => @_object)
       result = @options[:engine].partial(file, options, &block)
-      @_result.merge!(result)
+      @_result.merge!(result) if result
     end
 
     protected

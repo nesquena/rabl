@@ -23,7 +23,7 @@ module Rabl
     # Sets the object to be used as the data source for this template
     # object(@user)
     def object(data)
-      @_object = data
+      @_object = data unless @_locals[:object]
     end
 
     # Indicates an attribute or method should be included in the json output
