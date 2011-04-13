@@ -51,12 +51,14 @@ module Rabl
     alias_method :attributes, :attribute
 
     # Creates an arbitrary code node that is included in the json output
+    # node(:foo) { "bar" }
     # code(:foo) { "bar" }
     # code(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
     def code(name, options={}, &block)
       append_node = options[:if].nil? || (options[:if].respond_to?(:call) && options[:if].call(@_object))
       @_result[name] = block.call(@_object) if append_node
     end
+    alias_method :node, :code
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
