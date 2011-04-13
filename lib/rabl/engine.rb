@@ -17,7 +17,7 @@ module Rabl
       @_object = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
-      self.send("to_" + @_options[:format])
+      self.send("to_" + @_options[:format].to_s)
     end
 
     # Sets the object to be used as the data source for this template

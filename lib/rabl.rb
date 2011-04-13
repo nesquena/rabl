@@ -5,8 +5,7 @@ require 'rabl/builder'
 # Rabl.register!
 module Rabl
   def self.register!
-    require 'rabl/template' if defined?(Rails)
-    require 'rabl/register'
+    require 'rabl/template'
   end
 end
 
@@ -14,6 +13,8 @@ end
 if defined?(Padrino)
   require 'padrino-core'
   Padrino.after_load { Rabl.register! }
-else
+elsif defined?(Rails) && Rails.version =~ /^2/
+  Rabl.register!
+elsif defined?(Rails) && Rails.version =~ /^3/
   Rabl.register!
 end
