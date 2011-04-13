@@ -52,8 +52,10 @@ module Rabl
 
     # Creates an arbitrary code node that is included in the json output
     # code(:foo) { "bar" }
-    def code(name, &block)
-      @_result[name] = block.call(@_object)
+    # code(:foo, :if => lambda { |m| m.foo.present? })
+    def code(name, options={}, &block)
+      append_node = options[:if].nil? || (options[:if].respond_to?(:call) && options[:if].call(@_object))
+      @_result[name] = block.call(@_object) if append_node
     end
 
     # Creates a child node that is included in json output
