@@ -158,7 +158,6 @@ Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full l
  * No configuration options yet for how to create the json (root nodes) :(
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
- * XML Support and potentially other formats
 
 ## Authors and Contributors ##
 
