@@ -172,16 +172,16 @@ context "Rabl::Builder" do
   context "#extend" do
 
     asserts "that it does not genereate if no data is present" do
-      engine = mock!.partial('users/show',{ :object => @user}).returns({}).subject
       b = builder @user, { :engine => engine }
+      mock(b).partial('users/show',{ :object => @user}).returns({}).subject
 
       b.extends('users/show') { attribute :name }
       get_result(b)
     end.equals({})
 
     asserts "that it generates if data is present" do
-      engine = mock!.partial('users/show',{ :object => @user}).returns({:user => 'xyz'}).subject
       b = builder @user, { :engine => engine }
+      mock(b).partial('users/show',{ :object => @user}).returns({:user => 'xyz'}).subject
 
       b.extends('users/show') { attribute :name }
       get_result(b)

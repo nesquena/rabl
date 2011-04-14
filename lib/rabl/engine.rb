@@ -12,9 +12,7 @@ module Rabl
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
-      @_locals = locals
-      @_scope = scope
-      @_options = @_options.merge(:scope => @_scope, :locals => @_locals, :engine => self)
+      @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_data = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
@@ -103,13 +101,6 @@ module Rabl
     def extends(file, options={}, &block)
       @_options[:extends] ||= []
       @_options[:extends].push({ :file => file, :options => options, :block => block })
-    end
-
-    # Renders a partial hash based on another rabl template
-    # partial("users/show", :object => @user)
-    def partial(file, options={}, &block)
-      source = self.fetch_source(file)
-      self.object_to_hash(options[:object], :source => source, &block)
     end
 
     # Includes a helper module with a RABL template

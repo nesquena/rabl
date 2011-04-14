@@ -1,41 +1,5 @@
 module Rabl
   module Helpers
-    # Returns true if item is a ORM record; false otherwise
-    # is_record?(@user) => true
-    # is_record?([]) => false
-    def is_record?(obj)
-      obj && data_object(obj).respond_to?(:valid?)
-    end
-
-    # Returns a hash based representation of any data object given ejs template block
-    # object_to_hash(@user) { attribute :full_name } => { ... }
-    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
-    def object_to_hash(object, options={}, &block)
-      return object unless is_record?(object) || object.respond_to?(:each)
-      engine_options = { :format => "hash", :root => options[:root] }
-      Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
-    end
-
-    # resolve_condition(:if => true) => true
-    # resolve_condition(:if => lambda { |m| false }) => false
-    # resolve_condition(:unless => lambda { |m| true }) => true
-    def resolve_condition(options)
-      return true if options[:if].nil? && options[:unless].nil?
-      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
-      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
-      result
-    end
-
-    # Returns source for a given relative file
-    # fetch_source("show") => "...contents..."
-    def fetch_source(file)
-      root_path = Rails.root if defined?(Rails)
-      root_path = Padrino.root if defined?(Padrino)
-      view_path = @_options[:view_path] || File.join(root_path, "app/views/")
-      file_path = Dir[File.join(view_path, file + "*.rabl")].first
-      File.read(file_path) if file_path
-    end
-
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
     # data_object(:user => :person) => @_object.send(:user)
@@ -57,6 +21,49 @@ module Rabl
       else # actual data object
         data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
       end
+    end
+
+    # Returns true if item is a ORM record; false otherwise
+    # is_record?(@user) => true
+    # is_record?([]) => false
+    def is_record?(obj)
+      obj && data_object(obj).respond_to?(:valid?)
+    end
+
+    # Returns a hash based representation of any data object given ejs template block
+    # object_to_hash(@user) { attribute :full_name } => { ... }
+    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
+    def object_to_hash(object, options={}, &block)
+      return object unless is_record?(object) || object.respond_to?(:each)
+      engine_options = { :format => "hash", :root => (options[:root] || false) }
+      Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
+    end
+
+    # resolve_condition(:if => true) => true
+    # resolve_condition(:if => lambda { |m| false }) => false
+    # resolve_condition(:unless => lambda { |m| true }) => true
+    def resolve_condition(options)
+      return true if options[:if].nil? && options[:unless].nil?
+      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
+      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
+      result
+    end
+
+    # Renders a partial hash based on another rabl template
+    # partial("users/show", :object => @user)
+    def partial(file, options={}, &block)
+      source = self.fetch_source(file)
+      self.object_to_hash(options[:object], :source => source, &block)
+    end
+
+    # Returns source for a given relative file
+    # fetch_source("show", :view_path => "...") => "...contents..."
+    def fetch_source(file, options={})
+      root_path = Rails.root if defined?(Rails)
+      root_path = Padrino.root if defined?(Padrino)
+      view_path = options[:view_path] || File.join(root_path, "app/views/")
+      file_path = Dir[File.join(view_path, file + "*.rabl")].first
+      File.read(file_path) if file_path
     end
   end
 end

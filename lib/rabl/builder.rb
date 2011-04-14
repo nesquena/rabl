@@ -33,7 +33,7 @@ module Rabl
       @options[:extends].each do |settings|
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
-
+      # Return Hash
       @_root_name ||= data_name(@_data)
       (@options[:root] || options[:root]) ? { @_root_name => @_result } : @_result
     end
@@ -85,7 +85,7 @@ module Rabl
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
       options = options.merge(:object => @_object)
-      result = @options[:engine].partial(file, options, &block)
+      result = self.partial(file, options, &block)
       @_result.merge!(result) if result
     end
   end
