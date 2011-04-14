@@ -4,7 +4,6 @@ require File.expand_path('../models/user', __FILE__)
 context "Rabl::Builder" do
 
   helper(:builder)    { |obj,opt| Rabl::Builder.new(obj, opt) }
-  helper(:engine)     {  Rabl::Engine.new("") }
   helper(:get_result) { |obj| obj.instance_variable_get("@_result") }
   helper(:get_hash)   { |obj, root| obj.to_hash(:root => root) }
 
@@ -24,7 +23,7 @@ context "Rabl::Builder" do
 
     context "when given a simple object" do
 
-      setup { builder User.new, { :engine => engine } }
+      setup { builder User.new, {} }
       asserts "that the object is set properly" do
         topic.attribute :name
         get_hash(topic, true)
@@ -34,7 +33,7 @@ context "Rabl::Builder" do
 
     context "when given an object alias" do
 
-     setup { builder({ User.new => "person" }, {  :engine => engine }) }
+     setup { builder({ User.new => "person" }, {}) }
       asserts "that the object is set properly" do
         topic.attribute :name
         get_hash(topic, true)
@@ -44,7 +43,7 @@ context "Rabl::Builder" do
 
     context "when specified with no root" do
 
-      setup { builder User.new, {  :engine => engine } }
+      setup { builder User.new, {} }
       asserts "that the object is set properly" do
         topic.attribute :name
         get_hash(topic, false)
@@ -106,7 +105,7 @@ context "Rabl::Builder" do
     end
 
     asserts "that it generates with a hash" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).object_to_hash(@user,{ :root => false }).returns('xyz').subject
 
       b.child(@user => :user) { attribute :name }
@@ -114,14 +113,14 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user => 'xyz'})
 
     asserts "that it generates with a hash alias" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
 
       b.child(@user => :person) { attribute :name }
       get_result(b)
     end.equivalent_to({ :person => { :name => "rabl" } })
 
     asserts "that it generates with an object" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).data_name(@user) { :user }
       mock(b).object_to_hash(@user,{ :root => false }).returns('xyz').subject
 
@@ -130,7 +129,7 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user => 'xyz'})
 
     asserts "that it generates with an collection" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).data_name(@users) { :users }
       mock(b).object_to_hash(@users,{ :root => true }).returns('xyz').subject
 
@@ -146,7 +145,7 @@ context "Rabl::Builder" do
     end
 
     asserts "that it generates the glue attributes" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).object_to_hash(@user,{ :root => false }).returns({:user => 'xyz'}).subject
 
       b.glue(@user) { attribute :name }
@@ -154,14 +153,14 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user => 'xyz' })
 
     asserts "that it appends the glue attributes to result" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
 
       b.glue(@user) { attribute :name => :user_name }
       get_result(b)
     end.equivalent_to({ :user_name => 'rabl' })
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).object_to_hash(@user,{ :root => false }).returns({}).subject
 
       b.glue(@user) { attribute :name }
@@ -172,7 +171,7 @@ context "Rabl::Builder" do
   context "#extend" do
 
     asserts "that it does not genereate if no data is present" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).partial('users/show',{ :object => @user}).returns({}).subject
 
       b.extends('users/show') { attribute :name }
@@ -180,7 +179,7 @@ context "Rabl::Builder" do
     end.equals({})
 
     asserts "that it generates if data is present" do
-      b = builder @user, { :engine => engine }
+      b = builder @user, {}
       mock(b).partial('users/show',{ :object => @user}).returns({:user => 'xyz'}).subject
 
       b.extends('users/show') { attribute :name }
