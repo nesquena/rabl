@@ -66,7 +66,8 @@ module Rabl
     def child(data, options={}, &block)
       return false unless data.present?
       name, object = data_name(data), data_object(data)
-      @_result[name] = self.object_to_hash(object, &block) if resolve_condition(options)
+      include_root = object.respond_to?(:each) # @users
+      @_result[name] = self.object_to_hash(object, :root => include_root, &block) if resolve_condition(options)
     end
 
     # Glues data from a child node to the json_output

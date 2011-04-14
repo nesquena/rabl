@@ -121,13 +121,22 @@ context "Rabl::Builder" do
     end.equivalent_to({ :person => { :name => "rabl" } })
 
     asserts "that it generates with an object" do
-      engine = mock!.object_to_hash(@user,nil).returns('xyz').subject
+      engine = mock!.object_to_hash(@user, { :root => false }).returns('xyz').subject
       mock(engine).model_name(@user) { :user }
       b = builder @user, { :engine => engine }
 
       b.child(@user) { attribute :name }
       get_result(b)
     end.equivalent_to({ :user => 'xyz'})
+
+    asserts "that it generates with an collection" do
+      engine = mock!.object_to_hash(@users, { :root => true }).returns('xyz').subject
+      mock(engine).model_name(@users) { :users }
+      b = builder @user, { :engine => engine }
+
+      b.child(@users) { attribute :name }
+      get_result(b)
+    end.equivalent_to({ :users => 'xyz'})
   end
 
   context "#glue" do
