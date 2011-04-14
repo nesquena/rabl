@@ -1,5 +1,7 @@
 module Rabl
   class Engine
+    include Rabl::Helpers
+
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options={})
@@ -117,25 +119,6 @@ module Rabl
     end
     alias_method :helpers, :helper
 
-    # Returns a hash based representation of any data object given ejs template block
-    # object_to_hash(@user) { attribute :full_name } => { ... }
-    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
-    def object_to_hash(object, options={}, &block)
-      return object unless is_record?(object) || object.respond_to?(:each)
-      self.class.new(options[:source], :format => "hash", :root => options[:root]).render(@_scope, :object => object, &block)
-    end
-
-    # model_name(@user) => "user"
-    # model_name([@user]) => "user"
-    # model_name([]) => "array"
-    def model_name(data)
-      if data.respond_to?(:first) && data.first.respond_to?(:valid?)
-        model_name(data.first).pluralize
-      else # actual data object
-        data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
-      end
-    end
-
     protected
 
     # Returns a guess at the default object for this template
@@ -144,28 +127,6 @@ module Rabl
       @_scope.respond_to?(:controller) ?
         instance_variable_get("@#{@_scope.controller.controller_name}") :
         nil
-    end
-
-    # Returns true if item is a ORM record; false otherwise
-    # is_record?(@user) => true
-    def is_record?(obj)
-      obj && data_object(obj).respond_to?(:valid?)
-    end
-
-    # Returns source for a given relative file
-    # fetch_source("show") => "...contents..."
-    def fetch_source(file)
-      root_path = Rails.root if defined?(Rails)
-      root_path = Padrino.root if defined?(Padrino)
-      view_path = @_options[:view_path] || File.join(root_path, "app/views/")
-      file_path = Dir[File.join(view_path, file + "*.rabl")].first
-      File.read(file_path) if file_path
-    end
-
-    # data_object(data) => <AR Object>
-    # data_object(@user => :person) => @user
-    def data_object(data)
-      data.respond_to?(:each_pair) ? data.keys.first : data
     end
   end
 end

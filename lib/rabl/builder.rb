@@ -1,5 +1,7 @@
 module Rabl
   class Builder
+    include Rabl::Helpers
+
     # Constructs a new ejs hash based on given object and options
     def initialize(data, options={}, &block)
       @options    = options
@@ -75,7 +77,7 @@ module Rabl
     def glue(data, &block)
       return false unless data.present?
       object = data_object(data)
-      glued_attributes = self.object_to_hash(object, &block)
+      glued_attributes = self.object_to_hash(object, :root => false, &block)
       @_result.merge!(glued_attributes) if glued_attributes
     end
 
@@ -85,41 +87,6 @@ module Rabl
       options = options.merge(:object => @_object)
       result = @options[:engine].partial(file, options, &block)
       @_result.merge!(result) if result
-    end
-
-    protected
-
-    # Returns a hash based representation of any data object given ejs template block
-    # object_to_hash(@user) { attribute :full_name } => { ... }
-    def object_to_hash(object, options={}, &block)
-      @options[:engine].object_to_hash(object, options, &block)
-    end
-
-    # data_object(data) => <AR Object>
-    # data_object(@user => :person) => @user
-    # data_object(:user => :person) => @_object.send(:user)
-    def data_object(data)
-      data = (data.is_a?(Hash) && data.keys.one?) ? data.keys.first : data
-      data.is_a?(Symbol) && @_object ? @_object.send(data) : data
-    end
-
-    # data_name(data) => "user"
-    # data_name(@user => :person) => :person
-    # data_name(@users) => :user
-    def data_name(data)
-      return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.send(data) if data.is_a?(Symbol) # :address
-      @options[:engine].model_name(data)
-    end
-
-    # resolve_condition(:if => true) => true
-    # resolve_condition(:if => lambda { |m| false }) => false
-    # resolve_condition(:unless => lambda { |m| true }) => true
-    def resolve_condition(options)
-      return true if options[:if].nil? && options[:unless].nil?
-      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
-      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
-      result
     end
   end
 end

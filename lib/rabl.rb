@@ -1,4 +1,5 @@
 require 'rabl/version'
+require 'rabl/helpers'
 require 'rabl/engine'
 require 'rabl/builder'
 

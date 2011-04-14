@@ -106,8 +106,8 @@ context "Rabl::Builder" do
     end
 
     asserts "that it generates with a hash" do
-      engine = mock!.object_to_hash(@user,{ :root => false }).returns('xyz').subject
       b = builder @user, { :engine => engine }
+      mock(b).object_to_hash(@user,{ :root => false }).returns('xyz').subject
 
       b.child(@user => :user) { attribute :name }
       get_result(b)
@@ -121,18 +121,18 @@ context "Rabl::Builder" do
     end.equivalent_to({ :person => { :name => "rabl" } })
 
     asserts "that it generates with an object" do
-      engine = mock!.object_to_hash(@user, { :root => false }).returns('xyz').subject
-      mock(engine).model_name(@user) { :user }
       b = builder @user, { :engine => engine }
+      mock(b).data_name(@user) { :user }
+      mock(b).object_to_hash(@user,{ :root => false }).returns('xyz').subject
 
       b.child(@user) { attribute :name }
       get_result(b)
     end.equivalent_to({ :user => 'xyz'})
 
     asserts "that it generates with an collection" do
-      engine = mock!.object_to_hash(@users, { :root => true }).returns('xyz').subject
-      mock(engine).model_name(@users) { :users }
       b = builder @user, { :engine => engine }
+      mock(b).data_name(@users) { :users }
+      mock(b).object_to_hash(@users,{ :root => true }).returns('xyz').subject
 
       b.child(@users) { attribute :name }
       get_result(b)
@@ -146,8 +146,8 @@ context "Rabl::Builder" do
     end
 
     asserts "that it generates the glue attributes" do
-      engine = mock!.object_to_hash(@user, {}).returns({:user => 'xyz'}).subject
       b = builder @user, { :engine => engine }
+      mock(b).object_to_hash(@user,{ :root => false }).returns({:user => 'xyz'}).subject
 
       b.glue(@user) { attribute :name }
       get_result(b)
@@ -161,8 +161,8 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user_name => 'rabl' })
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
-      engine = mock!.object_to_hash(@user, {}).returns({}).subject
       b = builder @user, { :engine => engine }
+      mock(b).object_to_hash(@user,{ :root => false }).returns({}).subject
 
       b.glue(@user) { attribute :name }
       get_result(b)
