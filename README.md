@@ -178,3 +178,11 @@ There are a few excellent libraries that helped inspire RABL and they are listed
  * [Argonaut](https://github.com/jbr/argonaut)
 
 Thanks again for all of these great projects.
+
+## Examples
+
+See the [examples](https://github.com/nesquena/rabl/tree/master/examples) directory.
+
+## Copyright
+
+Copyright © 2011 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
