@@ -46,7 +46,7 @@ To declare the data object for use in the template:
 or specify an alias for the object:
 
     object @user => :person
-    # { "person" : { ... } }
+    # => { "person" : { ... } }
 
 or pass a collection:
 
@@ -65,13 +65,13 @@ Basic usage of the templater to define a few simple attributes for the response:
 or use with aliased attributes:
 
     # Take the value of model attribute `foo` and name the node `bar`
-    # { bar : 5 }
     attribute :foo => :bar
+    # => { bar : 5 }
 
 or even multiple aliased attributes:
 
-    # { baz : <bar value>, animal : <dog value> }
     attributes :bar => :baz, :dog => :animal
+    # => # { baz : <bar value>, animal : <dog value> }
 
 ### Child Nodes ###
 
