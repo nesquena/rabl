@@ -65,7 +65,7 @@ module Rabl
     def child(data, options={}, &block)
       return false unless data.present?
       name, object = data_name(data), data_object(data)
-      @_result[name] = self.object_to_hash(object, &block)
+      @_result[name] = self.object_to_hash(object, &block) if resolve_condition(options)
     end
 
     # Glues data from a child node to the json_output
