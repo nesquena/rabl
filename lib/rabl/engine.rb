@@ -47,6 +47,7 @@ module Rabl
       @_options[:code] ||= {}
       @_options[:code][name] = { :options => options, :block => block }
     end
+    alias_method :node, :code
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
@@ -100,7 +101,7 @@ module Rabl
       to_hash(options).to_xml(:root => model_name(@_object))
     end
 
-    # Includes a helper module for RABL
+    # Includes a helper module with a RABL template
     # helper ExampleHelper
     def helper(*klazzes)
       klazzes.each { |klazz| self.class.send(:include, klazz) }
@@ -128,6 +129,7 @@ module Rabl
     protected
 
     # Returns a guess at the default object for this template
+    # default_object => @user
     def default_object
       @_scope.respond_to?(:controller) ?
         instance_variable_get("@#{@_scope.controller.controller_name}") :
@@ -135,6 +137,7 @@ module Rabl
     end
 
     # Returns true if item is a ORM record; false otherwise
+    # is_record?(@user) => true
     def is_record?(obj)
       obj && obj.respond_to?(:valid?)
     end
