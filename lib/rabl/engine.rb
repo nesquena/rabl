@@ -20,6 +20,31 @@ module Rabl
       self.send("to_" + @_options[:format].to_s)
     end
 
+    # Returns a hash representation of the data object
+    # to_hash(:root => true)
+    def to_hash(options={})
+      object = @_data.respond_to?(:each_pair) ? @_data.keys.first : @_data
+      if is_record?(object) # object @user
+        Rabl::Builder.new(@_data, @_options).to_hash(options)
+      elsif object.respond_to?(:each) # collection @users
+        object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
+      end
+    end
+
+    # Returns a json representation of the data object
+    # to_json(:root => true)
+    def to_json(options={})
+      options = options.reverse_merge(:root => true)
+      to_hash(options).to_json
+    end
+
+    # Returns a json representation of the data object
+    # to_xml(:root => true)
+    def to_xml(options={})
+      options = options.reverse_merge(:root => false)
+      to_hash(options).to_xml(:root => model_name(@_data))
+    end
+
     # Sets the object to be used as the data source for this template
     # object(@user)
     # object @user => :person
@@ -78,31 +103,6 @@ module Rabl
     def partial(file, options={}, &block)
       source = self.fetch_source(file)
       self.object_to_hash(options[:object], source, &block)
-    end
-
-    # Returns a hash representation of the data object
-    # to_hash(:root => true)
-    def to_hash(options={})
-      object = @_data.respond_to?(:each_pair) ? @_data.keys.first : @_data
-      if is_record?(object) # object @user
-        Rabl::Builder.new(@_data, @_options).to_hash(options)
-      elsif object.respond_to?(:each) # collection @users
-        object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
-      end
-    end
-
-    # Returns a json representation of the data object
-    # to_json(:root => true)
-    def to_json(options={})
-      options = options.reverse_merge(:root => true)
-      to_hash(options).to_json
-    end
-
-    # Returns a json representation of the data object
-    # to_xml(:root => true)
-    def to_xml(options={})
-      options = options.reverse_merge(:root => false)
-      to_hash(options).to_xml(:root => model_name(@_data))
     end
 
     # Includes a helper module with a RABL template
