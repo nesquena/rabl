@@ -106,7 +106,8 @@ module Rabl
     # data_name(@user => :person) => :person
     # data_name(@users) => :user
     def data_name(data)
-      return data.values.first if data.is_a?(Hash)
+      return data.values.first if data.is_a?(Hash) # @user => :user
+      data = @_object.send(data) if data.is_a?(Symbol) # :address
       @options[:engine].model_name(data)
     end
 
