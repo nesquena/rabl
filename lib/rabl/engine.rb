@@ -23,7 +23,7 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true)
     def to_hash(options={})
-      object = @_data.respond_to?(:each_pair) ? @_data.keys.first : @_data
+      object = data_object(@_data)
       if is_record?(object) # object @user
         Rabl::Builder.new(@_data, @_options).to_hash(options)
       elsif object.respond_to?(:each) # collection @users
@@ -56,8 +56,7 @@ module Rabl
     # Sets the object as a collection casted to a simple array
     # collection @users
     def collection(data)
-      data = data.respond_to?(:each_pair) ? data.keys.first : data
-      self.object(data)
+      self.object(data_object(data).to_a) if data
     end
 
     # Indicates an attribute or method should be included in the json output
@@ -149,7 +148,7 @@ module Rabl
     # Returns true if item is a ORM record; false otherwise
     # is_record?(@user) => true
     def is_record?(obj)
-      obj && obj.respond_to?(:valid?)
+      obj && data_object(obj).respond_to?(:valid?)
     end
 
     # Returns source for a given relative file
@@ -160,6 +159,12 @@ module Rabl
       view_path = @_options[:view_path] || File.join(root_path, "app/views/")
       file_path = Dir[File.join(view_path, file + "*.rabl")].first
       File.read(file_path) if file_path
+    end
+
+    # data_object(data) => <AR Object>
+    # data_object(@user => :person) => @user
+    def data_object(data)
+      data.respond_to?(:each_pair) ? data.keys.first : data
     end
   end
 end
