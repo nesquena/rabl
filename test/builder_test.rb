@@ -3,8 +3,10 @@ require File.expand_path('../models/user', __FILE__)
 
 context "Rabl::Builder" do
 
-  helper(:builder)    { |obj,opt| Rabl::Builder.new obj, opt        }
+  helper(:builder)    { |obj,opt| Rabl::Builder.new(obj, opt) }
+  helper(:engine)     {  Rabl::Engine.new("") }
   helper(:get_result) { |obj| obj.instance_variable_get("@_result") }
+  helper(:get_hash)   { |obj, root| obj.to_hash(:root => root) }
 
   setup do
     @user = User.new
@@ -15,6 +17,40 @@ context "Rabl::Builder" do
     asserts_topic.assigns :_object
     asserts_topic.assigns :options
     asserts_topic.assigns :_result
+  end
+
+  context "#to_hash" do
+
+    context "when given a simple object" do
+
+      setup { builder User.new, { :engine => engine } }
+      asserts "that the object is set properly" do
+        topic.attribute :name
+        get_hash(topic, true)
+      end.equivalent_to({ "user" => { :name => "rabl" } })
+
+    end
+
+    context "when given an object alias" do
+
+     setup { builder({ User.new => "person" }, {  :engine => engine }) }
+      asserts "that the object is set properly" do
+        topic.attribute :name
+        get_hash(topic, true)
+      end.equivalent_to({ "person" => { :name => "rabl" } })
+
+    end
+
+    context "when specified with no root" do
+
+      setup { builder User.new, {  :engine => engine } }
+      asserts "that the object is set properly" do
+        topic.attribute :name
+        get_hash(topic, false)
+      end.equivalent_to({ :name => "rabl" })
+
+    end
+
   end
 
   context "#attribute" do

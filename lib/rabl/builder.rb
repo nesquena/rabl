@@ -1,10 +1,11 @@
 module Rabl
   class Builder
     # Constructs a new ejs hash based on given object and options
-    def initialize(object, options, &block)
-      @_object = object
-      @_result = {}
-      @options = options
+    def initialize(data, options={}, &block)
+      @options    = options
+      @_data      = data
+      @_object    = data_object(data)
+      @_result    = {}
     end
 
     # Returns a hash representation of the data object
@@ -31,7 +32,7 @@ module Rabl
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
 
-      @_root_name ||= data_name(@_object)
+      @_root_name ||= data_name(@_data)
       (@options[:root] || options[:root]) ? { @_root_name => @_result } : @_result
     end
 
@@ -98,7 +99,7 @@ module Rabl
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
       data = (data.is_a?(Hash) && data.keys.one?) ? data.keys.first : data
-      data.is_a?(Symbol)      ? @_object.send(data) : data
+      data.is_a?(Symbol) && @_object ? @_object.send(data) : data
     end
 
     # data_name(data) => "user"

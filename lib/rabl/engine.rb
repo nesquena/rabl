@@ -22,9 +22,12 @@ module Rabl
 
     # Sets the object to be used as the data source for this template
     # object(@user)
+    # object @user => :person
+    # object @users
     def object(data)
       @_object = data unless @_locals[:object]
     end
+    alias_method :collection, :object
 
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
@@ -80,9 +83,9 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true)
     def to_hash(options={})
-      if is_record?(@_object)
+      if is_record?(@_object) || @_object.respond_to(:each_pair) # object @user => :person
         Rabl::Builder.new(@_object, @_options).to_hash(options)
-      elsif @_object.respond_to?(:each)
+      elsif @_object.respond_to?(:each) # object @users
         @_object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
       end
     end
