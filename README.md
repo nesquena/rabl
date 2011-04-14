@@ -43,7 +43,12 @@ To declare the data object for use in the template:
      # app/views/users/show.json.rabl
      object @user
 
-or a collection works:
+or specify an alias for the object:
+
+    object @user => :person
+    # { "person" : { ... } }
+
+or pass a collection:
 
      object @users
 
@@ -154,7 +159,6 @@ Using partials and inheritance can significantly reduce code duplication in your
 
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
 
- * I am sloppy and failed to unit test this as I cobbled it together. Don't use it in production until I do, for now this is a fun experiment.
  * No configuration options yet for how to create the json (root nodes) :(
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
