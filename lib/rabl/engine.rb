@@ -56,7 +56,8 @@ module Rabl
     # Sets the object as a collection casted to a simple array
     # collection @users
     def collection(data)
-      object(data.to_a)
+      data = data.respond_to?(:each_pair) ? data.keys.first : data
+      self.object(data)
     end
 
     # Indicates an attribute or method should be included in the json output
