@@ -50,7 +50,8 @@ or specify an alias for the object:
 
 or pass a collection:
 
-     object @users
+     collection @users
+     # alias for object @users
 
 and this will be used as the default data object for the rendering.
 
