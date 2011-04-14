@@ -48,12 +48,17 @@ or specify an alias for the object:
     object @user => :person
     # => { "person" : { ... } }
 
-or pass a collection:
+or pass a collection of objects:
 
      collection @users
-     # alias for object @users
+     # => [ { "user" : { ... } } ]
 
-and this will be used as the default data object for the rendering.
+or even specify a root node label for the collection:
+
+    collection @users => :people
+    # => { "people" : [ { "person" : { ... } } ] }
+
+and this will be used as the default data for the rendering.
 
 ### Attributes ###
 
