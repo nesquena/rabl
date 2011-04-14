@@ -144,6 +144,13 @@ context "Rabl::Builder" do
       get_result(b)
     end.equivalent_to({ :user => 'xyz' })
 
+    asserts "that it appends the glue attributes to result" do
+      b = builder @user, { :engine => engine }
+
+      b.glue(@user) { attribute :name => :user_name }
+      get_result(b)
+    end.equivalent_to({ :user_name => 'rabl' })
+
     asserts "that it does not generate new attributes if no glue attributes are present" do
       engine = mock!.object_to_hash(@user, nil).returns({}).subject
       b = builder @user, { :engine => engine }
