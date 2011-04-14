@@ -9,6 +9,7 @@ context "Rabl::Builder" do
   helper(:get_hash)   { |obj, root| obj.to_hash(:root => root) }
 
   setup do
+    @users = [User.new, User.new]
     @user = User.new
     builder User.new, {}
   end
@@ -105,7 +106,7 @@ context "Rabl::Builder" do
     end
 
     asserts "that it generates with a hash" do
-      engine = mock!.object_to_hash(@user,nil).returns('xyz').subject
+      engine = mock!.object_to_hash(@user,{ :root => false }).returns('xyz').subject
       b = builder @user, { :engine => engine }
 
       b.child(@user => :user) { attribute :name }
@@ -136,7 +137,7 @@ context "Rabl::Builder" do
     end
 
     asserts "that it generates the glue attributes" do
-      engine = mock!.object_to_hash(@user, nil).returns({:user => 'xyz'}).subject
+      engine = mock!.object_to_hash(@user, {}).returns({:user => 'xyz'}).subject
       b = builder @user, { :engine => engine }
 
       b.glue(@user) { attribute :name }
@@ -151,7 +152,7 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user_name => 'rabl' })
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
-      engine = mock!.object_to_hash(@user, nil).returns({}).subject
+      engine = mock!.object_to_hash(@user, {}).returns({}).subject
       b = builder @user, { :engine => engine }
 
       b.glue(@user) { attribute :name }

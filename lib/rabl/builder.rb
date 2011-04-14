@@ -90,8 +90,8 @@ module Rabl
 
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
-    def object_to_hash(object, source=nil, &block)
-      @options[:engine].object_to_hash(object, source, &block)
+    def object_to_hash(object, options={}, &block)
+      @options[:engine].object_to_hash(object, options, &block)
     end
 
     # data_object(data) => <AR Object>

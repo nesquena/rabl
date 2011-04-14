@@ -107,7 +107,7 @@ module Rabl
     # partial("users/show", :object => @user)
     def partial(file, options={}, &block)
       source = self.fetch_source(file)
-      self.object_to_hash(options[:object], source, &block)
+      self.object_to_hash(options[:object], :source => source, &block)
     end
 
     # Includes a helper module with a RABL template
@@ -119,9 +119,10 @@ module Rabl
 
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
-    def object_to_hash(object, source=nil, &block)
+    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
+    def object_to_hash(object, options={}, &block)
       return object unless is_record?(object) || object.respond_to?(:each)
-      self.class.new(source, :format => "hash", :root => false).render(@_scope, :object => object, &block)
+      self.class.new(options[:source], :format => "hash", :root => options[:root]).render(@_scope, :object => object, &block)
     end
 
     # model_name(@user) => "user"
