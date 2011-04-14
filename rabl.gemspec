@@ -23,5 +23,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rr', '~>1.0.2'
   s.add_development_dependency 'mongoid'
   s.add_development_dependency 'bson_ext'
-  s.add_development_dependency 'SystemTimer'
 end
