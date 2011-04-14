@@ -14,7 +14,7 @@ module Rabl
       @_scope = scope
       @_options = @_options.merge(:scope => @_scope, :locals => @_locals, :engine => self)
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
-      @_object = locals[:object] || self.default_object
+      @_data = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
       self.send("to_" + @_options[:format].to_s)
@@ -25,7 +25,7 @@ module Rabl
     # object @user => :person
     # object @users
     def object(data)
-      @_object = data unless @_locals[:object]
+      @_data = data unless @_locals[:object]
     end
     alias_method :collection, :object
 
@@ -83,10 +83,11 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true)
     def to_hash(options={})
-      if is_record?(@_object) || @_object.respond_to(:each_pair) # object @user => :person
-        Rabl::Builder.new(@_object, @_options).to_hash(options)
-      elsif @_object.respond_to?(:each) # object @users
-        @_object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
+      object = @_data.respond_to?(:each_pair) ? @_data.keys.first : @_data
+      if is_record?(object) # object @user
+        Rabl::Builder.new(@_data, @_options).to_hash(options)
+      elsif object.respond_to?(:each) # collection @users
+        object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
       end
     end
 
@@ -101,7 +102,7 @@ module Rabl
     # to_xml(:root => true)
     def to_xml(options={})
       options = options.reverse_merge(:root => false)
-      to_hash(options).to_xml(:root => model_name(@_object))
+      to_hash(options).to_xml(:root => model_name(@_data))
     end
 
     # Includes a helper module with a RABL template
