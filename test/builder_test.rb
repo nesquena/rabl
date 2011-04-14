@@ -113,12 +113,11 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user => 'xyz'})
 
     asserts "that it generates with a hash alias" do
-      engine = mock!.object_to_hash(@user, nil).returns('zyx').subject
       b = builder @user, { :engine => engine }
 
       b.child(@user => :person) { attribute :name }
       get_result(b)
-    end.equivalent_to({ :person => 'zyx'})
+    end.equivalent_to({ :person => { :name => "rabl" } })
 
     asserts "that it generates with an object" do
       engine = mock!.object_to_hash(@user,nil).returns('xyz').subject
