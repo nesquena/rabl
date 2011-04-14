@@ -52,7 +52,12 @@ module Rabl
     def object(data)
       @_data = data unless @_locals[:object]
     end
-    alias_method :collection, :object
+
+    # Sets the object as a collection casted to a simple array
+    # collection @users
+    def collection(data)
+      object(data.to_a)
+    end
 
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
