@@ -15,11 +15,13 @@ module Rabl
     # data_name([]) => "array"
     def data_name(data)
       return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.send(data) if data.is_a?(Symbol) # :address
+      data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
       if data.respond_to?(:first) && data.first.respond_to?(:valid?)
         data_name(data.first).pluralize
       else # actual data object
-        data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
+        object_name = @_collection_name.to_s.singularize if @_collection_name
+        object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
+        object_name
       end
     end
 

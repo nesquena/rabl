@@ -23,11 +23,11 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true)
     def to_hash(options={})
-      object = data_object(@_data)
-      if is_record?(object) # object @user
+      data = data_object(@_data)
+      if is_record?(data) # object @user
         Rabl::Builder.new(@_data, @_options).to_hash(options)
-      elsif object.respond_to?(:each) # collection @users
-        object.map { |object| Rabl::Builder.new(object, @_options).to_hash(options) }
+      elsif data.respond_to?(:each) # collection @users
+        data.map { |object| Rabl::Builder.new({ object => data_name(object) }, @_options).to_hash(options) }
       end
     end
 
@@ -35,14 +35,15 @@ module Rabl
     # to_json(:root => true)
     def to_json(options={})
       options = options.reverse_merge(:root => true)
-      to_hash(options).to_json
+      result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
+      result.to_json
     end
 
     # Returns a json representation of the data object
     # to_xml(:root => true)
     def to_xml(options={})
       options = options.reverse_merge(:root => false)
-      to_hash(options).to_xml(:root => model_name(@_data))
+      to_hash(options).to_xml(:root => data_name(@_data))
     end
 
     # Sets the object to be used as the data source for this template
@@ -55,7 +56,9 @@ module Rabl
 
     # Sets the object as a collection casted to a simple array
     # collection @users
+    # collection @users => :people
     def collection(data)
+      @_collection_name = data.values.first if data.respond_to?(:each_pair)
       self.object(data_object(data).to_a) if data
     end
 
