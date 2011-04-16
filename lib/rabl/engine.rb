@@ -24,7 +24,7 @@ module Rabl
     # to_hash(:root => true)
     def to_hash(options={})
       data = data_object(@_data)
-      if is_record?(data) # object @user
+      if is_record?(data) || !data # object @user
         Rabl::Builder.new(@_data, @_options).to_hash(options)
       elsif data.respond_to?(:each) # collection @users
         data.map { |object| Rabl::Builder.new({ object => data_name(object) }, @_options).to_hash(options) }

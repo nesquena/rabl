@@ -35,7 +35,7 @@ module Rabl
       end if @options.has_key?(:extends)
       # Return Hash
       @_root_name ||= data_name(@_data)
-      (@options[:root] || options[:root]) ? { @_root_name => @_result } : @_result
+      (@options[:root] || options[:root]) && @_root_name ? { @_root_name => @_result } : @_result
     end
 
     # Indicates an attribute or method should be included in the json output

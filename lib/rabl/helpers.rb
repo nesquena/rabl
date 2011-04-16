@@ -14,6 +14,7 @@ module Rabl
     # data_name([@user]) => "user"
     # data_name([]) => "array"
     def data_name(data)
+      return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
       data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
       if data.respond_to?(:first) && data.first.respond_to?(:valid?)
