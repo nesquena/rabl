@@ -5,6 +5,7 @@ module Rabl
     # Constructs a new ejs hash based on given object and options
     def initialize(data, options={}, &block)
       @options    = options
+      @_scope     = options[:scope]
       @_data      = data
       @_object    = data_object(data)
       @_result    = {}

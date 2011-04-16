@@ -14,6 +14,7 @@ module Rabl
     def render(scope, locals, &block)
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      @_options[:scope] = @_scope
       @_data = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
