@@ -106,7 +106,7 @@ context "Rabl::Builder" do
 
     asserts "that it generates with a hash" do
       b = builder @user, {}
-      mock(b).object_to_hash(@user,{ :root => false }).returns('xyz').subject
+      mock(b).object_to_hash({ @user => :user },{ :root => false }).returns('xyz').subject
 
       b.child(@user => :user) { attribute :name }
       get_result(b)
