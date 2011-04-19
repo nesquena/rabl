@@ -60,6 +60,14 @@ or even specify a root node label for the collection:
 
 and this will be used as the default data for the rendering.
 
+There can also be odd cases where the root-level of the response doesn't map directly to any object:
+
+    object false
+    code(:some_count) { |m| @user.posts.count }
+    child(@user) { attribute :name }
+
+In those cases, object can be assigned to 'false' and child nodes can be constructed independently.
+
 ### Attributes ###
 
 Basic usage of the templater to define a few simple attributes for the response:
@@ -80,13 +88,19 @@ or even multiple aliased attributes:
 
 ### Child Nodes ###
 
-You can also add child nodes from an arbitrary source:
+Often a response requires including nested information from data associated with the parent model:
+
+    child :address do
+      attributes :street, :city, :zip, :state
+    end
+
+You can also add child nodes from an arbitrary data source:
 
     child @posts => :foobar do
       attributes :id, :title
     end
 
-or simply use existing model associations:
+or use model associations with an alias:
 
     # Renders all the 'posts' association
     # from the model into a node called 'foobar'
