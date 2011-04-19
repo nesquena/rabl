@@ -26,11 +26,11 @@ module Rabl
       end
     end
 
-    # Returns true if item is a ORM record; false otherwise
-    # is_record?(@user) => true
-    # is_record?([]) => false
-    def is_record?(obj)
-      obj && data_object(obj).respond_to?(:valid?)
+    # Renders a partial hash based on another rabl template
+    # partial("users/show", :object => @user)
+    def partial(file, options={}, &block)
+      source = self.fetch_source(file)
+      self.object_to_hash(options[:object], :source => source, &block)
     end
 
     # Returns a hash based representation of any data object given ejs template block
@@ -52,11 +52,11 @@ module Rabl
       result
     end
 
-    # Renders a partial hash based on another rabl template
-    # partial("users/show", :object => @user)
-    def partial(file, options={}, &block)
-      source = self.fetch_source(file)
-      self.object_to_hash(options[:object], :source => source, &block)
+    # Returns true if item is a ORM record; false otherwise
+    # is_record?(@user) => true
+    # is_record?([]) => false
+    def is_record?(obj)
+      obj && data_object(obj).respond_to?(:valid?)
     end
 
     # Returns source for a given relative file
