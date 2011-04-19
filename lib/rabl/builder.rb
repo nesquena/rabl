@@ -66,11 +66,13 @@ module Rabl
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
     # child(@user => :person) { ... }
+    # child(@users => :people) { ... }
     def child(data, options={}, &block)
       return false unless data.present?
       name, object = data_name(data), data_object(data)
-      include_root = object.respond_to?(:each) # @users
-      @_result[name] = self.object_to_hash(data, :root => include_root, &block) if resolve_condition(options)
+      include_root = object.respond_to?(:each) # child @users
+      object = { data_object(data) => data_name(data) } if data.respond_to?(:each_pair) # child :users => :people
+      @_result[name] = self.object_to_hash(object, :root => include_root, &block) if resolve_condition(options)
     end
 
     # Glues data from a child node to the json_output
