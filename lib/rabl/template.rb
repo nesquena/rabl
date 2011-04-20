@@ -7,7 +7,7 @@ if defined?(Tilt)
     end
 
     def prepare
-      options = @options.merge(:format => "json")
+      options = @options.merge(:format => @options[:format])
       @engine = ::Rabl::Engine.new(data, options)
     end
 
