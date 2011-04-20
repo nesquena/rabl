@@ -175,6 +175,25 @@ You can also extend other rabl templates while constructing child nodes to reduc
 
 Using partials and inheritance can significantly reduce code duplication in your templates.
 
+### Deep Nesting ###
+
+In APIs, you can often need to construct 2nd or 3rd level nodes. Let's suppose we have a 'quiz' model that has many 'questions'
+and then each question has many 'answers'. We can display this hierarchy in RABL quite easily:
+
+    # app/views/quizzes/show.json.rabl
+    object @quiz
+    attribute :title
+    child :questions do
+      attribute :caption
+      child :answers do
+        # Use inheritance to reduce duplication
+        extends "answers/item"
+      end
+    end
+
+This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
+Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
+
 ## Issues ##
 
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
