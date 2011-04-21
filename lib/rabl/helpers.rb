@@ -29,7 +29,7 @@ module Rabl
     # Renders a partial hash based on another rabl template
     # partial("users/show", :object => @user)
     def partial(file, options={}, &block)
-      source = self.fetch_source(file)
+      source = self.fetch_source(file, options)
       self.object_to_hash(options[:object], :source => source, &block)
     end
 
