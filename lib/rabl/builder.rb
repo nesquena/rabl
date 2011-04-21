@@ -71,7 +71,7 @@ module Rabl
       return false unless data.present?
       name, object = data_name(data), data_object(data)
       include_root = object.respond_to?(:each) # child @users
-      object = { data_object(data) => data_name(data) } if data.respond_to?(:each_pair) # child :users => :people
+      object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
       @_result[name] = self.object_to_hash(object, :root => include_root, &block) if resolve_condition(options)
     end
 
