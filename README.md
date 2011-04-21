@@ -210,6 +210,8 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
 * [Tim Lee](https://github.com/timothy1ee) - RABL is an awesome name and was chosen by the Miso CTO.
 
+* [Rick Thomas](https://github.com/rickthomasjr) - Added options passing for extends and Sinatra testing
+
 More to come hopefully! Please fork and contribute, any help is appreciated!
 
 ## Inspirations ##
