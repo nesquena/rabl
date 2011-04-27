@@ -6,7 +6,7 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options={})
       @_source = source
-      @_options = options.reverse_merge(:format => "json")
+      @_options = options
     end
 
     # Renders the representation based on source, object, scope and locals
@@ -15,6 +15,7 @@ module Rabl
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_options[:scope] = @_scope
+      @_options[:format] ||= default_format
       @_data = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
@@ -22,29 +23,30 @@ module Rabl
     end
 
     # Returns a hash representation of the data object
-    # to_hash(:root => true)
+    # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
+      options = options.reverse_merge(@_options)
       data = data_object(@_data)
       if is_record?(data) || !data # object @user
-        Rabl::Builder.new(@_data, @_options).to_hash(options)
+        Rabl::Builder.new(@_data, options).to_hash(options)
       elsif data.respond_to?(:each) # collection @users
         object_name = data_name(@_data).to_s.singularize # @users => :users
-        data.map { |object| Rabl::Builder.new({ object => object_name }, @_options).to_hash(options) }
+        data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
       end
     end
 
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options={})
-      options = options.reverse_merge(:root => true)
+      options = options.reverse_merge(:root => true, :child_root => true)
       result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
       result.to_json
     end
 
-    # Returns a json representation of the data object
+    # Returns an xml representation of the data object
     # to_xml(:root => true)
     def to_xml(options={})
-      options = options.reverse_merge(:root => false)
+      options = options.reverse_merge(:root => false, :child_root => false)
       to_hash(options).to_xml(:root => data_name(@_data))
     end
 
@@ -123,6 +125,15 @@ module Rabl
       @_scope.respond_to?(:controller) ?
         instance_variable_get("@#{@_scope.controller.controller_name}") :
         nil
+    end
+
+    # Returns a guess at the format in this scope
+    # default_format => "xml"
+    def default_format
+      format = @_scope.respond_to?(:params) && @_scope.params.has_key?(:format) ?
+        @_scope.params[:format] :
+        nil
+      format || "json"
     end
   end
 end

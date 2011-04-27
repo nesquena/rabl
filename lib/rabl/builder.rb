@@ -3,6 +3,8 @@ module Rabl
     include Rabl::Helpers
 
     # Constructs a new ejs hash based on given object and options
+    # options = { :format => "json", :attributes, :root => true,
+    #   :child_root => true, :code, :child, :glue, :extends }
     def initialize(data, options={}, &block)
       @options    = options
       @_scope     = options[:scope]
@@ -70,7 +72,7 @@ module Rabl
     def child(data, options={}, &block)
       return false unless data.present?
       name, object = data_name(data), data_object(data)
-      include_root = object.respond_to?(:each) # child @users
+      include_root = object.respond_to?(:each) && @options[:child_root] # child @users
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
       @_result[name] = self.object_to_hash(object, :root => include_root, &block) if resolve_condition(options)
     end

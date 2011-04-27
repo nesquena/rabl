@@ -128,10 +128,19 @@ context "Rabl::Builder" do
       get_result(b)
     end.equivalent_to({ :user => 'xyz'})
 
-    asserts "that it generates with an collection" do
-      b = builder @user, {}
+    asserts "that it generates with an collection and child_root" do
+      b = builder @user, { :child_root => true }
       mock(b).data_name(@users) { :users }
       mock(b).object_to_hash(@users,{ :root => true }).returns('xyz').subject
+
+      b.child(@users) { attribute :name }
+      get_result(b)
+    end.equivalent_to({ :users => 'xyz'})
+
+    asserts "that it generates with an collection and no child root" do
+      b = builder @user, { :child_root => false }
+      mock(b).data_name(@users) { :users }
+      mock(b).object_to_hash(@users,{ :root => false }).returns('xyz').subject
 
       b.child(@users) { attribute :name }
       get_result(b)
