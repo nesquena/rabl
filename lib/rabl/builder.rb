@@ -16,6 +16,10 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true)
     def to_hash(options={})
+      # Extends
+      @options[:extends].each do |settings|
+        extends(settings[:file], settings[:options], &settings[:block])
+      end if @options.has_key?(:extends)
       # Attributes
       @options[:attributes].each_pair do |attribute, name|
         attribute(attribute, :as => name)
@@ -32,10 +36,6 @@ module Rabl
       @options[:glue].each do |settings|
         glue(settings[:data], &settings[:block])
       end if @options.has_key?(:glue)
-      # Extends
-      @options[:extends].each do |settings|
-        extends(settings[:file], settings[:options], &settings[:block])
-      end if @options.has_key?(:extends)
       # Return Hash
       @_root_name ||= data_name(@_data)
       (@options[:root] || options[:root]) && @_root_name ? { @_root_name => @_result } : @_result
