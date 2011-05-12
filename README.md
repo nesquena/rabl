@@ -43,7 +43,7 @@ RABL is intended to require little to no configuration to get working. This is t
       # Commented as these are the defaults
       # config.include_json_root = true
       # config.include_xml_root  = false
-      # config.enable_json_callbacks = true
+      # config.enable_json_callbacks = false
     end
 
 Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
