@@ -212,7 +212,6 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
 
- * No configuration options yet for how to create the json (root nodes) :(
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
 
