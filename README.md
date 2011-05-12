@@ -34,6 +34,46 @@ With Sinatra, or any other tilt-based framework, simply register:
 
 and RABL will be initialized and ready for use.
 
+## Overview ##
+
+The quick idea here is that you can use RABL to generate JSON and XML API based on any arbitrary data source. With RABL, the data is expected to come
+primarily from a model (ORM-agnostic) and the representation of the API output is specified in a view template where representations belong. This allows you to completely separate your data from the JSON or XML you wish to output.
+
+Once you have setup RABL (explained below), you can create a RABL view template and then render the template from your Sinatra, Padrino or Rails applications from the controller (or route) very easily. Using [Padrino](http://padrinorb.com) as an example, assuming you have a `Post` model filled with blog posts, you can render an API representation (both JSON and XML) by creating a route:
+
+```ruby
+# app/app.rb
+get "/posts", :provides => [:json, :xml] do
+  @user = current_user
+  @posts = Post.order("id DESC")
+  render "posts/index"
+end
+```
+
+This would then render the following rabl template:
+
+```ruby
+# app/views/posts/index.rabl
+collection @posts
+attributes :id, :title, :subject
+child(:user) { attributes :full_name }
+node(:read) { |post| post.read_by?(@user) }
+```
+
+Which would output the following JSON or XML when visiting `http://localhost:3000/posts.json`
+
+```json
+[{  post :
+  {
+    id : 5, title: "...", subject: "...",
+    user : { full_name : "..." },
+    read : true
+  }
+}]
+```
+
+That's the basic overview. Read the full details below.
+
 ## Configuration ##
 
 RABL is intended to require little to no configuration to get working. This is the case in most scenarios, but depending on your needs you may want to set the following global configurations in your application (this block is completely optional):
