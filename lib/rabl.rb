@@ -2,11 +2,29 @@ require 'rabl/version'
 require 'rabl/helpers'
 require 'rabl/engine'
 require 'rabl/builder'
+require 'rabl/configuration'
 
 # Rabl.register!
 module Rabl
-  def self.register!
-    require 'rabl/template'
+  class << self
+    def register!
+      require 'rabl/template'
+    end
+
+    # Yields a RABL configuration block
+    # Rabl.configure do |config|
+    #  config.include_json_root     = false
+    #  config.enable_json_callbacks = true
+    # end
+    def configure(&block)
+      yield(self.configuration)
+    end
+
+    # Returns the configuration options set for RABL
+    # Rabl.configuration.include_json_root => false
+    def configuration
+      @_configuration ||= Configuration.new
+    end
   end
 end
 
