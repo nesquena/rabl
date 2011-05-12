@@ -38,15 +38,17 @@ module Rabl
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options={})
-      options = options.reverse_merge(:root => true, :child_root => true)
+      include_root = Rabl.configuration.include_json_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_root)
       result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
-      result.to_json
+      format_json(result.to_json)
     end
 
     # Returns an xml representation of the data object
     # to_xml(:root => true)
     def to_xml(options={})
-      options = options.reverse_merge(:root => false, :child_root => false)
+      include_root = Rabl.configuration.include_xml_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_root)
       to_hash(options).to_xml(:root => data_name(@_data))
     end
 
@@ -130,10 +132,21 @@ module Rabl
     # Returns a guess at the format in this scope
     # default_format => "xml"
     def default_format
-      format = @_scope.respond_to?(:params) && @_scope.params.has_key?(:format) ?
-        @_scope.params[:format] :
-        nil
+      format = self.request_params.has_key?(:format) ? @_scope.params[:format] : nil
       format || "json"
+    end
+
+    # Returns the request parameters if available in the scope
+    # request_params => { :foo => "bar" }
+    def request_params
+      @_scope.respond_to?(:params) ? @_scope.params : {}
+    end
+
+    # Returns json embraced with callback if appropriate or plain if not
+    # detect_jsonp({ foo : "bar" }) => "test({ foo : 'bar' })"
+    def format_json(json_output)
+      use_callback = Rabl.configuration.enable_json_callbacks && request_params[:callback].present?
+      use_callback ? "#{request_params[:callback]}(#{json_output})" : json_output
     end
   end
 end
