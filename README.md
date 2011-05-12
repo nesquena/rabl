@@ -36,7 +36,7 @@ and RABL will be initialized and ready for use.
 
 ## Configuration ##
 
-RABL is intended to require little to no configuration to get working. This is the case in most scenarios, but depending on your needs you may want to set the following global configurations in your application:
+RABL is intended to require little to no configuration to get working. This is the case in most scenarios, but depending on your needs you may want to set the following global configurations in your application (this block is completely optional):
 
     # config/initializers/rabl_init.rb
     Rabl.configure do |config|
@@ -46,7 +46,7 @@ RABL is intended to require little to no configuration to get working. This is t
       # config.enable_json_callbacks = true
     end
 
-Each option specifies behavior related to RABL's output. `include_json_root` set to false removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
+Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
 
 ## Usage ##
 
