@@ -53,7 +53,7 @@ if defined?(Rails) && Rails.version =~ /^3/
         self.default_format = Mime::JSON
 
         def compile(template) %{
-          ::Rabl::Engine.new(#{template.source.inspect}, { :format => #{template.formats.first.inspect} }).
+          ::Rabl::Engine.new(#{template.source.inspect}).
             render(self, assigns.merge(local_assigns))
         } end
       end
