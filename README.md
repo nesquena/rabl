@@ -248,6 +248,20 @@ and then each question has many 'answers'. We can display this hierarchy in RABL
 This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
 Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
 
+## Template Scope ##
+
+In RABL, you have access to everything you need to build an API response. Each RABL template has full access to the controllers
+instance variables as well as all view helpers and routing urls.
+
+    # app/some/template.rabl
+    object @post
+    # Access instance variables
+    child(@user => :user) { ... }
+    # or Rails helpers
+    code(:formatted_body) { |post| simple_format(post) }
+
+There should be no problem fetching the appropriate data to construct a response.
+
 ## Issues ##
 
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
