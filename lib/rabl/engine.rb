@@ -133,6 +133,9 @@ module Rabl
     # default_format => "xml"
     def default_format
       format = self.request_params.has_key?(:format) ? @_scope.params[:format] : nil
+      if request = @_scope.respond_to?(:request) && @_scope.request
+        format ||= request.format.to_sym.to_s if request.respond_to?(:format)
+      end
       format || "json"
     end
 
