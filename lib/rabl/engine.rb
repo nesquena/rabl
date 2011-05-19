@@ -49,7 +49,8 @@ module Rabl
     def to_xml(options={})
       include_root = Rabl.configuration.include_xml_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      to_hash(options).to_xml(:root => data_name(@_data))
+      xml_options = Rabl.configuration.default_xml_options.merge(:root => data_name(@_data))
+      to_hash(options).to_xml(xml_options)
     end
 
     # Sets the object to be used as the data source for this template
