@@ -154,6 +154,11 @@ module Rabl
       use_callback ? "#{request_params[:callback]}(#{json_output})" : json_output
     end
 
+    # Augments respond to supporting scope methods
+    def respond_to?(name, include_private=false)
+      @_scope.respond_to?(name, include_private) ? true : super
+    end
+
     # Supports calling helpers defined for the template scope using method_missing hook
     def method_missing(name, *args, &block)
       @_scope.respond_to?(name) ? @_scope.send(name, *args, &block) : super
