@@ -234,16 +234,18 @@ Using partials and inheritance can significantly reduce code duplication in your
 In APIs, you can often need to construct 2nd or 3rd level nodes. Let's suppose we have a 'quiz' model that has many 'questions'
 and then each question has many 'answers'. We can display this hierarchy in RABL quite easily:
 
-    # app/views/quizzes/show.json.rabl
-    object @quiz
-    attribute :title
-    child :questions do
-      attribute :caption
-      child :answers do
-        # Use inheritance to reduce duplication
-        extends "answers/item"
-      end
-    end
+```ruby
+# app/views/quizzes/show.json.rabl
+object @quiz
+attribute :title
+child :questions do
+  attribute :caption
+  child :answers do
+    # Use inheritance to reduce duplication
+    extends "answers/item"
+  end
+end
+```
 
 This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
 Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
@@ -253,12 +255,14 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 In RABL, you have access to everything you need to build an API response. Each RABL template has full access to the controllers
 instance variables as well as all view helpers and routing urls.
 
-    # app/some/template.rabl
-    object @post
-    # Access instance variables
-    child(@user => :user) { ... }
-    # or Rails helpers
-    code(:formatted_body) { |post| simple_format(post) }
+```ruby
+# app/some/template.rabl
+object @post
+# Access instance variables
+child(@user => :user) { ... }
+# or Rails helpers
+code(:formatted_body) { |post| simple_format(post.body) }
+```
 
 There should be no problem fetching the appropriate data to construct a response.
 
