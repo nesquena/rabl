@@ -132,12 +132,10 @@ module Rabl
     # Returns a guess at the format in this scope
     # default_format => "xml"
     def default_format
-      # make use of the request format to check for the default format
-      # to support format specified in the Accepts Header. The second condition is
-      # just a paranoid fallback, just incase.
-      format = @_scope.respond_to?(:request) ?
-         @_scope.request.format.to_sym.to_s :
-         (self.request_params.has_key?(:format) ? @_scope.params[:format] : nil)
+      format = self.request_params.has_key?(:format) ? @_scope.params[:format] : nil
+      if request = @_scope.respond_to?(:request) && @_scope.request
+        format ||= request.format.to_sym.to_s if request.respond_to?(:format)
+      end
       format || "json"
     end
 
