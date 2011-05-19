@@ -17,12 +17,16 @@ Anyone who has tried the 'to_json' method used in ActiveRecord for generating a 
 
 Install RABL as a gem:
 
-    gem install rabl
+```
+gem install rabl
+```
 
 or add to your Gemfile:
 
-    # Gemfile
-    gem 'rabl'
+```ruby
+# Gemfile
+gem 'rabl'
+```
 
 and run `bundle install` to install the dependency.
 
@@ -78,13 +82,15 @@ That's the basic overview but there is a lot more (partials, inheritance, custom
 
 RABL is intended to require little to no configuration to get working. This is the case in most scenarios, but depending on your needs you may want to set the following global configurations in your application (this block is completely optional):
 
-    # config/initializers/rabl_init.rb
-    Rabl.configure do |config|
-      # Commented as these are the defaults
-      # config.include_json_root = true
-      # config.include_xml_root  = false
-      # config.enable_json_callbacks = false
-    end
+```ruby
+# config/initializers/rabl_init.rb
+Rabl.configure do |config|
+  # Commented as these are the defaults
+  # config.include_json_root = true
+  # config.include_xml_root  = false
+  # config.enable_json_callbacks = false
+end
+```
 
 Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
 
@@ -94,31 +100,41 @@ Each option specifies behavior related to RABL's output. If `include_json_root` 
 
 To declare the data object for use in the template:
 
-     # app/views/users/show.json.rabl
-     object @user
+```ruby
+# app/views/users/show.json.rabl
+object @user
+```
 
 or specify an alias for the object:
 
-    object @user => :person
-    # => { "person" : { ... } }
+```ruby
+object @user => :person
+# => { "person" : { ... } }
+```
 
 or pass a collection of objects:
 
-     collection @users
-     # => [ { "user" : { ... } } ]
+```ruby
+collection @users
+# => [ { "user" : { ... } } ]
+```
 
 or even specify a root node label for the collection:
 
-    collection @users => :people
-    # => { "people" : [ { "person" : { ... } } ] }
+```ruby
+collection @users => :people
+# => { "people" : [ { "person" : { ... } } ] }
+```
 
 and this will be used as the default data for the rendering.
 
 There can also be odd cases where the root-level of the response doesn't map directly to any object:
 
-    object false
-    code(:some_count) { |m| @user.posts.count }
-    child(@user) { attribute :name }
+```ruby
+object false
+code(:some_count) { |m| @user.posts.count }
+child(@user) { attribute :name }
+```
 
 In those cases, object can be assigned to 'false' and child nodes can be constructed independently.
 
@@ -126,50 +142,64 @@ In those cases, object can be assigned to 'false' and child nodes can be constru
 
 Basic usage of the templater to define a few simple attributes for the response:
 
-    # app/views/users/show.json.rabl
-    attributes :id, :foo, :bar
+```ruby
+# app/views/users/show.json.rabl
+attributes :id, :foo, :bar
+```
 
 or use with aliased attributes:
 
-    # Take the value of model attribute `foo` and name the node `bar`
-    attribute :foo => :bar
-    # => { bar : 5 }
+```ruby
+# Take the value of model attribute `foo` and name the node `bar`
+attribute :foo => :bar
+# => { bar : 5 }
+```
 
 or even multiple aliased attributes:
 
-    attributes :bar => :baz, :dog => :animal
-    # => # { baz : <bar value>, animal : <dog value> }
+```ruby
+attributes :bar => :baz, :dog => :animal
+# => # { baz : <bar value>, animal : <dog value> }
+```
 
 ### Child Nodes ###
 
 Often a response requires including nested information from data associated with the parent model:
 
-    child :address do
-      attributes :street, :city, :zip, :state
-    end
+```ruby
+child :address do
+  attributes :street, :city, :zip, :state
+end
+```
 
 You can also add child nodes from an arbitrary data source:
 
-    child @posts => :foobar do
-      attributes :id, :title
-    end
+```ruby
+child @posts => :foobar do
+  attributes :id, :title
+end
+```
 
 or use model associations with an alias:
 
-    # Renders all the 'posts' association
-    # from the model into a node called 'foobar'
-    child :posts => :foobar do
-      attributes :id, :title
-    end
+```ruby
+# Renders all the 'posts' association
+# from the model into a node called 'foobar'
+child :posts => :foobar do
+  attributes :id, :title
+end
+```
 
 ### Gluing Attributes ###
 
 You can also append child attributes back to the root node:
 
-    # Appends post_id and post_name to parent json object
-    glue @post do
-      attributes :id => :post_id, :name => :post_name
-    end
+```ruby
+# Appends post_id and post_name to parent json object
+glue @post do
+  attributes :id => :post_id, :name => :post_name
+end
+```
 
 Use glue to add additional attributes to the parent object.
 
@@ -177,17 +207,21 @@ Use glue to add additional attributes to the parent object.
 
 This will generate a json response based on the result of the code block:
 
-    # app/views/users/show.json.rabl
-    code :full_name do |u|
-      u.first_name + " " + u.last_name
-    end
+```ruby
+# app/views/users/show.json.rabl
+code :full_name do |u|
+  u.first_name + " " + u.last_name
+end
+```
 
 or a custom node that exists only if a condition is true:
 
-    # m is the object being rendered, also supports :unless
-    code(:foo, :if => lambda { |m| m.has_foo? }) do |m|
-      m.foo
-    end
+```ruby
+# m is the object being rendered, also supports :unless
+code(:foo, :if => lambda { |m| m.has_foo? }) do |m|
+  m.foo
+end
+```
 
 You can use custom "code" nodes to create flexible representations of a value utilizing all the data from the model.
 
@@ -195,15 +229,19 @@ You can use custom "code" nodes to create flexible representations of a value ut
 
 Often you need to access sub-objects in order to construct your own custom nodes for more complex associations. You can get access to the rabl representation of another object with:
 
-    code :location do
-      { :city => @city, :address => partial("web/users/address", :object => @address) }
-    end
+```ruby
+code :location do
+  { :city => @city, :address => partial("web/users/address", :object => @address) }
+end
+```
 
 or an object associated to the parent model:
 
-    code :location do |m|
-      { :city => m.city, :address => partial("web/users/address", :object => m.address) }
-    end
+```ruby
+code :location do |m|
+  { :city => m.city, :address => partial("web/users/address", :object => m.address) }
+end
+```
 
 You can use this method to construct arbitrarily complex nodes for your APIs.
 
@@ -213,19 +251,23 @@ Another common issue of many template builders is unnecessary code redundancy. T
 
 RABL has the ability to extend other "base" rabl templates and additional attributes:
 
-    # app/views/users/advanced.json.rabl
-    extends "users/base" # another RABL template in "app/views/users/base.json.rabl"
+```ruby
+# app/views/users/advanced.json.rabl
+extends "users/base" # another RABL template in "app/views/users/base.json.rabl"
 
-    code :can_drink do |m|
-      m.age > 21
-    end
+code :can_drink do |m|
+  m.age > 21
+end
+```
 
 You can also extend other rabl templates while constructing child nodes to reduce duplication:
 
-    # app/views/users/show.json.rabl
-    child @address do
-      extends "address/item"
-    end
+```ruby
+# app/views/users/show.json.rabl
+child @address do
+  extends "address/item"
+end
+```
 
 Using partials and inheritance can significantly reduce code duplication in your templates.
 
