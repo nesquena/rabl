@@ -15,7 +15,7 @@ module Rabl
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_options[:scope] = @_scope
-      @_options[:format] ||= default_format
+      @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
       instance_eval(@_source) if @_source.present?
       instance_eval(&block) if block_given?
@@ -130,13 +130,13 @@ module Rabl
     end
 
     # Returns a guess at the format in this scope
-    # default_format => "xml"
-    def default_format
+    # request_format => "xml"
+    def request_format
       format = self.request_params.has_key?(:format) ? @_scope.params[:format] : nil
       if request = @_scope.respond_to?(:request) && @_scope.request
         format ||= request.format.to_sym.to_s if request.respond_to?(:format)
       end
-      format || "json"
+      format && self.respond_to?("to_#{format}") ? format : "json"
     end
 
     # Returns the request parameters if available in the scope
