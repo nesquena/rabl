@@ -228,23 +228,24 @@ You can use custom "code" nodes to create flexible representations of a value ut
 
 ### Partials ###
 
-Often you need to access sub-objects in order to construct your own custom nodes for more complex associations. You can get access to the rabl representation of another object with:
+Often you need to access other data objects in order to construct custom nodes in more complex associations. You can get access to the rabl representation of another data object by rendering a RABL partial:
 
 ```ruby
 code :location do
-  { :city => @city, :address => partial("web/users/address", :object => @address) }
+  { :city => @city, :address => partial("users/address", :object => @address) }
 end
 ```
 
-or an object associated to the parent model:
+or event access an object associated with the parent model:
 
 ```ruby
 code :location do |m|
-  { :city => m.city, :address => partial("web/users/address", :object => m.address) }
+  { :city => m.city, :address => partial("users/address", :object => m.address) }
 end
 ```
 
-You can use this method to construct arbitrarily complex nodes for your APIs.
+You can use this method to construct arbitrarily complex nodes for your APIs. Note that you need to have RABL templates defined
+for each of the objects you wish to construct representations for in this manner.
 
 ### Inheritance ###
 
