@@ -60,7 +60,7 @@ Then we can create the following RABL template to express the API output of `@po
 # app/views/posts/index.rabl
 collection @posts
 attributes :id, :title, :subject
-child(:user) { attributes :full_name }
+child(@user) { attributes :full_name }
 node(:read) { |post| post.read_by?(@user) }
 ```
 
