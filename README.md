@@ -326,6 +326,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Tim Lee](https://github.com/timothy1ee) - RABL is an awesome name and was chosen by the Miso CTO.
 * [Rick Thomas](https://github.com/rickthomasjr) - Added options passing for extends and Sinatra testing
 * [Marjun](https://github.com/mpagalan) - Added xml option configurations
+* [Chris Kimpton](https://github.com/kimptoc) - Helping with documentation and wiki
 
 More to come hopefully! Please fork and contribute, any help is appreciated!
 
