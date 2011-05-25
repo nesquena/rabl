@@ -4,7 +4,7 @@ module Rabl
     # data_object(@user => :person) => @user
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
-      data = (data.is_a?(Hash) && data.keys.one?) ? data.keys.first : data
+      data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
       data.is_a?(Symbol) && @_object ? @_object.send(data) : data
     end
 
