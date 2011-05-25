@@ -22,5 +22,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'riot', '~>0.12.3'
   s.add_development_dependency 'rr', '~>1.0.2'
   s.add_development_dependency 'mongoid'
+  s.add_development_dependency 'tilt'
   s.add_development_dependency 'bson_ext'
 end
