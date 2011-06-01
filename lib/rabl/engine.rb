@@ -162,5 +162,10 @@ module Rabl
     def method_missing(name, *args, &block)
       @_scope.respond_to?(name) ? @_scope.send(name, *args, &block) : super
     end
+
+    def copy_instance_variables_from(object, exclude = []) #:nodoc:
+      vars = object.instance_variables.map(&:to_s) - exclude.map(&:to_s)
+      vars.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
+    end
   end
 end
