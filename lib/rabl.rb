@@ -3,6 +3,7 @@ require 'rabl/helpers'
 require 'rabl/engine'
 require 'rabl/builder'
 require 'rabl/configuration'
+require 'rabl/railtie' if defined?(Rails) && Rails.version =~ /^3/
 
 # Rabl.register!
 module Rabl
@@ -33,7 +34,5 @@ if defined?(Padrino)
   require 'padrino-core'
   Padrino.after_load { Rabl.register! }
 elsif defined?(Rails) && Rails.version =~ /^2/
-  Rabl.register!
-elsif defined?(Rails) && Rails.version =~ /^3/
   Rabl.register!
 end
