@@ -30,7 +30,7 @@ gem 'rabl'
 
 and run `bundle install` to install the dependency.
 
-If you are using **Rails 2.X, Rails 3 or Padrino**, RABL works without configuration.
+If you are using **Rails 2.X, Rails 3, Rails 3.X or Padrino**, RABL works without configuration.
 
 With Sinatra, or any other tilt-based framework, simply register:
 
