@@ -32,8 +32,10 @@ module Rabl
       if is_record?(data) || !data # object @user
         Rabl::Builder.new(@_data, options).to_hash(options)
       elsif data.respond_to?(:each) # collection @users
-        object_name = data_name(@_data).to_s.singularize # @users => :users
-        data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
+        data.map do |object|
+          Rabl::Builder.new(@_collection_name ? {object => @_collection_name.to_s.singularize} : object,
+                            options).to_hash(options)
+        end
       end
     end
 
