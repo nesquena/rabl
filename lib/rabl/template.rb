@@ -52,10 +52,18 @@ if defined?(Rails) && Rails.version =~ /^3/
 
         self.default_format = Mime::JSON
 
-        def compile(template) %{
-          ::Rabl::Engine.new(#{template.source.inspect}).
-            render(self, assigns.merge(local_assigns))
-        } end
+        def compile(template)
+          source = if template.source.empty?
+            File.read(template.identifier)
+          else
+            template.source
+          end
+          
+          %{
+            ::Rabl::Engine.new(#{source.inspect}).
+              render(self, assigns.merge(local_assigns))
+          }
+        end
       end
     end
   end
