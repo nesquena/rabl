@@ -63,5 +63,5 @@ if defined?(Rails) && Rails.version =~ /^3/
     end # handlers
   end
 
-  ActionView::Template.register_template_handler :rabl, ActionView::TemplateHandlers::Rabl
+  ActionView::Template.register_template_handler :rabl, ActionView::Template::Handlers::Rabl
 end
