@@ -42,31 +42,26 @@ end
 
 # Rails 3.X Template
 if defined?(Rails) && Rails.version =~ /^3/
-  require 'action_view/base'
-  require 'action_view/template'
-
   module ActionView
     module Template::Handlers
-      class RablHandler < Template::Handler
-        include Compilable
+      class Rabl
 
+        class_attribute :default_format
         self.default_format = Mime::JSON
 
-        def compile(template)
+        def self.call(template)
           source = if template.source.empty?
             File.read(template.identifier)
-          else
+          else # use source
             template.source
           end
-          
-          %{
-            ::Rabl::Engine.new(#{source.inspect}).
-              render(self, assigns.merge(local_assigns))
-          }
-        end
-      end
-    end
+
+          %{ ::Rabl::Engine.new(#{source.inspect}).
+              render(self, assigns.merge(local_assigns)) }
+        end # call
+      end # rabl class
+    end # handlers
   end
 
-  ActionView::Template.register_template_handler :rabl, ActionView::TemplateHandlers::RablHandler
+  ActionView::Template.register_template_handler :rabl, ActionView::TemplateHandlers::Rabl
 end
