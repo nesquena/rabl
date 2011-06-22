@@ -5,6 +5,7 @@ module Rabl
     attr_accessor :include_xml_root
     attr_accessor :enable_json_callbacks
     attr_writer   :xml_options
+    attr_accessor :to_json
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -13,6 +14,7 @@ module Rabl
       @include_xml_root      = false
       @enable_json_callbacks = false
       @xml_options           = {}
+      @to_json               = false
     end
 
     # Allows config options to be read like a hash
