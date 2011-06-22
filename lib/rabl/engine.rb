@@ -39,9 +39,16 @@ module Rabl
     # to_json(:root => true)
     def to_json(options={})
       include_root = Rabl.configuration.include_json_root
+      custom_to_json = Rabl.configuration.to_json
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
       result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
-      format_json(result.to_json)
+      json = (not custom_to_json) ?
+        # If custom_json is false, call build-in to_json
+        result.to_json :
+        # or process it by proc
+        custom_to_json.call(result)
+
+      format_json(json)
     end
 
     # Returns an xml representation of the data object
