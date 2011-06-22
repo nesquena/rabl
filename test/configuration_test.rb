@@ -23,6 +23,12 @@ context "Rabl::Configuration" do
       Rabl.configuration
     end
 
+    teardown do
+      Rabl.configure do |config|
+        config.to_json = false
+      end
+    end
+
     asserts(:include_json_root).equals false
     asserts(:include_xml_root).equals true
     asserts(:enable_json_callbacks).equals true

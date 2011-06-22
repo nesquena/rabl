@@ -179,6 +179,11 @@ context "Rabl::Engine" do
       template.render(scope)
     end.equals 42
 
+    teardown do
+      Rabl.configure do |config|
+        config.to_json = false
+      end
+    end
   end
 
   context "without json root" do
