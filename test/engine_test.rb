@@ -163,6 +163,28 @@ context "Rabl::Engine" do
     end
   end
 
+  context "with custom to_json" do
+    setup do
+      Rabl.configure do |config|
+        config.to_json = lambda { 42 }
+      end
+    end
+
+    asserts "that it returns process by custom to_json" do
+      template = rabl %q{
+        object @user
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new
+      template.render(scope)
+    end.equals 42
+
+    teardown do
+      Rabl.configure do |config|
+        config.to_json = false
+      end
+    end
+  end
 
   context "without json root" do
     setup do
