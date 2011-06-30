@@ -1,3 +1,5 @@
+require 'multi_json'
+
 module Rabl
   class Engine
     include Rabl::Helpers
@@ -7,6 +9,10 @@ module Rabl
     def initialize(source, options={})
       @_source = source
       @_options = options
+
+      if Rabl.configuration.encode_json != :default
+        MultiJson.engine = Rabl.configuration.encode_json
+      end
     end
 
     # Renders the representation based on source, object, scope and locals
@@ -41,7 +47,13 @@ module Rabl
       include_root = Rabl.configuration.include_json_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
       result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
-      format_json(result.to_json)
+      json = (Rabl.configuration.encode_json == :default) ?
+        # If encode_json equals :default
+        result.to_json :
+        # or encode it by MultiJson
+        MultiJson.encode(result)
+
+      format_json(json)
     end
 
     # Returns an xml representation of the data object
