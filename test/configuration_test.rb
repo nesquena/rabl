@@ -9,6 +9,7 @@ context "Rabl::Configuration" do
     asserts(:include_json_root).equals true
     asserts(:include_xml_root).equals false
     asserts(:enable_json_callbacks).equals false
+    asserts(:encode_json).equals :default
   end
 
   context "with configuration" do
@@ -17,6 +18,7 @@ context "Rabl::Configuration" do
         config.include_json_root     = false
         config.include_xml_root      = true
         config.enable_json_callbacks = true
+        config.encode_json           = :yajl
       end
       Rabl.configuration
     end
@@ -24,6 +26,13 @@ context "Rabl::Configuration" do
     asserts(:include_json_root).equals false
     asserts(:include_xml_root).equals true
     asserts(:enable_json_callbacks).equals true
+    asserts(:encode_json).equals :yajl
+
+    teardown do
+      Rabl.configure do |config|
+        config.encode_json = :yajl
+      end
+    end
   end
 
 end
