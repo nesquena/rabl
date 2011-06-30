@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
+  s.add_dependency 'multi_json', '~> 1.0.3'
+
   s.add_development_dependency 'riot', '~>0.12.3'
   s.add_development_dependency 'rr', '~>1.0.2'
   s.add_development_dependency 'mongoid'
