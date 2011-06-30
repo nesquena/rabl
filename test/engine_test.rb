@@ -158,8 +158,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
-        template.render(scope)
-      end.equals "{\"user\":{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}}"
+        template.render(scope).split('').sort
+      end.equals "{\"user\":{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}}".split('').sort
     end
   end
 
