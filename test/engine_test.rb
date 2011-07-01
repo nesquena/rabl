@@ -317,9 +317,9 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
-        template.render(scope)
+        template.render(scope).split('').sort
 
-      end.equals "{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}"
+      end.equals "{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}".split('').sort
     end
 
     context "#glue" do
@@ -333,8 +333,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
-        template.render(scope)
-      end.equals "{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}"
+        template.render(scope).split('').sort
+      end.equals "{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}".split('').sort
     end
   end
 end
