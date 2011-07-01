@@ -187,7 +187,7 @@ context "Rabl::Engine" do
 
     teardown do
       Rabl.configure do |config|
-        config.json_engine = :default
+        config.json_engine = MultiJson.default_engine
       end
     end
   end

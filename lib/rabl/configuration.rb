@@ -13,7 +13,7 @@ module Rabl
       @include_json_root     = true
       @include_xml_root      = false
       @enable_json_callbacks = false
-      @json_engine           = :default
+      @json_engine           = nil
       @xml_options           = {}
     end
 

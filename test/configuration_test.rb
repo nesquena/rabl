@@ -9,7 +9,7 @@ context "Rabl::Configuration" do
     asserts(:include_json_root).equals true
     asserts(:include_xml_root).equals false
     asserts(:enable_json_callbacks).equals false
-    asserts(:json_engine).equals :default
+    asserts(:json_engine).equals nil
   end
 
   context "with configuration" do
@@ -30,7 +30,7 @@ context "Rabl::Configuration" do
 
     teardown do
       Rabl.configure do |config|
-        config.json_engine = :yajl
+        config.json_engine = MultiJson.default_engine
       end
     end
   end
