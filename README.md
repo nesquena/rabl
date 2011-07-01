@@ -86,6 +86,7 @@ RABL is intended to require little to no configuration to get working. This is t
 # config/initializers/rabl_init.rb
 Rabl.configure do |config|
   # Commented as these are the defaults
+  # config.json_engine = nil # Any multi\_json engines
   # config.include_json_root = true
   # config.include_xml_root  = false
   # config.enable_json_callbacks = false
@@ -94,6 +95,15 @@ end
 ```
 
 Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
+
+`json_engine` uses the [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) intelligent engine defaults so in most cases you **don't need to configure this** directly. If you wish to use yajl as the primary JSON encoding engine simply add that to your Gemfile:
+
+```ruby
+# Gemfile
+gem 'yajl-ruby', :require => "yajl"
+```
+
+and RABL will automatically start using that engine for encoding your JSON responses!
 
 ## Usage ##
 
@@ -327,6 +337,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Rick Thomas](https://github.com/rickthomasjr) - Added options passing for extends and Sinatra testing
 * [Marjun](https://github.com/mpagalan) - Added xml option configurations
 * [Chris Kimpton](https://github.com/kimptoc) - Helping with documentation and wiki
+* [Sasha Koss](https://github.com/kossnocorp) - Added multi_json support
 
 More to come hopefully! Please fork and contribute, any help is appreciated!
 
