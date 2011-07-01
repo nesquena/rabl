@@ -10,8 +10,8 @@ module Rabl
       @_source = source
       @_options = options
 
-      if Rabl.configuration.encode_json != :default
-        MultiJson.engine = Rabl.configuration.encode_json
+      if Rabl.configuration.json_engine != :default
+        MultiJson.engine = Rabl.configuration.json_engine
       end
     end
 
@@ -47,8 +47,8 @@ module Rabl
       include_root = Rabl.configuration.include_json_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
       result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
-      json = (Rabl.configuration.encode_json == :default) ?
-        # If encode_json equals :default
+      json = (Rabl.configuration.json_engine == :default) ?
+        # If json_engine equals :default
         result.to_json :
         # or encode it by MultiJson
         MultiJson.encode(result)

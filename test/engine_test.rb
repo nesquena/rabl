@@ -163,7 +163,7 @@ context "Rabl::Engine" do
     end
   end
 
-  context "with encode_json" do
+  context "with json_engine" do
     setup do
       class CustomEncodeEngine
         def self.encode string, options = {}
@@ -172,7 +172,7 @@ context "Rabl::Engine" do
       end
 
       Rabl.configure do |config|
-        config.encode_json = CustomEncodeEngine
+        config.json_engine = CustomEncodeEngine
       end
     end
 
@@ -187,7 +187,7 @@ context "Rabl::Engine" do
 
     teardown do
       Rabl.configure do |config|
-        config.encode_json = :default
+        config.json_engine = :default
       end
     end
   end

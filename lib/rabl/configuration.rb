@@ -4,6 +4,7 @@ module Rabl
     attr_accessor :include_json_root
     attr_accessor :include_xml_root
     attr_accessor :enable_json_callbacks
+    attr_accessor :json_engine
     attr_writer   :xml_options
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
@@ -12,6 +13,7 @@ module Rabl
       @include_json_root     = true
       @include_xml_root      = false
       @enable_json_callbacks = false
+      @json_engine           = :default
       @xml_options           = {}
     end
 
