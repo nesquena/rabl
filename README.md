@@ -96,7 +96,7 @@ end
 
 Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
 
-`json_engine` uses the [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) intelligent engine defaults so in most cases you **don't need to configure this** directly. If you wish to use yajl as the primary JSON encoding engine simply add that to your Gemfile:
+Note that the `json_engine` option uses the [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) intelligent engine defaults so in most cases you **don't need to configure this** directly. If you wish to use yajl as the primary JSON encoding engine simply add that to your Gemfile:
 
 ```ruby
 # Gemfile
