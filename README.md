@@ -334,9 +334,10 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Nathan Esquenazi](https://github.com/nesquena) - Creator of the project
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
 * [Tim Lee](https://github.com/timothy1ee) - RABL is an awesome name and was chosen by the Miso CTO.
-* [Rick Thomas](https://github.com/rickthomasjr) - Added options passing for extends and Sinatra testing
-* [Marjun](https://github.com/mpagalan) - Added xml option configurations
+* [Rick Thomas](https://github.com/rickthomasjr) - Added options for extends and Sinatra testing
 * [Chris Kimpton](https://github.com/kimptoc) - Helping with documentation and wiki
+* [Marjun](https://github.com/mpagalan) - Added xml option configurations
+* [Anton Orel](https://github.com/skyeagle) - Added Rails 3.1 compatibility
 * [Sasha Koss](https://github.com/kossnocorp) - Added multi_json support
 
 More to come hopefully! Please fork and contribute, any help is appreciated!
