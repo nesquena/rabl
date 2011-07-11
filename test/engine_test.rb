@@ -161,6 +161,10 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
       end.equals "{\"user\":{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}}".split('').sort
     end
+
+    teardown do
+      Rabl.reset_configuration_to_default
+    end
   end
 
   context "with json_engine" do
@@ -186,9 +190,7 @@ context "Rabl::Engine" do
     end.equals 42
 
     teardown do
-      Rabl.configure do |config|
-        config.json_engine = MultiJson.default_engine
-      end
+      Rabl.reset_configuration_to_default
     end
   end
 
@@ -335,6 +337,10 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
         template.render(scope).split('').sort
       end.equals "{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}".split('').sort
+    end
+
+    teardown do
+      Rabl.reset_configuration_to_default
     end
   end
 end
