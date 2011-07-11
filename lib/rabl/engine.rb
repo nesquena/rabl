@@ -43,7 +43,7 @@ module Rabl
       include_root = Rabl.configuration.include_json_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
       result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
-      format_json Rabl.configuration.json_engine.encode(result)
+      format_json result
     end
 
     # Returns an xml representation of the data object
@@ -148,9 +148,11 @@ module Rabl
       @_scope.respond_to?(:params) ? @_scope.params : {}
     end
 
-    # Returns json embraced with callback if appropriate or plain if not
-    # detect_jsonp({ foo : "bar" }) => "test({ foo : 'bar' })"
+    # Returns data as json embraced with callback when detected
+    # format_json({ :foo => "bar" }) => "test({ foo : 'bar' })"
+    # format_json("{ foo : "bar" }") => "test({ foo : 'bar' })"
     def format_json(json_output)
+      json_output = Rabl.configuration.json_engine.encode(json_output) unless json_output.is_a?(String)
       use_callback = Rabl.configuration.enable_json_callbacks && request_params[:callback].present?
       use_callback ? "#{request_params[:callback]}(#{json_output})" : json_output
     end

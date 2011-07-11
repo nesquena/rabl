@@ -28,7 +28,7 @@ module Rabl
     end
 
     # Resets the RABL configuration back to the defaults.
-    def reset_configuration_to_default
+    def reset_configuration!
       @_configuration = nil
     end
   end

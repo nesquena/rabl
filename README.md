@@ -339,6 +339,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Marjun](https://github.com/mpagalan) - Added xml option configurations
 * [Anton Orel](https://github.com/skyeagle) - Added Rails 3.1 compatibility
 * [Sasha Koss](https://github.com/kossnocorp) - Added multi_json support
+* [Matthew Schulkind](https://github.com/mschulkind) - Cleanup of configuration and tests
 
 More to come hopefully! Please fork and contribute, any help is appreciated!
 

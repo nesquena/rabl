@@ -30,7 +30,7 @@ context "Rabl::Configuration" do
     asserts(:json_engine).equals CustomEncodeEngine
 
     teardown do
-      Rabl.reset_configuration_to_default
+      Rabl.reset_configuration!
     end
   end
 end

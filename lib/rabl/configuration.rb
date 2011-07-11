@@ -17,6 +17,7 @@ module Rabl
       @xml_options           = {}
     end
 
+    # Returns the multi_json engine for use with RABL
     def json_engine
       @json_engine || MultiJson.engine
     end

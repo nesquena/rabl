@@ -163,7 +163,7 @@ context "Rabl::Engine" do
     end
 
     teardown do
-      Rabl.reset_configuration_to_default
+      Rabl.reset_configuration!
     end
   end
 
@@ -190,7 +190,7 @@ context "Rabl::Engine" do
     end.equals 42
 
     teardown do
-      Rabl.reset_configuration_to_default
+      Rabl.reset_configuration!
     end
   end
 
@@ -340,7 +340,7 @@ context "Rabl::Engine" do
     end
 
     teardown do
-      Rabl.reset_configuration_to_default
+      Rabl.reset_configuration!
     end
   end
 end

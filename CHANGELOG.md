@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.1 (Unreleased)
+
+ * Cleanup configuration and related tests (Thanks mschulkind)
+
 ## 0.3.0
 
  * Use multi_json to handle JSON encoding (Thanks kossnocorp)
