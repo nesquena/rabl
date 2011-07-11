@@ -4,7 +4,7 @@ module Rabl
     attr_accessor :include_json_root
     attr_accessor :include_xml_root
     attr_accessor :enable_json_callbacks
-    attr_accessor :json_engine
+    attr_writer   :json_engine
     attr_writer   :xml_options
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
@@ -15,6 +15,10 @@ module Rabl
       @enable_json_callbacks = false
       @json_engine           = nil
       @xml_options           = {}
+    end
+
+    def json_engine
+      @json_engine || MultiJson.engine
     end
 
     # Allows config options to be read like a hash

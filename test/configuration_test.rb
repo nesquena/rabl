@@ -9,16 +9,17 @@ context "Rabl::Configuration" do
     asserts(:include_json_root).equals true
     asserts(:include_xml_root).equals false
     asserts(:enable_json_callbacks).equals false
-    asserts(:json_engine).equals nil
+    asserts(:json_engine).equals MultiJson.engine
   end
 
   context "with configuration" do
+    class CustomEncodeEngine; end
     setup do
       Rabl.configure do |config|
         config.include_json_root     = false
         config.include_xml_root      = true
         config.enable_json_callbacks = true
-        config.json_engine           = :yajl
+        config.json_engine           = CustomEncodeEngine
       end
       Rabl.configuration
     end
@@ -26,13 +27,10 @@ context "Rabl::Configuration" do
     asserts(:include_json_root).equals false
     asserts(:include_xml_root).equals true
     asserts(:enable_json_callbacks).equals true
-    asserts(:json_engine).equals :yajl
+    asserts(:json_engine).equals CustomEncodeEngine
 
     teardown do
-      Rabl.configure do |config|
-        config.json_engine = MultiJson.default_engine
-      end
+      Rabl.reset_configuration_to_default
     end
   end
-
 end
