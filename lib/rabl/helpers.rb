@@ -67,14 +67,13 @@ module Rabl
       root_path = Padrino.root if defined?(Padrino)
       if defined? Rails
         view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + "*.rabl")].first
+        file_path = Dir[File.join(view_path, file + ".*.rabl")].first
       elsif defined? Padrino
         # use Padrinos own template resolution mechanism
         file_path, _ = @_scope.instance_eval { resolve_template(file) }
         # Padrino chops the extension, stich it back on
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
       end
-      
       File.read(file_path.to_s) if file_path
     end
   end
