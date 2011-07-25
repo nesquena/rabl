@@ -65,7 +65,7 @@ module Rabl
       root_path = Rails.root if defined?(Rails)
       root_path = Padrino.root if defined?(Padrino)
       view_path = options[:view_path] || File.join(root_path, "app/views/")
-      file_path = Dir[File.join(view_path, file + "*.rabl")].first
+      file_path = Dir[File.join(view_path, file + ".*.rabl")].first
       File.read(file_path) if file_path
     end
   end
