@@ -154,7 +154,11 @@ module Rabl
     # format_json({ :foo => "bar" }) => "test({ foo : 'bar' })"
     # format_json("{ foo : "bar" }") => "test({ foo : 'bar' })"
     def format_json(json_output)
-      json_output = Rabl.configuration.json_engine.encode(json_output) unless json_output.is_a?(String)
+      if Rabl.configuration.json_engine == :default
+        json_output = json_output.to_json unless json_output.is_a?(String)
+      else
+        json_output = Rabl.configuration.json_engine.encode(json_output) unless json_output.is_a?(String)
+      end
       use_callback = Rabl.configuration.enable_json_callbacks && request_params[:callback].present?
       use_callback ? "#{request_params[:callback]}(#{json_output})" : json_output
     end
