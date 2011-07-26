@@ -2,6 +2,7 @@ require File.expand_path('../teststrap', __FILE__)
 require File.expand_path('../../lib/rabl', __FILE__)
 require File.expand_path('../../lib/rabl/template', __FILE__)
 require File.expand_path('../models/user', __FILE__)
+require File.expand_path('../models/admin', __FILE__)
 
 context "Rabl::Engine" do
 
@@ -67,6 +68,27 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":[{\"person\":{}},{\"person\":{}}]}"
 
+      context "of disparate objects" do
+
+        asserts "that it sets root node name according to object" do
+          template = rabl %{
+            collection @people
+          }
+          scope = Object.new
+          scope.instance_variable_set :@people, [User.new, Admin.new]
+          template.render(scope)
+        end.equals "[{\"user\":{}},{\"admin\":{}}]"
+
+        asserts "that it uses collection name override if specified" do
+          template = rabl %{
+            collection @people => :people
+          }
+          scope = Object.new
+          scope.instance_variable_set :@people, [User.new, Admin.new]
+          template.render(scope)
+        end.equals "{\"people\":[{\"person\":{}},{\"person\":{}}]}"
+
+      end
     end
 
     context "#attribute" do
@@ -244,6 +266,27 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":[{},{}]}"
 
+      context "of disparate objects" do
+
+        asserts "that it leaves out root name" do
+          template = rabl %{
+            collection @people
+          }
+          scope = Object.new
+          scope.instance_variable_set :@people, [User.new, Admin.new]
+          template.render(scope)
+        end.equals "[{},{}]"
+
+        asserts "that it sets collection name without setting child root names" do
+          template = rabl %{
+            collection @people => :people
+          }
+          scope = Object.new
+          scope.instance_variable_set :@people, [User.new, Admin.new]
+          template.render(scope)
+        end.equals "{\"people\":[{},{}]}"
+
+      end
     end
 
     context "#attribute" do
