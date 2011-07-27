@@ -45,6 +45,12 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new
         template.render(scope)
       end.equals "{\"person\":{}}"
+
+      asserts "that it works with nested controllers" do
+        template = rabl ""
+        scope = NestedScope::User.new
+        template.render(scope)
+      end.matches "{}"
     end
 
     context "#collection" do
