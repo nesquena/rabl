@@ -17,7 +17,7 @@ module Rabl
       return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
       data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
-      if data.respond_to?(:first) && data.first.respond_to?(:valid?)
+      if data.respond_to?(:first)
         data_name(data.first).pluralize
       else # actual data object
         object_name = @_collection_name.to_s.singularize if @_collection_name
@@ -37,7 +37,7 @@ module Rabl
     # object_to_hash(@user) { attribute :full_name } => { ... }
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
     def object_to_hash(object, options={}, &block)
-      return object unless is_record?(object) || object.respond_to?(:each)
+      return object unless is_object?(object)
       engine_options = { :format => "hash", :root => (options[:root] || false) }
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
@@ -52,11 +52,12 @@ module Rabl
       result
     end
 
-    # Returns true if item is a ORM record; false otherwise
-    # is_record?(@user) => true
-    # is_record?([]) => false
-    def is_record?(obj)
-      obj && data_object(obj).respond_to?(:valid?)
+    # Returns true if item is not enumerable
+    # is_object?(@user) => true
+    # is_object?([]) => false
+    # is_object?({}) => false
+    def is_object?(obj)
+      obj && !data_object(obj).is_a?(Enumerable)
     end
 
     # Returns source for a given relative file
