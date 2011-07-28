@@ -3,3 +3,5 @@
 .rvmrc
 Gemfile.lock
 pkg/*
+
+tags
