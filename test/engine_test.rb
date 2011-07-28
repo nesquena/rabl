@@ -2,6 +2,7 @@ require File.expand_path('../teststrap', __FILE__)
 require File.expand_path('../../lib/rabl', __FILE__)
 require File.expand_path('../../lib/rabl/template', __FILE__)
 require File.expand_path('../models/user', __FILE__)
+require File.expand_path('../models/ormless', __FILE__)
 
 context "Rabl::Engine" do
 
@@ -45,6 +46,15 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new
         template.render(scope)
       end.equals "{\"person\":{}}"
+
+      asserts "that it can use non-ORM objects" do
+        template = rabl %q{
+          object @other
+        }
+        scope = Object.new
+        scope.instance_variable_set :@other, Ormless.new
+        template.render(scope)
+      end.equals "{\"ormless\":{}}"
     end
 
     context "#collection" do
@@ -67,6 +77,14 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":[{\"person\":{}},{\"person\":{}}]}"
 
+      asserts "that it can use non-ORM objects" do
+        template = rabl %q{
+          object @others
+        }
+        scope = Object.new
+        scope.instance_variable_set :@others, [Ormless.new, Ormless.new]
+        template.render(scope)
+      end.equals "[{\"ormless\":{}},{\"ormless\":{}}]"
     end
 
     context "#attribute" do

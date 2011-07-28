@@ -29,9 +29,9 @@ module Rabl
     def to_hash(options={})
       options = options.reverse_merge(@_options)
       data = data_object(@_data)
-      if is_record?(data) || !data # object @user
+      if is_object?(data) || !data # object @user
         Rabl::Builder.new(@_data, options).to_hash(options)
-      elsif data.respond_to?(:each) # collection @users
+      elsif !is_object?(data) # collection @users
         object_name = data_name(@_data).to_s.singularize # @users => :users
         data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
       end
