@@ -1,5 +1,3 @@
-require 'multi_json'
-
 module Rabl
   class Engine
     include Rabl::Helpers
