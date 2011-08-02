@@ -14,19 +14,14 @@ context "Rabl::Configuration" do
 
   context "with configuration" do
     class CustomEncodeEngine; end
+
     setup do
       Rabl.configure do |config|
-        config.include_json_root     = false
-        config.include_xml_root      = true
-        config.enable_json_callbacks = true
-        config.json_engine           = CustomEncodeEngine
+        config.json_engine = CustomEncodeEngine
       end
       Rabl.configuration
     end
 
-    asserts(:include_json_root).equals false
-    asserts(:include_xml_root).equals true
-    asserts(:enable_json_callbacks).equals true
     asserts(:json_engine).equals CustomEncodeEngine
 
     teardown do
