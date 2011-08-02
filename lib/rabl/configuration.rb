@@ -44,7 +44,7 @@ module Rabl
     private
 
     def get_json_engine
-      if !@engine_name && defined?(ActiveSupport::JSON)
+      if !@engine_name && defined?(Rails)
         ActiveSupport::JSON
       else
         MultiJson.engine
