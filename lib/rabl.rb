@@ -1,3 +1,8 @@
+require 'active_support'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/reverse_merge'
+
 require 'rabl/version'
 require 'rabl/helpers'
 require 'rabl/engine'
