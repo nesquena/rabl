@@ -10,4 +10,14 @@ context 'Rabl::Configuration' do
     asserts(:enable_json_callbacks).equals false
     asserts(:json_engine).equals MultiJson.engine
   end
+
+  context 'custom JSON engine' do
+    setup do
+      Rabl.configure do |c|
+        c.json_engine = :yajl
+      end
+    end
+
+    asserts('uses a custom JSON engine') { topic.json_engine == MultiJson::Engines::Yajl }
+  end
 end
