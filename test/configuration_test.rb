@@ -19,7 +19,6 @@ context "Rabl::Configuration" do
       Rabl.configure do |config|
         config.json_engine = CustomEncodeEngine
       end
-      Rabl.configuration
     end
 
     asserts(:json_engine).equals CustomEncodeEngine

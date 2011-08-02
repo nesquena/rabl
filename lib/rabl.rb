@@ -18,7 +18,8 @@ module Rabl
     #  config.enable_json_callbacks = true
     # end
     def configure(&block)
-      yield(self.configuration)
+      yield(configuration)
+      configuration
     end
 
     # Returns the configuration options set for RABL
