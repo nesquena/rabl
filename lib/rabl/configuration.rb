@@ -21,12 +21,12 @@ module Rabl
     #   or class that responds to `encode`, to use to encode Rabl templates
     #   into JSON. For more details, see the MultiJson gem.
     def json_engine=(engine_name_or_class)
-      MultiJson.engine = engine_name_or_class
+      MultiJson.engine = @engine_name = engine_name_or_class
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
     def json_engine
-      MultiJson.engine
+      get_json_engine
     end
 
     # Allows config options to be read like a hash
@@ -39,6 +39,16 @@ module Rabl
     # Returns merged default and inputted xml options
     def default_xml_options
       @_default_xml_options ||= @xml_options.reverse_merge(DEFAULT_XML_OPTIONS)
+    end
+
+    private
+
+    def get_json_engine
+      if !@engine_name && defined?(ActiveSupport::JSON)
+        ActiveSupport::JSON
+      else
+        MultiJson.engine
+      end
     end
   end
 end
