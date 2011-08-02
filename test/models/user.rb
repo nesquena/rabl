@@ -1,9 +1,13 @@
-require 'mongoid'
-
 class User
-  include Mongoid::Document
+  attr_accessor :age, :city, :name
 
-  field :name, :type => String,  :default => 'rabl'
-  field :city, :type => String,  :default => 'irvine'
-  field :age,  :type => Integer, :default => 24
+  DEFAULT_AGE  = 24
+  DEFAULT_CITY = 'irvine'
+  DEFAULT_NAME = 'rabl'
+
+  def initialize(attributes={})
+    self.age  = attributes[:age]  || DEFAULT_AGE
+    self.city = attributes[:city] || DEFAULT_CITY
+    self.name = attributes[:name] || DEFAULT_NAME
+  end
 end

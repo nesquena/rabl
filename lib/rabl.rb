@@ -1,3 +1,8 @@
+require 'active_support'
+require 'active_support/core_ext/string/inflections'
+require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/reverse_merge'
+
 require 'rabl/version'
 require 'rabl/helpers'
 require 'rabl/engine'
@@ -18,7 +23,8 @@ module Rabl
     #  config.enable_json_callbacks = true
     # end
     def configure(&block)
-      yield(self.configuration)
+      yield(configuration)
+      configuration
     end
 
     # Returns the configuration options set for RABL
