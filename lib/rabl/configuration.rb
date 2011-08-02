@@ -19,9 +19,9 @@ module Rabl
       @xml_options           = {}
     end
 
-    # Returns the multi_json engine for use with RABL
+    # @return The JSON engine used to encode Rabl templates into JSON
     def json_engine
-      @json_engine || MultiJson.engine
+      MultiJson.engine
     end
 
     # Allows config options to be read like a hash
