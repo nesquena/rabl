@@ -20,10 +20,10 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency 'multi_json',           '~> 1.0.3'
-  s.add_dependency 'active_support',       '>= 2.3'
+  s.add_dependency 'active_support',       '~> 3.0'
 
-  s.add_development_dependency 'riot',     '~>0.12.3'
-  s.add_development_dependency 'rr',       '~>1.0.2'
+  s.add_development_dependency 'riot',     '~> 0.12.3'
+  s.add_development_dependency 'rr',       '~> 1.0.2'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'tilt'
   s.add_development_dependency 'yajl-ruby'
