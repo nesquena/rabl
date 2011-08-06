@@ -8,3 +8,6 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
   test.ruby_opts = ['-rubygems']
 end
+
+desc "Run tests for rabl"
+task :default => :test
