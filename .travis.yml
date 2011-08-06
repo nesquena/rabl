@@ -1,0 +1,11 @@
+# http://about.travis-ci.org/docs/user/build-configuration/
+before_script: "git submodule update --init"
+rvm:
+  - 1.8.7
+  - 1.9.2
+  - rbx
+  - ree
+  - jruby
+notifications:
+  recipients:
+    - nesquena@gmail.com
