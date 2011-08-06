@@ -5,7 +5,6 @@ rvm:
   - 1.9.2
   - rbx
   - ree
-  - jruby
 notifications:
   recipients:
     - nesquena@gmail.com

@@ -327,7 +327,7 @@ context "Rabl::Engine" do
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         template.render(scope)
-      end.equals "{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}"
+      end.equals "{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}".split('').sort
 
       asserts "that it can create a child node with different key" do
         template = rabl %{
