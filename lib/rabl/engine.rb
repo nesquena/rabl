@@ -42,7 +42,7 @@ module Rabl
     def to_json(options={})
       include_root = Rabl.configuration.include_json_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
+      result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
       format_json result
     end
 

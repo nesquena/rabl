@@ -20,7 +20,7 @@ module Rabl
       if data.respond_to?(:first)
         data_name(data.first).pluralize
       else # actual data object
-        object_name = @_collection_name.to_s.singularize if @_collection_name
+        object_name = @_collection_name.to_s.singularize if defined? @_collection_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
         object_name
       end
