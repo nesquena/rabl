@@ -46,6 +46,15 @@ module Rabl
       format_json result
     end
 
+    # Returns a msgpack representation of the data object
+    # to_msgpack(:root => true)
+    def to_msgpack(options={})
+      include_root = Rabl.configuration.include_msgpack_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
+      Rabl.configuration.msgpack_engine.pack result
+    end
+
     # Returns an xml representation of the data object
     # to_xml(:root => true)
     def to_xml(options={})
