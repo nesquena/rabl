@@ -134,9 +134,10 @@ module Rabl
     # Returns a guess at the default object for this template
     # default_object => @user
     def default_object
-      @_scope.respond_to?(:controller) ?
-        instance_variable_get("@#{@_scope.controller.controller_name}") :
-        nil
+      if @_scope.respond_to?(:controller)
+        full_name = @_scope.controller.controller_name
+        instance_variable_get("@#{ full_name.split("::").last }")
+      end
     end
 
     # Returns a guess at the format in this scope

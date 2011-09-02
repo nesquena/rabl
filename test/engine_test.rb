@@ -47,6 +47,7 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":{}}"
 
+
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
           object @other
@@ -55,6 +56,14 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@other, Ormless.new
         template.render(scope)
       end.equals "{\"ormless\":{}}"
+
+      asserts "that it works with nested controllers" do
+        template = rabl ""
+        scope = NestedScope::User.new
+        scope.instance_variable_set :@user, User.new
+        template.render(scope)
+      end.matches "{}"
+
     end
 
     context "#collection" do

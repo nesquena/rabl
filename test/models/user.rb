@@ -11,3 +11,10 @@ class User
     self.name = attributes[:name] || DEFAULT_NAME
   end
 end
+
+module NestedScope
+  class User
+    def controller; self; end
+    def controller_name; self.class.name.downcase; end
+  end
+end
