@@ -138,6 +138,13 @@ context "Rabl::Engine" do
         }
         template.render(Object.new)
       end.equals "{\"foo\":\"bar\"}"
+      
+      asserts "that it can create an arbitraty code node in hash syntax" do
+        template = rabl %{
+          code :foo => 'bar'
+        }
+        template.render(Object.new)
+      end.equals "{\"foo\":\"bar\"}"
 
       asserts "that it can be passed conditionals" do
         template = rabl %{

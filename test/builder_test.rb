@@ -91,6 +91,11 @@ context "Rabl::Builder" do
       topic.code(:foo) { "bar" }
       get_result(topic)
     end.equivalent_to({:foo => 'bar'})
+    
+    asserts "that it has node :foo setted in hash style" do
+      topic.code :foo => 'bar'
+      get_result(topic)
+    end.equivalent_to({:foo => 'bar'})
 
     asserts "that using object it has node :boo" do
       topic.code(:baz) { |u| u.city }
