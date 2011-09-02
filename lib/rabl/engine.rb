@@ -49,7 +49,7 @@ module Rabl
     def to_msgpack(options={})
       include_root = Rabl.configuration.include_msgpack_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = @_collection_name ? { @_collection_name => to_hash(options) } : to_hash(options)
+      result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
       Rabl.configuration.msgpack_engine.pack result
     end
 
