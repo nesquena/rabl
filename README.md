@@ -87,7 +87,9 @@ RABL is intended to require little to no configuration to get working. This is t
 Rabl.configure do |config|
   # Commented as these are the defaults
   # config.json_engine = nil # Any multi\_json engines
+  # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.include_json_root = true
+  # config.include_msgpack_root = true
   # config.include_xml_root  = false
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
@@ -104,6 +106,32 @@ gem 'yajl-ruby', :require => "yajl"
 ```
 
 and RABL will automatically start using that engine for encoding your JSON responses!
+
+### Message Pack ###
+
+Rabl also includes optional support for [Message Pack](http://www.msgpack.org/) serialization format using the [msgpack gem](https://rubygems.org/gems/msgpack).
+To enable, include the msgpack gem in your project's Gemfile. Then use Rabl as normal with the `msgpack` format (akin to json and xml formats).
+
+```ruby
+# Gemfile
+gem 'msgpack', '~> 0.4.5'
+```
+
+One can additionally use a custom Message Pack implementation by setting the Rabl `msgpack_engine` configuration attribute. This custom message pack engine must conform to the MessagePack#pack method signature.
+
+```ruby
+class CustomEncodeEngine
+  def self.pack string
+    # Custom Encoding by your own engine.
+  end
+end
+
+Rabl.configure do |config|
+  config.msgpack_engine = CustomEncodeEngine
+end
+```
+
+*NOTE*: Attempting to render the msgpack format without either including the msgpack gem or setting a `msgpack_engine` will cause an exception to be raised.
 
 ## Usage ##
 

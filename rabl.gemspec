@@ -27,4 +27,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'tilt'
   s.add_development_dependency 'bson_ext'
   s.add_development_dependency 'yajl-ruby'
+  s.add_development_dependency 'msgpack', '~> 0.4.5'
 end
