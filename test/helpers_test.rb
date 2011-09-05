@@ -28,4 +28,20 @@ context "Rabl::Helpers" do
     asserts(:last).equals "content_v1\n"
     teardown { Object.send(:remove_const, :Rails) }
   end
+
+  context "fetch_source" do
+    setup do
+      Rails = stub(Class.new)
+      Dir.mktmpdir do |dir|
+        tmp_path = Pathname.new(dir)
+        Rails.root.returns(tmp_path)
+        File.open(tmp_path + "test.rabl", "w") do |f|
+          f.puts "content"
+        end
+        [TestHelper.new.fetch_source('test', :view_path => tmp_path.to_s)]
+      end
+    end
+    asserts('detects file.rabl') { topic.first }.equals "content\n"
+    teardown { Object.send(:remove_const, :Rails) }
+  end
 end
