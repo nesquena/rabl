@@ -29,8 +29,8 @@ module Rabl
     # Renders a partial hash based on another rabl template
     # partial("users/show", :object => @user)
     def partial(file, options={}, &block)
-      source = self.fetch_source(file, options)
-      self.object_to_hash(options[:object], :source => source, &block)
+      source, location = self.fetch_source(file, options)
+      self.object_to_hash(options[:object], :source => source, :source_location => location, &block)
     end
 
     # Returns a hash based representation of any data object given ejs template block
@@ -38,7 +38,7 @@ module Rabl
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
     def object_to_hash(object, options={}, &block)
       return object unless is_object?(object)
-      engine_options = { :format => "hash", :root => (options[:root] || false) }
+      engine_options = { :format => "hash", :root => (options[:root] || false), :source_location => options[:source_location]}
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
 
@@ -74,7 +74,12 @@ module Rabl
         # Padrino chops the extension, stitch it back on
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
       end
-      File.read(file_path.to_s) if file_path
+      
+      if file_path
+        return File.read(file_path.to_s), file_path.to_s
+      else 
+        nil
+      end
     end
   end
 end
