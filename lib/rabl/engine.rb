@@ -17,7 +17,11 @@ module Rabl
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
-      instance_eval(@_source) if @_source.present?
+      if @_options[:source_location]
+        instance_eval(@_source, @_options[:source_location]) if @_source.present?
+      else
+        instance_eval(@_source) if @_source.present?
+      end
       instance_eval(&block) if block_given?
       self.send("to_" + @_options[:format].to_s)
     end
