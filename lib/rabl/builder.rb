@@ -71,7 +71,11 @@ module Rabl
     # child(@users => :people) { ... }
     def child(data, options={}, &block)
       return false unless data.present?
-      name, object = data_name(data), data_object(data)
+      if options[:args]
+        name, object = data_name(data, options[:args]), data_object(data, options[:args])
+      else
+        name, object = data_name(data), data_object(data)
+      end
       include_root = !is_object?(object) && @options[:child_root] # child @users
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
       @_result[name] = self.object_to_hash(object, :root => include_root, &block) if resolve_condition(options)

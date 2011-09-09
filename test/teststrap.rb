@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "lib"))
+
 module Kernel
   def silence_warnings
     with_warnings(nil) { yield }
