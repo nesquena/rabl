@@ -172,6 +172,76 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
 
       end.equals "{\"user\":{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}}".split('').sort
+      
+      asserts "that it can create a child node with a single argument" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:set_age, :args => 27) { attribute :age }
+        }
+        scope = Object.new
+        @user = User.new(:name => 'leo', :city => 'LA')
+        @user.define_singleton_method(:set_age) do |age|
+          self.age = age
+          self
+        end
+        scope.instance_variable_set :@user, @user
+        template.render(scope).split('').sort
+        
+      end.equals "{\"user\":{\"name\":\"leo\",\"user\":{\"age\":27}}}".split('').sort
+      
+      asserts "that it can create a child node with an argument that is an array" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:set_random_age, :args => [[18,27]]) { attribute :age }
+        }
+        scope = Object.new
+        @user = User.new(:name => 'leo', :city => 'LA')
+        @user.define_singleton_method(:set_random_age) do |ages|
+          self.age = ages[rand(ages.size)]
+          self
+        end
+        scope.instance_variable_set :@user, @user
+        result = template.render(scope).split('').sort
+        result == "{\"user\":{\"name\":\"leo\",\"user\":{\"age\":18}}}".split('').sort || 
+                  "{\"user\":{\"name\":\"leo\",\"user\":{\"age\":27}}}".split('').sort
+      end
+      
+      asserts "that it can create a child node with multiple arguments" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:set_age_and_city, :args => [27, "Shreveport"]) { attributes :age, :city }
+        }
+        scope = Object.new
+        @user = User.new(:name => 'leo', :city => 'LA')
+        @user.define_singleton_method(:set_age_and_city) do |age, city|
+          self.age = age
+          self.city = city
+          self
+        end
+        scope.instance_variable_set :@user, @user
+        template.render(scope).split('').sort
+        
+      end.equals "{\"user\":{\"name\":\"leo\",\"user\":{\"age\":27,\"city\":\"Shreveport\"}}}".split('').sort
+      
+      asserts "that it can create a child node with an argument with a different key" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child({ :set_age => :person }, { :args => 27 }) { attribute :age }
+        }
+        scope = Object.new
+        @user = User.new(:name => 'leo', :city => 'LA')
+        @user.define_singleton_method(:set_age) do |age|
+          self.age = age
+          self
+        end
+        scope.instance_variable_set :@user, @user
+        template.render(scope).split('').sort
+        
+      end.equals "{\"user\":{\"name\":\"leo\",\"person\":{\"age\":27}}}".split('').sort
     end
 
     context "#glue" do

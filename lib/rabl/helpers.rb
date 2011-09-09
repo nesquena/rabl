@@ -3,9 +3,12 @@ module Rabl
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
     # data_object(:user => :person) => @_object.send(:user)
-    def data_object(data)
+    # data_object(:get_user => :person, 1) => @_object.send(:get_user, 1)
+    # data_object(:get_users => :person, [1,2]) => @_object.send(:get_users, 1, 2)
+    # data_object(:get_users => :person, [[1,2]]) => @_object.send(:get_users, [1,2])
+    def data_object(data, args=[])
       data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && @_object ? @_object.send(data) : data
+      data.is_a?(Symbol) && @_object ? @_object.send(data, *args) : data
     end
 
     # data_name(data) => "user"
@@ -13,10 +16,10 @@ module Rabl
     # data_name(@users) => :user
     # data_name([@user]) => "user"
     # data_name([]) => "array"
-    def data_name(data)
+    def data_name(data, args=[])
       return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
+      data = @_object.send(data, *args) if data.is_a?(Symbol) && @_object # :address
       if data.respond_to?(:first)
         data_name(data.first).pluralize
       else # actual data object
