@@ -79,12 +79,12 @@ context "Rabl::Engine" do
 
       asserts "that it sets root node for objects" do
         template = rabl %{
-          collection @users => :person
+          collection @users => :people
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope)
-      end.equals "{\"person\":[{\"person\":{}},{\"person\":{}}]}"
+      end.equals "{\"people\":[{\"person\":{}},{\"person\":{}}]}"
 
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
