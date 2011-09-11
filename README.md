@@ -355,6 +355,12 @@ Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full l
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
 
+## Continuous Integration
+
+[![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.png)](http://travis-ci.org/nesquena/rabl)
+
+CI is hosted by [travis-ci.org](http://travis-ci.org).
+
 ## Authors and Contributors ##
 
 Thanks to [Miso](http://gomiso.com) for allowing me to create this for our applications and release this project!
