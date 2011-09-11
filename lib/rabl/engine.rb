@@ -33,7 +33,7 @@ module Rabl
       data = data_object(@_data)
       if is_object?(data) || !data # object @user
         Rabl::Builder.new(@_data, options).to_hash(options)
-      elsif !is_object?(data) # collection @users
+      elsif is_collection?(data) # collection @users
         object_name = data_name(@_data).to_s.singularize # @users => :users
         data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
       end

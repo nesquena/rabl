@@ -52,12 +52,17 @@ module Rabl
       result
     end
 
-    # Returns true if item is not enumerable
+    # Returns true if obj is not enumerable
     # is_object?(@user) => true
     # is_object?([]) => false
     # is_object?({}) => false
     def is_object?(obj)
       obj && !data_object(obj).is_a?(Enumerable)
+    end
+
+    # Returns true if the obj is a collection of items
+    def is_collection?(obj)
+      obj && data_object(obj).is_a?(Enumerable)
     end
 
     # Returns source for a given relative file
@@ -74,10 +79,10 @@ module Rabl
         # Padrino chops the extension, stitch it back on
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
       end
-      
+
       if file_path
         return File.read(file_path.to_s), file_path.to_s
-      else 
+      else
         nil
       end
     end
