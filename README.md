@@ -26,6 +26,8 @@ or add to your Gemfile:
 ```ruby
 # Gemfile
 gem 'rabl'
+# Also add either `json` or `yajl-ruby` as the JSON parser
+gem 'yajl-ruby'
 ```
 
 and run `bundle install` to install the dependency.
