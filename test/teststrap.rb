@@ -16,22 +16,17 @@ end unless Kernel.respond_to? :silence_warnings
 silence_warnings do
   require 'riot'
   require 'riot/rr'
-  require 'mongo'
-  require 'mongoid'
   require 'tilt'
+  require File.expand_path('../../lib/rabl',__FILE__)
 end
-
-
-require 'riot'
-require 'riot/rr'
-require 'tilt'
-require File.expand_path('../../lib/rabl',__FILE__)
 
 Riot.pretty_dots
 
 class Riot::Situation
+  # Custom situation code here
 end
 
 class Riot::Context
+  # Custom context code here
 end
 

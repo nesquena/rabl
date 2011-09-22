@@ -26,6 +26,8 @@ or add to your Gemfile:
 ```ruby
 # Gemfile
 gem 'rabl'
+# Also add either `json` or `yajl-ruby` as the JSON parser
+gem 'yajl-ruby'
 ```
 
 and run `bundle install` to install the dependency.
@@ -354,6 +356,12 @@ Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full l
 
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
+
+## Continuous Integration
+
+[![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.png)](http://travis-ci.org/nesquena/rabl)
+
+CI is hosted by [travis-ci.org](http://travis-ci.org).
 
 ## Authors and Contributors ##
 

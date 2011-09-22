@@ -32,8 +32,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new
-        template.render(scope)
-      end.equals "\x81\xA6person\x80"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA6person\x80".split("").sort
     end
 
     context "#collection" do
@@ -44,8 +44,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
-        template.render(scope)
-      end.equals "\x92\x81\xA4user\x80\x81\xA4user\x80"
+        template.render(scope).split("").sort
+      end.equals "\x92\x81\xA4user\x80\x81\xA4user\x80".split("").sort
 
       asserts "that it sets root node for objects" do
         template = rabl %{
@@ -53,8 +53,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
-        template.render(scope)
-      end.equals "\x81\xA6person\x92\x81\xA6person\x80\x81\xA6person\x80"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA6person\x92\x81\xA6person\x80\x81\xA6person\x80".split("").sort
 
     end
 
@@ -67,8 +67,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "\x81\xA4user\x81\xA4name\xA6irvine"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4user\x81\xA4name\xA6irvine".split("").sort
 
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
@@ -77,8 +77,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "\x81\xA4user\x81\xA4city\xA6irvine"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4user\x81\xA4city\xA6irvine".split("").sort
 
       asserts "that it can add attribute under a different key name through hash" do
         template = rabl %{
@@ -87,8 +87,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "\x81\xA4user\x81\xA4city\xA6irvine"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4user\x81\xA4city\xA6irvine".split("").sort
 
     end
 
@@ -98,15 +98,15 @@ context "Rabl::Engine" do
         template = rabl %{
           code(:foo) { 'bar' }
         }
-        template.render(Object.new)
-      end.equals "\x81\xA3foo\xA3bar"
+        template.render(Object.new).split("").sort
+      end.equals "\x81\xA3foo\xA3bar".split("").sort
 
       asserts "that it can be passed conditionals" do
         template = rabl %{
           code(:foo, :if => lambda { |i| false }) { 'bar' }
         }
-        template.render(Object.new)
-      end.equals "\x80"
+        template.render(Object.new).split("").sort
+      end.equals "\x80".split("").sort
 
     end
 
@@ -120,8 +120,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
-        template.render(scope)
-      end.equals "\x81\xA4user\x82\xA4name\xA3leo\xA4user\x81\xA4city\xA2LA"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4user\x82\xA4name\xA3leo\xA4user\x81\xA4city\xA2LA".split("").sort
 
       asserts "that it can create a child node with different key" do
         template = rabl %{
@@ -131,9 +131,9 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
-        template.render(scope)
+        template.render(scope).split("").sort
 
-      end.equals "\x81\xA4user\x82\xA4name\xA3leo\xA6person\x81\xA4city\xA2LA"
+      end.equals "\x81\xA4user\x82\xA4name\xA3leo\xA6person\x81\xA4city\xA2LA".split("").sort
     end
 
     context "#glue" do
@@ -147,8 +147,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
-        template.render(scope)
-      end.equals "\x81\xA4user\x83\xA4name\xA3leo\xA4city\xA2LA\xA3age\f"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4user\x83\xA4name\xA3leo\xA4city\xA2LA\xA3age\f".split("").sort
     end
 
     teardown do
@@ -219,8 +219,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
-        template.render(scope)
-      end.equals "\x92\x80\x80"
+        template.render(scope).split("").sort
+      end.equals "\x92\x80\x80".split("").sort
 
       asserts "that it sets root node for objects" do
         template = rabl %{
@@ -228,8 +228,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
-        template.render(scope)
-      end.equals "\x81\xA6person\x92\x80\x80"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA6person\x92\x80\x80".split("").sort
 
     end
 
@@ -242,8 +242,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "\x81\xA4name\xA6irvine"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4name\xA6irvine".split("").sort
 
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
@@ -252,8 +252,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "\x81\xA4city\xA6irvine"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4city\xA6irvine".split("").sort
 
       asserts "that it can add attribute under a different key name through hash" do
         template = rabl %{
@@ -262,8 +262,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "\x81\xA4city\xA6irvine"
+        template.render(scope).split("").sort
+      end.equals "\x81\xA4city\xA6irvine".split("").sort
 
     end
 
@@ -273,15 +273,15 @@ context "Rabl::Engine" do
         template = rabl %{
           code(:foo) { 'bar' }
         }
-        template.render(Object.new)
-      end.equals "\x81\xA3foo\xA3bar"
+        template.render(Object.new).split("").sort
+      end.equals "\x81\xA3foo\xA3bar".split("").sort
 
       asserts "that it can be passed conditionals" do
         template = rabl %{
           code(:foo, :if => lambda { |i| false }) { 'bar' }
         }
-        template.render(Object.new)
-      end.equals "\x80"
+        template.render(Object.new).split("").sort
+      end.equals "\x80".split("").sort
 
     end
 
@@ -295,8 +295,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
-        template.render(scope)
-      end.equals "\x82\xA4name\xA3leo\xA4user\x81\xA4city\xA2LA"
+        template.render(scope).split("").sort
+      end.equals "\x82\xA4name\xA3leo\xA4user\x81\xA4city\xA2LA".split("").sort
 
       asserts "that it can create a child node with different key" do
         template = rabl %{
@@ -306,9 +306,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
-        template.render(scope)
-
-      end.equals "\x82\xA4name\xA3leo\xA6person\x81\xA4city\xA2LA"
+        template.render(scope).split("").sort
+      end.equals "\x82\xA4name\xA3leo\xA6person\x81\xA4city\xA2LA".split("").sort
     end
 
     context "#glue" do
@@ -322,8 +321,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
-        template.render(scope)
-      end.equals "\x83\xA4name\xA3leo\xA4city\xA2LA\xA3age\f"
+        template.render(scope).split("").sort
+      end.equals "\x83\xA4name\xA3leo\xA4city\xA2LA\xA3age\f".split("").sort
     end
 
     teardown do
