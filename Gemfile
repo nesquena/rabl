@@ -4,6 +4,8 @@ source "http://rubygems.org"
 gemspec
 
 gem "rake"
+gem "i18n"
+
 platforms :mri_18 do
   gem 'SystemTimer'
 end
