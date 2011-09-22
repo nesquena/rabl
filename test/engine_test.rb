@@ -105,8 +105,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "{\"user\":{\"name\":\"irvine\"}}"
+        template.render(scope).split('').sort
+      end.equals "{\"user\":{\"name\":\"irvine\"}}".split('').sort
 
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
@@ -115,8 +115,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "{\"user\":{\"city\":\"irvine\"}}"
+        template.render(scope).split('').sort
+      end.equals "{\"user\":{\"city\":\"irvine\"}}".split('').sort
 
       asserts "that it can add attribute under a different key name through hash" do
         template = rabl %{
@@ -125,8 +125,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
-        template.render(scope)
-      end.equals "{\"user\":{\"city\":\"irvine\"}}"
+        template.render(scope).split('').sort
+      end.equals "{\"user\":{\"city\":\"irvine\"}}".split('').sort
 
     end
 
@@ -136,8 +136,8 @@ context "Rabl::Engine" do
         template = rabl %{
           code(:foo) { 'bar' }
         }
-        template.render(Object.new)
-      end.equals "{\"foo\":\"bar\"}"
+        template.render(Object.new).split('').sort
+      end.equals "{\"foo\":\"bar\"}".split('').sort
 
       asserts "that it can be passed conditionals" do
         template = rabl %{
