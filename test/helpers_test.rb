@@ -11,8 +11,8 @@ context "Rabl::Helpers" do
     helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
     
     setup do
-      Rails = stub(Class.new)
-      Rails.root.returns(tmp_path)
+      ::Rails = stub(Class.new)
+      ::Rails.root.returns(tmp_path)
       File.open(tmp_path + "test.json.rabl", "w") do |f|
         f.puts "content"
       end
@@ -33,8 +33,8 @@ context "Rabl::Helpers" do
     helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
 
     setup do
-      Rails = stub(Class.new)
-      Rails.root.returns(tmp_path)
+      ::Rails = stub(Class.new)
+      ::Rails.root.returns(tmp_path)
       File.open(tmp_path + "test.rabl", "w") do |f|
         f.puts "content"
       end
@@ -50,8 +50,8 @@ context "Rabl::Helpers" do
     helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
 
     setup do
-      Rails = stub(Class.new)
-      Rails.root.returns(tmp_path)
+      ::Rails = stub(Class.new)
+      ::Rails.root.returns(tmp_path)
       File.open(tmp_path + "test.rabl", "w") do |f|
         f.puts "content"
       end
