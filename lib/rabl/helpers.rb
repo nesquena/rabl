@@ -71,7 +71,7 @@ module Rabl
       if defined? Rails
         root_path = Rails.root
         view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + ".*.rabl")].first
+        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
       elsif defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
