@@ -68,10 +68,11 @@ module Rabl
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
+      format = "{.#{@options[:format]},}" rescue ''
       if defined? Rails
         root_path = Rails.root
         view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + ".rabl")].first
+        file_path = Dir[File.join(view_path, file + "#{format}.rabl")].first
       elsif defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
