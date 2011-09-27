@@ -71,7 +71,7 @@ module Rabl
       if defined? Rails
         root_path = Rails.root
         view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
+        file_path = Dir[File.join(view_path, file + ".rabl")].first
       elsif defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
@@ -80,11 +80,7 @@ module Rabl
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
       end
 
-      if file_path
-        return File.read(file_path.to_s), file_path.to_s
-      else
-        nil
-      end
+      return File.read(file_path.to_s), file_path.to_s if file_path
     end
   end
 end
