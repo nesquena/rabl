@@ -5,7 +5,6 @@ gemspec
 
 gem "rake"
 gem "i18n"
-gem "msgpack"
 
 platforms :mri_18 do
   gem 'SystemTimer'
