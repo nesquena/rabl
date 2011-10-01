@@ -1,0 +1,20 @@
+source :rubygems
+
+# Server requirements
+gem 'thin'
+
+# Project requirements
+gem 'rake'
+
+# Component requirements
+gem 'haml'
+gem 'activerecord', :require => "active_record"
+gem 'sqlite3'
+
+# Test requirements
+gem 'riot', :group => "test"
+gem 'rack-test', :require => "rack/test", :group => "test"
+
+# Padrino
+gem 'padrino', '0.10.2'
+gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../../")
