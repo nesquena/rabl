@@ -131,7 +131,7 @@ context "Rabl::Builder" do
     asserts "that it generates with an collection and child_root" do
       b = builder @user, { :child_root => true }
       mock(b).data_name(@users) { :users }
-      mock(b).object_to_hash(@users,{ :root => true }).returns('xyz').subject
+      mock(b).object_to_hash(@users,{ :root => true, :child_root => true }).returns('xyz').subject
 
       b.child(@users) { attribute :name }
       get_result(b)
@@ -140,7 +140,7 @@ context "Rabl::Builder" do
     asserts "that it generates with an collection and no child root" do
       b = builder @user, { :child_root => false }
       mock(b).data_name(@users) { :users }
-      mock(b).object_to_hash(@users,{ :root => false }).returns('xyz').subject
+      mock(b).object_to_hash(@users,{ :root => false, :child_root => false }).returns('xyz').subject
 
       b.child(@users) { attribute :name }
       get_result(b)
