@@ -37,7 +37,7 @@ module Rabl
     # object_to_hash(@user) { attribute :full_name } => { ... }
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
     def object_to_hash(object, options={}, &block)
-      return object unless is_object?(object)
+      return object unless is_object?(object) || is_collection?(object)
       engine_options = { :format => "hash", :root => (options[:root] || false), :source_location => options[:source_location]}
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
