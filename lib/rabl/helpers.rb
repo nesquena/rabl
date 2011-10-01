@@ -28,17 +28,23 @@ module Rabl
 
     # Renders a partial hash based on another rabl template
     # partial("users/show", :object => @user)
+    # options must have :object
+    # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
-      source, location = self.fetch_source(file, options)
-      self.object_to_hash(options[:object], :source => source, :source_location => location, &block)
+      object, view_path = options.delete(:object), options.delete(:view_path)
+      source, location = self.fetch_source(file, :view_path => view_path)
+      engine_options = options.merge(:source => source, :source_location => location)
+      self.object_to_hash(object, engine_options, &block)
     end
 
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
+    # options must have :source (rabl file contents)
+    # options can have :source_location (source filename)
     def object_to_hash(object, options={}, &block)
       return object unless is_object?(object) || is_collection?(object)
-      engine_options = { :format => "hash", :root => (options[:root] || false), :source_location => options[:source_location]}
+      engine_options = options.merge(:format => "hash", :root => (options[:root] || false))
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
 
@@ -82,7 +88,7 @@ module Rabl
 
       if file_path
         return File.read(file_path.to_s), file_path.to_s
-      else
+      else # no file path specified
         nil
       end
     end
