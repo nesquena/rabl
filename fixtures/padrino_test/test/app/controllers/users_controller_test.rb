@@ -1,8 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../test_config.rb')
 
 context "UsersController" do
-  helper(:pn!) { |ops|
-    PhoneNumber.create!(ops.merge()) }
   helper(:json_output) { JSON.parse(last_response.body) }
   user1 = User.create!(:username => "billybob", :email => "billy@bob.com", :location => "SF", :is_admin => false)
   user2 = User.create!(:username => "joefrank", :email => "joe@frank.com", :location => "LA", :is_admin => false)
@@ -40,14 +38,17 @@ context "UsersController" do
     end.equals ['normal', 'normal', 'admin']
 
     asserts("contains formatted phone numbers") do
-      json_output.map { |u| u["user"]["pnumbers"].map { |n| n["formatted"] } }
+      json_output.map { |u| u["user"]["pnumbers"].map { |n| n["pnumber"]["formatted"] } }
+    end.equals users.map { |u| u.phone_numbers.map(&:formatted) }
+
+    asserts("contains formatted node numbers") do
+      json_output.map { |u| u["user"]["node_numbers"].map { |n| n["formatted"] } }
     end.equals users.map { |u| u.phone_numbers.map(&:formatted) }
   end # index
 
   context "for show action" do
     setup do
       get "/users/#{user1.id}"
-      # puts "J: " + json_output.inspect
     end
 
     asserts("contains username") { json_output["user"]["username"] }.equals user1.username
@@ -55,11 +56,19 @@ context "UsersController" do
     asserts("contains location") { json_output["user"]["location"] }.equals user1.location
     asserts("contains registered_at") { json_output["user"]["registered_at"] }.equals user1.created_at.iso8601
     asserts("contains role node") { json_output["user"]["role"] }.equals "normal"
+
     asserts("contains first phone number") {
       json_output["user"]["pnumbers"][0]["pnumber"]["formatted"]
     }.equals user1.phone_numbers[0].formatted
     asserts("contains second phone number") {
       json_output["user"]["pnumbers"][1]["pnumber"]["formatted"]
+    }.equals user1.phone_numbers[1].formatted
+
+    asserts("contains first node number") {
+      json_output["user"]["node_numbers"][0]["formatted"]
+    }.equals user1.phone_numbers[0].formatted
+    asserts("contains second node number") {
+      json_output["user"]["node_numbers"][1]["formatted"]
     }.equals user1.phone_numbers[1].formatted
   end # show
 end

@@ -10,3 +10,7 @@ end
 child :phone_numbers => :pnumbers do
   extends "users/phone_number"
 end
+
+node :node_numbers do |u|
+  partial("users/phone_number", :object => u.phone_numbers)
+end
