@@ -1,4 +1,4 @@
-object @user
+object @user => :person
 
 attributes :username, :email, :location
 attributes :created_at => :registered_at
