@@ -16,9 +16,16 @@ module Rabl
     def data_name(data)
       return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
+      if data.is_a?(Symbol)
+        symbolString = data.to_s.downcase
+        data = @_object.send(data) if @_object # :address
+      end
       if data.respond_to?(:first)
-        data_name(data.first).pluralize if data.first.present?
+        if data.first.present?
+          data_name(data.first).pluralize
+        else
+          symbolString
+        end
       else # actual data object
         object_name = @_collection_name.to_s.singularize if defined? @_collection_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
