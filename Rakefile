@@ -15,9 +15,10 @@ end
 task "test:full" => :test do
   Dir[File.dirname(__FILE__) + "/fixtures/{padrino_test,sinatra_test,rails2,rails3}"].each do |fixture|
     puts "\n*** Running tests for #{File.basename(fixture)}... ***\n"
+    `cd #{fixture}; bundle install;`
     puts `cd #{fixture}; bundle exec rake test:rabl`
   end
 end
 
 desc "Run tests for rabl"
-task :default => :test
+task :default => "test:full"
