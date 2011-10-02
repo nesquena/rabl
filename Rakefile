@@ -16,6 +16,7 @@ task "test:full" => :test do
   Dir[File.dirname(__FILE__) + "/fixtures/{padrino_test,sinatra_test,rails2,rails3}"].each do |fixture|
     puts "\n*** Running tests for #{File.basename(fixture)}... ***\n"
     `cd #{fixture}; bundle install;`
+    `export BUNDLE_GEMFILE=#{fixture}/Gemfile` if ENV['TRAVIS']
     puts `cd #{fixture}; bundle exec rake test:rabl`
   end
 end
