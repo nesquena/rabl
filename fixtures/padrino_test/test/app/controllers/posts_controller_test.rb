@@ -49,30 +49,53 @@ context "PostsController" do
     asserts("contains glued usernames") do
       json_output['articles'].map { |o| o["article"]["author_name"] }
     end.equals { @posts.map(&:user).map(&:username) }
-  end
+
+    # Conditional Child (admin)
+    asserts("contains admin child only for admins") do
+      json_output['articles'].map { |o| o["article"]["admin"]["username"] if o["article"].has_key?("admin") }.compact
+    end.equals { [@user3.username] }
+
+    # Conditional Node (created_by_admin)
+    asserts("contains created_by_admin node for admins") do
+      json_output['articles'].last['article']['created_by_admin']
+    end.equals { true }
+
+    denies("contains no created_by_admin node for non-admins") do
+      json_output['articles'].first['article']
+    end.includes(:created_by_admin)
+  end # index action
 
   context "for show action" do
     setup do
       get "/posts/#{@post1.id}"
+      json_output['post']
     end
 
      # Attributes (regular)
-    asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
-    asserts("contains post body")  { json_output['post']['body'] }.equals { @post1.body }
+    asserts("contains post title") { topic['title'] }.equals { @post1.title }
+    asserts("contains post body")  { topic['body'] }.equals { @post1.body }
 
     # Attributes (custom name)
-    asserts("contains post posted_at") { json_output['post']['posted_at'] }.equals { @post1.created_at.iso8601 }
+    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.iso8601 }
 
     # Child
-    asserts("contains post user child username") { json_output["post"]["user"]["username"] }.equals { @post1.user.username }
-    asserts("contains post user child role") { json_output["post"]["user"]["role"] }.equals { "normal" }
+    asserts("contains post user child username") { topic["user"]["username"] }.equals { @post1.user.username }
+    asserts("contains post user child role") { topic["user"]["role"] }.equals { "normal" }
 
     # Child Numbers of the Child User
     asserts("contains post user child numbers") do
-      json_output["post"]["user"]["pnumbers"][0]["pnumber"]["formatted"]
+      topic["user"]["pnumbers"][0]["pnumber"]["formatted"]
     end.equals { @post1.user.phone_numbers[0].formatted }
 
     # Glue (username to article)
-    asserts("contains glued username") { json_output['post']["author_name"] }.equals { @post1.user.username }
-  end
+    asserts("contains glued username") { topic["author_name"] }.equals { @post1.user.username }
+
+    # Non-ORM Date Node Partial
+    context "for date node" do
+      setup { json_output['post']['created_date'] }
+      asserts("contains date partial with day")   { topic['day'] }.equals { @post1.created_at.day }
+      asserts("contains date partial with hour")  { topic['hour'] }.equals { @post1.created_at.hour }
+      asserts("contains date partial with full")  { topic['full'] }.equals { @post1.created_at.iso8601 }
+    end # date node
+  end # show action
 end

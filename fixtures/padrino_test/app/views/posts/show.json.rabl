@@ -10,3 +10,7 @@ end
 glue :user do
   attributes :username => :author_name
 end
+
+code(:created_date) do |p|
+  partial("posts/date", :object => p.created_at)
+end
