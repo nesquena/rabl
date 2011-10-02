@@ -1,0 +1,35 @@
+# Padrino
+
+cd fixtures/padrino_test
+ln -s "../ashared/models" models
+ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/migrate" db/migrate
+ln ../../test/integration/posts_controller_test.rb test/app/controllers/posts_controller_test.rb
+ln ../../test/integration/users_controller_test.rb test/app/controllers/users_controller_test.rb
+
+# Rails 2
+
+cd fixtures/rails2
+ln -s "../../ashared/models" app/models
+ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/migrate" db/migrate
+ln ../../test/integration/posts_controller_test.rb test/functionals/posts_controller_test.rb
+ln ../../test/integration/users_controller_test.rb test/functionals/users_controller_test.rb
+
+# Rails 3
+
+cd fixtures/rails3
+ln -s "../../ashared/models" app/models
+ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/migrate" db/migrate
+ln ../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln ../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
+
+# Sinatra
+
+cd fixtures/sinatra_test
+ln -s "../ashared/models" models
+ln -s "../ashared/views/" views
+ln -s "../../ashared/migrate" db/migrate
+ln ../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln ../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
