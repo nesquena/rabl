@@ -3,5 +3,5 @@
 .rvmrc
 Gemfile.lock
 pkg/*
-fixtures/*/log/*
+fixtures/rails2/log/*.log
 tags
