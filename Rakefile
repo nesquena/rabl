@@ -22,4 +22,4 @@ task "test:full" => :test do
 end
 
 desc "Run tests for rabl"
-task :default => "test:full"
+task :default => :test
