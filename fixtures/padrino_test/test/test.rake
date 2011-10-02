@@ -11,3 +11,8 @@ end
 
 desc "Run application test suite"
 task 'test' => test_tasks.map { |f| "test:#{f}" }
+
+Rake::TestTask.new("test:rabl") do |test|
+  test.pattern = "test/app/controllers/**/*_test.rb"
+  test.verbose = true
+end

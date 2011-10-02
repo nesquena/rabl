@@ -1,6 +1,6 @@
 PadrinoTest.controllers :posts do
   get :index do
-    @posts = Post.all
+    @posts = Post.order("id ASC")
     render "posts/index"
   end
 
