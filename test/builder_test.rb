@@ -62,10 +62,10 @@ context "Rabl::Builder" do
         get_result(topic)
       end.equivalent_to({:name => 'rabl', :city => 'irvine'})
 
-      denies "that with a non-existent attribute the node" do
+      asserts "that with a non-existent attribute the node" do
         topic.attribute :fake
         get_result(topic)[:fake]
-      end.exists
+      end.nil
 
     end
 
