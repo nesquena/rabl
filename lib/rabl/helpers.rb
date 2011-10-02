@@ -84,6 +84,9 @@ module Rabl
         file_path, _ = @_scope.instance_eval { resolve_template(file) }
         # Padrino chops the extension, stitch it back on
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
+      elsif defined? Sinatra
+        view_path = options[:view_path] || @_scope.settings.views
+        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
       end
 
       if file_path
