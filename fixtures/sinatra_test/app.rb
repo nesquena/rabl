@@ -3,6 +3,7 @@ require 'sinatra'
 require 'rabl'
 require 'active_support/core_ext'
 require 'active_support/inflector'
+require 'active_record'
 require 'builder'
 
 ActiveRecord::Base.establish_connection(

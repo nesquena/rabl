@@ -6,6 +6,7 @@ gem 'rails', '3.0.8'
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
 gem 'sqlite3'
+gem 'json'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 
 # TEST

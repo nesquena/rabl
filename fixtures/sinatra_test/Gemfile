@@ -5,6 +5,7 @@ gem 'activerecord', :require => "active_record"
 gem 'sqlite3'
 
 gem 'sinatra', '>= 1.2.0'
+gem 'json'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 
 # Test requirements

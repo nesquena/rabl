@@ -1,6 +1,7 @@
 source :gemcutter
 gem "rails", "~> 2.3.14"
 gem "sqlite3-ruby", :require => "sqlite3"
+gem 'json'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 
 gem 'riot', :group => "test"
