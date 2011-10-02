@@ -3,5 +3,5 @@
 .rvmrc
 Gemfile.lock
 pkg/*
-
+fixtures/*/log/*
 tags
