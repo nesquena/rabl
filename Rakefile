@@ -12,12 +12,12 @@ Rake::TestTask.new(:test) do |test|
   test.ruby_opts = ['-rubygems']
 end
 
-desc "Run tests for rabl"
-task :default => :test
-
 task "test:full" => :test do
-  Dir[File.dirname(__FILE__) + "/fixtures/{padrino_test,rails2}"].each do |fixture|
-    puts "Running tests for #{File.basename(fixture)}..."
+  Dir[File.dirname(__FILE__) + "/fixtures/{padrino_test,sinatra_test,rails2,rails3}"].each do |fixture|
+    puts "\n*** Running tests for #{File.basename(fixture)}... ***\n"
     puts `cd #{fixture}; bundle exec rake test:rabl`
   end
 end
+
+desc "Run tests for rabl"
+task :default => :test
