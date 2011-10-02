@@ -1,7 +1,11 @@
 # Lives in <rabl>/test/integration/posts_controller_test.rb
 # Symlinked to fixture applications
 
-require File.expand_path(File.dirname(__FILE__) + '/../../test_config.rb')
+begin # Sinatra
+  require File.expand_path(File.dirname(__FILE__) + '/../../test_config.rb')
+rescue LoadError # Rails
+  require File.expand_path(File.dirname(__FILE__) + '/../test_helper.rb')
+end
 
 context "PostsController" do
   helper(:json_output) { JSON.parse(last_response.body) }
