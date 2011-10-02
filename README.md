@@ -376,8 +376,10 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Anton Orel](https://github.com/skyeagle) - Added Rails 3.1 compatibility
 * [Sasha Koss](https://github.com/kossnocorp) - Added multi_json support
 * [Matthew Schulkind](https://github.com/mschulkind) - Cleanup of configuration and tests
+* [Luke van der Hoeven](https://github.com/plukevdh) - Support non-ORM objects in templates
 
-More to come hopefully! Please fork and contribute, any help is appreciated!
+and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
+Please fork and contribute, any help in making this project better is appreciated!
 
 ## Inspirations ##
 

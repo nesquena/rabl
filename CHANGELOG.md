@@ -6,16 +6,16 @@
  * Travis CI Integration Testing
  * Cleanup json configuration and related tests (Thanks mschulkind)
  * Adds CHANGELOG to track changes
- * Adds optional MessagePack format support (thanks ??)
+ * Adds optional MessagePack format support (thanks byu)
  * Explicit requires for ActiveSupport now in gemspec and lib
- * Adds template support for regular (non-ORM) ruby objects (thanks ??)
+ * Adds template support for regular (non-ORM) ruby objects (thanks plukevdh)
  * Fixes bug with the child root not properly appearing in all cases
- * Better stack traces by tracking source location in instance_eval (thanks ??)
- * Fix issue with controller object detection failing in namespaces (thanks ??)
+ * Better stack traces by tracking source location in instance_eval (thanks skade)
+ * Fix issue with controller object detection failing in namespaces (thanks alunny)
  * Fix ruby -w warnings (thanks achiu)
  * Better partial implementation which passes options
  * Better fetch_source implementation for Padrino (thanks skade)
- * Better fetch_source implementation for Rails (thanks ??)
+ * Better fetch_source implementation for Rails
  * Added fetch_source implementation for Sinatra
  * Lots of test refactorings / cleanup / improvement
 
