@@ -1,0 +1,35 @@
+Fixtures to test RABL:
+
+models:
+
+  user
+    t.string :username
+    t.string :email
+    t.string :location
+    t.boolean :is_admin
+    t.timestamps
+  posts
+    t.integer :user_id
+    t.string  :title
+    t.text    :body
+    t.timestamps
+  phone_number
+    t.integer :user_id
+    t.boolean :is_primary
+    t.string :area_code
+    t.string :prefix
+    t.string :suffix
+    t.string :name
+
+controllers:
+
+  users
+  posts
+
+layouts:
+
+  application.html.haml
+
+views:
+   posts (index, show, date)
+   users (index, show)
