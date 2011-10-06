@@ -108,8 +108,18 @@ module Rabl
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
     def child(data, options={}, &block)
-      @_options[:child] ||= []
-      @_options[:child].push({ :data => data, :options => options, :block => block })
+      # Renders a child object/collection using the partial template provided
+      # via the partial option. This cleans up the semantics and allows flexible re-use
+      # of partial in associations
+      if options[:partial]
+        node(data) do
+          object = data.is_a?(Symbol) ? @_data.send(data) : data
+          partial(options[:partial], options.merge(:object => object))
+        end
+      else
+        @_options[:child] ||= []
+        @_options[:child].push({ :data => data, :options => options, :block => block })
+      end
     end
 
     # Glues data from a child node to the json_output
