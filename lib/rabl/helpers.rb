@@ -77,7 +77,7 @@ module Rabl
     def fetch_source(file, options={})
       if defined? Rails
         template = controller.find_template(file, [], true)
-        file_path = template.inspect || nil
+        file_path = template ? Rails.root + template.inspect : nil
       elsif defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
