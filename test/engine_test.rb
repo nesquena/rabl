@@ -173,6 +173,20 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
 
       end.equals "{\"user\":{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}}".split('').sort
+
+      asserts "that it use real objects names" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:friends => :best_friends) { attribute :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA',
+                                                     :friends => [User.new(:name => 'My Friend')])
+        template.render(scope).split('').sort
+
+      end.equals "{\"user\":{\"best_friends\":[{\"user\":{\"name\":\"My Friend\"}}],\"name\":\"leo\"}}".split('').sort
+
     end
 
     context "#glue" do
