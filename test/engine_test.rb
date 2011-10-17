@@ -350,6 +350,20 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
 
       end.equals "{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}".split('').sort
+      
+      
+      asserts "that it can be passed conditionals" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child({:children => :children}, {:if => lambda { |@user| @user.respond_to?('children') }}) { attribute :test }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        template.render(scope).split('').sort
+        
+      end.equals "{\"name\":\"leo\"}".split('').sort
+      
     end
 
     context "#glue" do
