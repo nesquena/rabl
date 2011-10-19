@@ -146,6 +146,18 @@ context "Rabl::Engine" do
         }
         template.render(Object.new)
       end.equals "{}"
+      
+      asserts "that it can merge the result with a collection element given no name" do
+        template = rabl %{
+          collection @users
+          code do |user|
+            {:name => user.name}
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'a'), User.new(:name => 'b')]
+        template.render(scope)
+      end.equals "[{\"user\":{\"name\":\"a\"}},{\"user\":{\"name\":\"b\"}}]"
 
     end
 
