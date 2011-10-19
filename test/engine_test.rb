@@ -159,6 +159,21 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
       end.equals "[{\"user\":{\"name\":\"a\"}},{\"user\":{\"name\":\"b\"}}]".split('').sort
 
+      asserts "that it can merge the result on a child node given no name" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@user) do
+            code do |user|
+              {:city => user.city}
+            end
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        template.render(scope).split('').sort
+      end.equals "{\"user\":{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}}".split('').sort
+
     end
 
     context "#child" do
