@@ -58,11 +58,15 @@ module Rabl
     end
 
     # Returns an xml representation of the data object
-    # to_xml(:root => true)
+    # to_xml(:root => node)
     def to_xml(options={})
-      include_root = Rabl.configuration.include_xml_root
+      root = Rabl.configuration.include_xml_root
+      include_root = !!root
+      if !include_root || root === true
+        root = data_name(@_data)
+      end
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      xml_options = Rabl.configuration.default_xml_options.merge(:root => data_name(@_data))
+      xml_options = Rabl.configuration.default_xml_options.merge(:root => root)
       to_hash(options).to_xml(xml_options)
     end
 
