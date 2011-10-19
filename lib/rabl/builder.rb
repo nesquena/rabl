@@ -25,8 +25,8 @@ module Rabl
         attribute(attribute, :as => name)
       end if @options.has_key?(:attributes)
       # Code
-      @options[:code].each_pair do |name, settings|
-        code(name, settings[:options], &settings[:block])
+      @options[:code].each do |settings|
+        code(settings[:name], settings[:options], &settings[:block])
       end if @options.has_key?(:code)
       # Children
       @options[:child].each do |settings|
@@ -61,7 +61,13 @@ module Rabl
     # code(:foo) { "bar" }
     # code(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
     def code(name, options={}, &block)
-      @_result[name] = block.call(@_object) if resolve_condition(options)
+      return unless resolve_condition(options)
+      result = block.call(@_object)
+      if name.present?
+        @_result[name] = result
+      else
+        @_result.merge!(result) if result
+      end
     end
     alias_method :node, :code
 
