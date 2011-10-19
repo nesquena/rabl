@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.5.0 (Unreleased)
+## 0.5.1 (Unreleased)
+
+## 0.5.0
 
  * Adds comprehensive fixture suite (padrino,rails2,rails3,sinatra)
  * Travis CI Integration Testing
