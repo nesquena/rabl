@@ -112,10 +112,7 @@ module Rabl
       # via the partial option. This cleans up the semantics and allows flexible re-use
       # of partial in associations
       if options[:partial]
-        node(data) do
-          object = data.is_a?(Symbol) ? @_data.send(data) : data
-          partial(options[:partial], options.merge(:object => object))
-        end
+        child(data, option.reverse_merge(:partial => nil)) { extends options[:partial] }
       else
         @_options[:child] ||= []
         @_options[:child].push({ :data => data, :options => options, :block => block })
