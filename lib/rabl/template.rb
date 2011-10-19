@@ -56,8 +56,9 @@ if defined?(Rails) && Rails.version =~ /^3/
             template.source
           end
 
-          %{ ::Rabl::Engine.new(#{source.inspect}).
+          %{ ::Rabl::Engine.new(#{source.inspect}, { :format => #{template.formats.first.inspect} }).
               render(self, assigns.merge(local_assigns)) }
+
         end # call
       end # rabl class
     end # handlers
