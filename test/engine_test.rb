@@ -144,9 +144,9 @@ context "Rabl::Engine" do
         template = rabl %{
           code(:foo, :if => lambda { |i| false }) { 'bar' }
         }
-        template.render(Object.new)
-      end.equals "{}"
-      
+        template.render(Object.new).split('').sort
+      end.equals "{}".split('').sort
+
       asserts "that it can merge the result with a collection element given no name" do
         template = rabl %{
           collection @users
@@ -156,8 +156,8 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new(:name => 'a'), User.new(:name => 'b')]
-        template.render(scope)
-      end.equals "[{\"user\":{\"name\":\"a\"}},{\"user\":{\"name\":\"b\"}}]"
+        template.render(scope).split('').sort
+      end.equals "[{\"user\":{\"name\":\"a\"}},{\"user\":{\"name\":\"b\"}}]".split('').sort
 
     end
 

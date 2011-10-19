@@ -264,6 +264,15 @@ code(:foo, :if => lambda { |m| m.has_foo? }) do |m|
 end
 ```
 
+or don't pass a name and have the code block merged into the response:
+
+```ruby
+code do |u|
+  { :full_name => u.first_name + " " + u.last_name }
+  # => { full_name : "Bob Johnson" }
+end
+```
+
 You can use custom "code" nodes to create flexible representations of a value utilizing all the data from the model.
 
 ### Partials ###

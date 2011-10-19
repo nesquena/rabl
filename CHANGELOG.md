@@ -18,6 +18,7 @@
  * Better fetch_source implementation for Rails
  * Added fetch_source implementation for Sinatra
  * Lots of test refactorings / cleanup / improvement
+ * Code block name is now optional [Thanks brentmurphy]
 
 ## 0.3.0
 
