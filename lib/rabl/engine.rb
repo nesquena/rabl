@@ -99,9 +99,9 @@ module Rabl
     # Creates an arbitrary code node that is included in the json output
     # code(:foo) { "bar" }
     # code(:foo, :if => lambda { ... }) { "bar" }
-    def code(name, options={}, &block)
-      @_options[:code] ||= {}
-      @_options[:code][name] = { :options => options, :block => block }
+    def code(name = nil, options={}, &block)
+      @_options[:code] ||= []
+      @_options[:code] << { :name => name, :options => options, :block => block }
     end
     alias_method :node, :code
 
