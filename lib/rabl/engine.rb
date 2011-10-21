@@ -78,7 +78,7 @@ module Rabl
     # collection @users
     # collection @users => :people
     # collection @users, :child_root => :person # Rename each child to person, enclose in single array
-    def collection(data)
+    def collection(data, options = {})
       @_collection_name = data.values.first if data.respond_to?(:each_pair)
       @_child_root = options[:child_root] if options[:child_root]
       self.object(data_object(data).to_a) if data
