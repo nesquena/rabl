@@ -31,6 +31,7 @@ module Rabl
     # options must have :object
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
+      raise ArgumentError, "Must provide an :object option to render a partial" unless options[:object]
       object, view_path = options.delete(:object), options.delete(:view_path)
       source, location = self.fetch_source(file, :view_path => view_path)
       engine_options = options.merge(:source => source, :source_location => location)
@@ -75,9 +76,8 @@ module Rabl
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
       if defined? Rails
-        root_path = Rails.root
-        view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
+        template = controller.find_template(file, [], true)
+        file_path = template ? Rails.root + template.inspect : nil
       elsif defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism

@@ -34,7 +34,7 @@ module Rabl
       if is_object?(data) || !data # object @user
         Rabl::Builder.new(@_data, options).to_hash(options)
       elsif is_collection?(data) # collection @users
-        object_name = data_name(@_data).to_s.singularize # @users => :users
+        object_name = @_child_root || data_name(@_data).to_s.singularize # @users => :users
         data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
       end
     end
@@ -77,8 +77,10 @@ module Rabl
     # Sets the object as a collection casted to a simple array
     # collection @users
     # collection @users => :people
-    def collection(data)
+    # collection @users, :child_root => :person # Rename each child to person, enclose in single array
+    def collection(data, options = {})
       @_collection_name = data.values.first if data.respond_to?(:each_pair)
+      @_child_root = options[:child_root] if options[:child_root]
       self.object(data_object(data).to_a) if data
     end
 
@@ -108,8 +110,15 @@ module Rabl
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
     def child(data, options={}, &block)
-      @_options[:child] ||= []
-      @_options[:child].push({ :data => data, :options => options, :block => block })
+      # Renders a child object/collection using the partial template provided
+      # via the partial option. This cleans up the semantics and allows flexible re-use
+      # of partial in associations
+      if options[:partial]
+        child(data, option.reverse_merge(:partial => nil)) { extends options[:partial] }
+      else
+        @_options[:child] ||= []
+        @_options[:child].push({ :data => data, :options => options, :block => block })
+      end
     end
 
     # Glues data from a child node to the json_output

@@ -100,5 +100,10 @@ module Rabl
       result = self.partial(file, options, &block)
       @_result.merge!(result) if result
     end
+    
+    # Supports calling helpers defined for the template scope using method_missing hook
+    def method_missing(name, *args, &block)
+      @_scope.respond_to?(name) ? @_scope.send(name, *args, &block) : super
+    end
   end
 end
