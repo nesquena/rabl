@@ -34,8 +34,12 @@ module Rabl
       if is_object?(data) || !data # object @user
         Rabl::Builder.new(@_data, options).to_hash(options)
       elsif is_collection?(data) # collection @users
-        object_name = data_name(@_data).to_s.singularize # @users => :users
-        data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
+        if options[:root] # only calculate root name if needed
+          object_name = data_name(@_data).to_s.singularize # @users => :users
+          data.map { |object| Rabl::Builder.new({ object => object_name }, options).to_hash(options) }
+        else
+          data.map { |object| Rabl::Builder.new(object, options).to_hash(options) }
+        end
       end
     end
 
