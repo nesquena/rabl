@@ -63,12 +63,12 @@ module Rabl
     # is_object?([]) => false
     # is_object?({}) => false
     def is_object?(obj)
-      obj && !data_object(obj).is_a?(Enumerable)
+      obj && !data_object(obj).respond_to?(:each)
     end
 
     # Returns true if the obj is a collection of items
     def is_collection?(obj)
-      obj && data_object(obj).is_a?(Enumerable)
+      obj && data_object(obj).respond_to?(:each)
     end
 
     # Returns source for a given relative file
