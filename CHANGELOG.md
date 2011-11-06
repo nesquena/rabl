@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.5.1 (Unreleased)
+## 0.5.2 (Unreleased)
+
+## 0.5.1
+
+ * Use respond\_to? instead of checking Enumerable for is\_object
+ * Performance optimization (thanks Eric Allen)
 
 ## 0.5.0
 
