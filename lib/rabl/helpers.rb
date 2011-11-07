@@ -44,7 +44,7 @@ module Rabl
     # options can have :source_location (source filename)
     def object_to_hash(object, options={}, &block)
       return object unless is_object?(object) || is_collection?(object)
-      engine_options = options.merge(:format => "hash", :root => (options[:root] || false))
+      engine_options = options.merge(:format => "hash", :base_format => base_format, :root => (options[:root] || false))
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
 
@@ -74,11 +74,11 @@ module Rabl
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
-      format = "{.#{@options[:format]},}" rescue ''
+      matcher = "{.#{base_format},}" rescue ''
       if defined? Rails
         root_path = Rails.root
         view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + "#{format}.rabl")].first
+        file_path = Dir[File.join(view_path, file + "#{matcher}.rabl")].first
       elsif defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
@@ -89,8 +89,15 @@ module Rabl
         view_path = options[:view_path] || @_scope.settings.views
         file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
       end
-
       return File.read(file_path.to_s), file_path.to_s if file_path
+    end
+
+    def base_format
+      if instance_variable_defined? :@_options
+        @_options[:base_format] || @_options[:format]
+      else
+        @options[:base_format]  || @options[:format]
+      end
     end
   end
 end
