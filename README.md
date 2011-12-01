@@ -365,6 +365,10 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
  * Rendering JSON for a tree structure using RABL: https://github.com/nesquena/rabl/issues/70
  * Layouts (erb, haml and rabl) in RABL: https://github.com/nesquena/rabl/wiki/Using-Layouts
 
+### Troubleshooting ###
+
+ * Redundant calls for a collection: https://github.com/nesquena/rabl/issues/142#issuecomment-2969107
+
 ## Issues ##
 
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
