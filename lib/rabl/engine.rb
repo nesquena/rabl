@@ -7,6 +7,7 @@ module Rabl
     def initialize(source, options={})
       @_source = source
       @_options = options
+      @_compiled = false
     end
 
     # Renders the representation based on source, object, scope and locals
@@ -17,7 +18,7 @@ module Rabl
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
-      compile unless compiled?
+      compile_source(&block) unless compiled?
       instance_eval(&block) if block_given?
       self.send("to_" + @_options[:format].to_s)
     end
@@ -185,17 +186,17 @@ module Rabl
     end
 
     private
-    def compile
-      if @_options[:source_location]
-        instance_eval(@_source, @_options[:source_location]) if @_source.present?
-      else
-        instance_eval(@_source) if @_source.present?
+    def compile_source(&block)
+      if @_source.present?
+        @_options[:source_location] ?
+          instance_eval(@_source, @_options[:source_location]) :
+          instance_eval(@_source)
       end
-      @compiled = true
+      @_compiled = true
     end
 
     def compiled?
-      @compiled
+      @_compiled
     end
   end
 end
