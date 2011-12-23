@@ -14,11 +14,16 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
       @_locals, @_scope = locals, scope
+      clear_compile_state
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
-      compile_source(&block) unless compiled?
+      if @_options[:source_location]
+        instance_eval(@_source, @_options[:source_location]) if @_source.present?
+      else
+        instance_eval(@_source) if @_source.present?
+      end
       instance_eval(&block) if block_given?
       self.send("to_" + @_options[:format].to_s)
     end
@@ -186,17 +191,12 @@ module Rabl
     end
 
     private
-    def compile_source(&block)
-      if @_source.present?
-        @_options[:source_location] ?
-          instance_eval(@_source, @_options[:source_location]) :
-          instance_eval(@_source)
-      end
-      @_compiled = true
-    end
-
-    def compiled?
-      @_compiled
+    def clear_compile_state
+      @_options.delete(:extends)
+      @_options.delete(:attributes)
+      @_options.delete(:code)
+      @_options.delete(:child)
+      @_options.delete(:glue)
     end
   end
 end
