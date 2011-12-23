@@ -174,11 +174,11 @@ There can also be odd cases where the root-level of the response doesn't map dir
 
 ```ruby
 object false
-code(:some_count) { |m| @user.posts.count }
+node(:some_count) { |m| @user.posts.count }
 child(@user) { attribute :name }
 ```
 
-In those cases, object can be assigned to 'false' and child nodes can be constructed independently.
+In those cases, object can be assigned to 'false' and nodes can be constructed free-form.
 
 ### Attributes ###
 
@@ -247,11 +247,11 @@ Use glue to add additional attributes to the parent object.
 
 ### Custom Nodes ###
 
-This will generate a json response based on the result of the code block:
+This will generate a json response based on the result of the `node` block:
 
 ```ruby
 # app/views/users/show.json.rabl
-code :full_name do |u|
+node :full_name do |u|
   u.first_name + " " + u.last_name
 end
 ```
@@ -260,28 +260,28 @@ or a custom node that exists only if a condition is true:
 
 ```ruby
 # m is the object being rendered, also supports :unless
-code(:foo, :if => lambda { |m| m.has_foo? }) do |m|
+node(:foo, :if => lambda { |m| m.has_foo? }) do |m|
   m.foo
 end
 ```
 
-or don't pass a name and have the code block merged into the response:
+or don't pass a name and have the node block merged into the response:
 
 ```ruby
-code do |u|
+node do |u|
   { :full_name => u.first_name + " " + u.last_name }
   # => { full_name : "Bob Johnson" }
 end
 ```
 
-You can use custom "code" nodes to create flexible representations of a value utilizing all the data from the model.
+You can use custom nodes like these to create flexible representations of a value utilizing all the data from the model.
 
 ### Partials ###
 
 Often you need to access other data objects in order to construct custom nodes in more complex associations. You can get access to the rabl representation of another data object by rendering a RABL partial:
 
 ```ruby
-code :location do
+node :location do
   { :city => @city, :address => partial("users/address", :object => @address) }
 end
 ```
@@ -289,7 +289,7 @@ end
 or event access an object associated with the parent model:
 
 ```ruby
-code :location do |m|
+node :location do |m|
   { :city => m.city, :address => partial("users/address", :object => m.address) }
 end
 ```
@@ -307,7 +307,7 @@ RABL has the ability to extend other "base" rabl templates and additional attrib
 # app/views/users/advanced.json.rabl
 extends "users/base" # another RABL template in "app/views/users/base.json.rabl"
 
-code :can_drink do |m|
+node :can_drink do |m|
   m.age > 21
 end
 ```
@@ -334,7 +334,7 @@ object @post
 # Access instance variables
 child(@user => :user) { ... }
 # or Rails helpers
-code(:formatted_body) { |post| simple_format(post.body) }
+node(:formatted_body) { |post| simple_format(post.body) }
 ```
 
 There should be no problem fetching the appropriate data to construct a response.
