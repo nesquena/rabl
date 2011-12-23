@@ -14,8 +14,8 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
       @_locals, @_scope = locals, scope
-      clear_compile_state
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      clear_compile_state
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
