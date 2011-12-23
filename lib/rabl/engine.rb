@@ -17,11 +17,7 @@ module Rabl
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
-      if @_options[:source_location]
-        instance_eval(@_source, @_options[:source_location]) if @_source.present?
-      else
-        instance_eval(@_source) if @_source.present?
-      end
+      compile unless compiled?
       instance_eval(&block) if block_given?
       self.send("to_" + @_options[:format].to_s)
     end
@@ -29,7 +25,7 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
-      options = options.reverse_merge(@_options)
+      options = @_options.merge(options)
       data = data_object(@_data)
       if is_object?(data) || !data # object @user
         Rabl::Builder.new(@_data, options).to_hash(options)
@@ -186,6 +182,20 @@ module Rabl
     def copy_instance_variables_from(object, exclude = []) #:nodoc:
       vars = object.instance_variables.map(&:to_s) - exclude.map(&:to_s)
       vars.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
+    end
+
+    private
+    def compile
+      if @_options[:source_location]
+        instance_eval(@_source, @_options[:source_location]) if @_source.present?
+      else
+        instance_eval(@_source) if @_source.present?
+      end
+      @compiled = true
+    end
+
+    def compiled?
+      @compiled
     end
   end
 end
