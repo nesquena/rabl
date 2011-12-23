@@ -4,7 +4,7 @@ module Rabl
 
     # Constructs a new ejs hash based on given object and options
     # options = { :format => "json", :attributes, :root => true,
-    #   :child_root => true, :code, :child, :glue, :extends }
+    #   :child_root => true, :node, :child, :glue, :extends }
     def initialize(data, options={}, &block)
       @options    = options
       @_scope     = options[:scope]
@@ -24,10 +24,10 @@ module Rabl
       @options[:attributes].each_pair do |attribute, name|
         attribute(attribute, :as => name)
       end if @options.has_key?(:attributes)
-      # Code
-      @options[:code].each do |settings|
-        code(settings[:name], settings[:options], &settings[:block])
-      end if @options.has_key?(:code)
+      # Node
+      @options[:node].each do |settings|
+        node(settings[:name], settings[:options], &settings[:block])
+      end if @options.has_key?(:node)
       # Children
       @options[:child].each do |settings|
         child(settings[:data], settings[:options], &settings[:block])
@@ -56,11 +56,11 @@ module Rabl
     end
     alias_method :attributes, :attribute
 
-    # Creates an arbitrary code node that is included in the json output
+    # Creates an arbitrary node that is included in the json output
     # node(:foo) { "bar" }
-    # code(:foo) { "bar" }
-    # code(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
-    def code(name, options={}, &block)
+    # node(:foo) { "bar" }
+    # node(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
+    def node(name, options={}, &block)
       return unless resolve_condition(options)
       result = block.call(@_object)
       if name.present?
@@ -69,7 +69,7 @@ module Rabl
         @_result.merge!(result) if result
       end
     end
-    alias_method :node, :code
+    alias_method :code, :node
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
@@ -81,7 +81,7 @@ module Rabl
       include_root = is_collection?(object) && @options[:child_root] # child @users
       engine_options = @options.slice(:child_root).merge(:root => include_root)
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
-      @_result[name] = self.object_to_hash(object, engine_options, &block) 
+      @_result[name] = self.object_to_hash(object, engine_options, &block)
     end
 
     # Glues data from a child node to the json_output

@@ -102,14 +102,14 @@ module Rabl
     end
     alias_method :attributes, :attribute
 
-    # Creates an arbitrary code node that is included in the json output
-    # code(:foo) { "bar" }
-    # code(:foo, :if => lambda { ... }) { "bar" }
-    def code(name = nil, options={}, &block)
-      @_options[:code] ||= []
-      @_options[:code] << { :name => name, :options => options, :block => block }
+    # Creates an arbitrary node that is included in the json output.
+    # node(:foo) { "bar" }
+    # node(:foo, :if => lambda { ... }) { "bar" }
+    def node(name = nil, options={}, &block)
+      @_options[:node] ||= []
+      @_options[:node] << { :name => name, :options => options, :block => block }
     end
-    alias_method :node, :code
+    alias_method :code, :node
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
@@ -194,7 +194,7 @@ module Rabl
     def clear_compile_state
       @_options.delete(:extends)
       @_options.delete(:attributes)
-      @_options.delete(:code)
+      @_options.delete(:node)
       @_options.delete(:child)
       @_options.delete(:glue)
     end
