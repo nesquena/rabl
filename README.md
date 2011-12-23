@@ -362,9 +362,22 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 ### Advanced Usage ###
 
+Links to resources for advanced usage:
+
  * Rendering JSON for a tree structure using RABL: https://github.com/nesquena/rabl/issues/70
  * Layouts (erb, haml and rabl) in RABL: https://github.com/nesquena/rabl/wiki/Using-Layouts
  * Backbone or [Ember.js](http://www.emberjs.com) Integration: https://github.com/nesquena/rabl/wiki/Backbone-Integration
+
+Please add your own usages and let me know so I can add them here!
+
+### Tutorials ###
+
+Tutorials can always be helped when getting started:
+
+ * http://blog.joshsoftware.com/2011/12/23/designing-rails-api-using-rabl-and-devise/
+ * http://engineering.gomiso.com/2011/06/27/building-a-platform-api-on-rails/
+
+Let me know if there's any other useful resources.
 
 ### Troubleshooting ###
 

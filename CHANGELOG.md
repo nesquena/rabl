@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.5.2 (Unreleased)
+## 0.5.5 (Unreleased)
+
+## 0.5.2-0.5.4
+
+ * Add better support for conditionals for child (thanks gregory)
+ * Fix issue introduced with 'node' and properly clear options (thanks joshbuddy)
 
 ## 0.5.1
 
