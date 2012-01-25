@@ -102,9 +102,11 @@ Rabl.configure do |config|
   # config.json_engine = nil # Any multi\_json engines
   # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.bson_engine = nil # Defaults to ::BSON
+  # config.plist_engine = nil # Defaults to ::Plist::Emit
   # config.include_json_root = true
   # config.include_msgpack_root = true
   # config.include_bson_root = true
+  # config.include_plist_root = true
   # config.include_xml_root  = false
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
@@ -190,6 +192,32 @@ end
 
 *NOTE*: Attempting to render the bson format without either including the bson gem or
 setting a `bson_engine` will cause an exception to be raised.
+
+### Plist ###
+
+Rabl also includes optional support for [Plist](http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/Introduction/Introduction.html]) serialization format using the [plist gem](http://plist.rubyforge.org/).
+To enable, include the plist gem in your project's Gemfile. Then use Rabl as normal with the `plist` format (akin to other formats).
+
+```ruby
+# Gemfile
+gem 'plist'
+```
+
+There is also an option for a custom Plist implementation by setting the Rabl `plist_engine` configuration attribute.
+
+```ruby
+class CustomEncodeEngine
+  def self.dump string
+    # Custom Encoding by your own engine.
+  end
+end
+
+Rabl.configure do |config|
+  config.plist_engine = CustomEncodeEngine
+end
+```
+
+*NOTE*: Attempting to render the plist format without either including the plist gem or setting a `plist_engine` will cause an exception to be raised.
 
 ## Usage ##
 
@@ -482,6 +510,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Matthew Schulkind](https://github.com/mschulkind) - Cleanup of configuration and tests
 * [Luke van der Hoeven](https://github.com/plukevdh) - Support non-ORM objects in templates
 * [Andrey Voronkov](https://github.com/Antiarchitect) - Added BSON format support
+* [Alli Witheford](https://github.com/alzeih) - Added Plist format support
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
