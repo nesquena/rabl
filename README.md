@@ -412,6 +412,8 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Luke van der Hoeven](https://github.com/plukevdh) - Support non-ORM objects in templates
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
+
+Want to contribute support for another format? Check out patch for [msgpack support](https://github.com/nesquena/rabl/pull/69).
 Please fork and contribute, any help in making this project better is appreciated!
 
 ## Inspirations ##
