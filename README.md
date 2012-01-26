@@ -414,6 +414,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
 Want to contribute support for another format? Check out patch for [msgpack support](https://github.com/nesquena/rabl/pull/69).
+
 Please fork and contribute, any help in making this project better is appreciated!
 
 ## Inspirations ##
@@ -432,4 +433,4 @@ See the [examples](https://github.com/nesquena/rabl/tree/master/examples) direct
 
 ## Copyright
 
-Copyright © 2011 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
+Copyright © 2011-2012 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
