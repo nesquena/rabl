@@ -383,6 +383,7 @@ Please add your own usages and let me know so I can add them here!
 
 Tutorials can always be helped when getting started:
 
+ * [Railscasts #322](http://railscasts.com/episodes/322-rabl)
  * http://blog.joshsoftware.com/2011/12/23/designing-rails-api-using-rabl-and-devise/
  * http://engineering.gomiso.com/2011/06/27/building-a-platform-api-on-rails/
 
