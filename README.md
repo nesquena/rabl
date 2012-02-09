@@ -1,17 +1,19 @@
 # RABL #
 
-RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON and XML. When using the ActiveRecord 'to_json' method, I tend to quickly find myself wanting a more expressive and powerful system for generating APIs. This is especially frustrating when the json representation is complex or doesn't match the exact schema defined in the database itself.
+RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON and XML. When using the ActiveRecord 'to_json' method, I tend to quickly find myself wanting a more expressive and powerful solution for generating APIs.
+This is especially frustrating when the JSON representation is complex or doesn't match the exact schema defined in the database.
 
-I wanted a simple, and flexible system for generating APIs. In particular, I wanted to easily:
+I wanted a simple and flexible system for generating my APIs. In particular, I wanted to easily:
 
  * Create arbitrary nodes named based on combining data in an object
  * Pass arguments to methods and store the result as a child node
- * Partial templates and inheritance to reduce code duplication
- * Easily renaming attributes from their name in the model
- * Simple way to append attributes from a child into the parent
- * Include nodes only if a certain condition is met
+ * Render partial templates and inherit to reduce code duplication
+ * Rename or alias attributes to change the name from the model
+ * Append attributes from a child into a parent node
+ * Include nodes only if a certain condition has been met
 
-Anyone who has tried the 'to_json' method used in ActiveRecord for generating a json response has felt the pain of this restrictive approach. RABL is a general templating system created to solve all of those problems.
+Anyone who has tried the 'to_json' method used in ActiveRecord for generating a JSON response has felt the pain of this restrictive approach.
+RABL is a general templating system created to solve these problems in an entirely new way.
 
 ## Installation ##
 
@@ -47,10 +49,13 @@ a patch to properly support Rails 3.2. Hopefully I can get to it soon but patche
 
 ## Overview ##
 
-The quick idea here is that you can use RABL to generate JSON and XML API based on any arbitrary data source. With RABL, the data is expected to come
-primarily from a model (ORM-agnostic) and the representation of the API output is described in the view with a simple ruby DSL. This allows you to keep your data separate from the JSON or XML you wish to output.
+You can use RABL to generate JSON and XML based APIs from any ruby object.
+With RABL, the data typically is derived primarily from models (ORM-agnostic) and the representation of the API output is described within
+a view template using a simple ruby DSL. This allows you to keep your data separated from the JSON or XML you wish to output.
 
-Once you have installed RABL (explained above), you can construct a RABL view template and then render the template from your Sinatra, Padrino or Rails applications from the controller (or route) very easily. Using [Padrino](http://padrinorb.com) as an example, assuming you have a `Post` model filled with blog posts, you can render an API representation (both JSON and XML) by creating a route:
+Once you have installed RABL (explained above), you can construct a RABL view template and then render the template
+from your Sinatra, Padrino or Rails applications from the controller (or route) very easily. Using [Padrino](http://padrinorb.com) as an
+example, assuming you have a `Post` model filled with blog posts, you can render an API representation (both JSON and XML) by creating a route:
 
 ```ruby
 # app/app.rb
@@ -83,7 +88,7 @@ Which would output the following JSON or XML when visiting `http://localhost:300
 }]
 ```
 
-That's the basic overview but there is a lot more (partials, inheritance, custom nodes, etc). Read the full details below of RABL below.
+That's a basic overview but there is a lot more to see such as partials, inheritance, custom nodes, etc. Read the full details of RABL below.
 
 ## Configuration ##
 
