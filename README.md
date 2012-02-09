@@ -386,6 +386,10 @@ Tutorials can always be helpful when first getting started:
  * [Railscasts #322](http://railscasts.com/episodes/322-rabl)
  * http://blog.joshsoftware.com/2011/12/23/designing-rails-api-using-rabl-and-devise/
  * http://engineering.gomiso.com/2011/06/27/building-a-platform-api-on-rails/
+ * http://blog.lawrencenorton.com/better-json-requests-with-rabl
+ * http://www.rodrigoalvesvieira.com/developing-json-api-rails-rabl/
+ * http://tech.favoritemedium.com/2011/06/using-rabl-in-rails-json-web-api.html
+ * http://seesparkbox.com/foundry/better_rails_apis_with_rabl
 
 Let me know if there's any other useful resources.
 
