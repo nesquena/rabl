@@ -377,11 +377,11 @@ Links to resources for advanced usage:
  * Layouts (erb, haml and rabl) in RABL: https://github.com/nesquena/rabl/wiki/Using-Layouts
  * Backbone or [Ember.js](http://www.emberjs.com) Integration: https://github.com/nesquena/rabl/wiki/Backbone-Integration
 
-Please add your own usages and let me know so I can add them here!
+Please add your own usages and let me know so we can add them here!
 
 ### Tutorials ###
 
-Tutorials can always be helped when getting started:
+Tutorials can always be helpful when first getting started:
 
  * [Railscasts #322](http://railscasts.com/episodes/322-rabl)
  * http://blog.joshsoftware.com/2011/12/23/designing-rails-api-using-rabl-and-devise/
