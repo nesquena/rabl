@@ -32,7 +32,7 @@ gem 'yajl-ruby'
 
 and run `bundle install` to install the dependency.
 
-If you are using **Rails 2.X, Rails 3, Rails 3.X or Padrino**, RABL works without configuration.
+If you are using **Rails 2.X, Rails 3 or Padrino**, RABL works without configuration.
 
 With Sinatra, or any other tilt-based framework, simply register:
 
@@ -40,6 +40,10 @@ With Sinatra, or any other tilt-based framework, simply register:
 
 and RABL will be initialized and ready for use. For usage with Sinatra, check out
 the [Sinatra Usage](https://github.com/nesquena/rabl/wiki/Setup-for-Sinatra) guide.
+
+**Note:** Users have reported a few rendering issues with Rails 3.1 and Rails 3.2.
+The [template handler](https://github.com/nesquena/rabl/blob/master/lib/rabl/template.rb) probably needs
+a patch to properly support Rails 3.2. Hopefully I can get to it soon but patches are welcome.
 
 ## Overview ##
 
