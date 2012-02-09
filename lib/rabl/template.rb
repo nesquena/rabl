@@ -20,7 +20,7 @@ if defined?(Tilt)
 end
 
 # Rails 2.X Template
-if defined?(Rails) && Rails.version =~ /^2/
+if defined?(ActionView) && defined?(Rails) && Rails.version =~ /^2/
   require 'action_view/base'
   require 'action_view/template'
 
@@ -41,7 +41,7 @@ if defined?(Rails) && Rails.version =~ /^2/
 end
 
 # Rails 3.X Template
-if defined?(Rails) && Rails.version =~ /^3/
+if defined?(ActionView) && defined?(Rails) && Rails.version =~ /^3/
   module ActionView
     module Template::Handlers
       class Rabl
