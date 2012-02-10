@@ -74,16 +74,16 @@ module Rabl
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
-      if defined? Rails
-        root_path = Rails.root
-        view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
-      elsif defined? Padrino
+      if defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
         file_path, _ = @_scope.instance_eval { resolve_template(file) }
         # Padrino chops the extension, stitch it back on
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
+      elsif defined? Rails
+        root_path = Rails.root
+        view_path = options[:view_path] || File.join(root_path, "app/views/")
+        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
       elsif defined? Sinatra
         view_path = options[:view_path] || @_scope.settings.views
         file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
