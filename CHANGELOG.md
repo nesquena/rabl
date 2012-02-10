@@ -2,7 +2,11 @@
 
 ## 0.5.5 (Unreleased)
 
-## 0.5.2-0.5.4
+## 0.5.4
+
+ * Ensure ActionView is defined before registering Rails template handler (thanks cj)
+
+## 0.5.2-0.5.3
 
  * Add better support for conditionals for child (thanks gregory)
  * Fix issue introduced with 'node' and properly clear options (thanks joshbuddy)
