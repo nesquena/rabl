@@ -2,20 +2,28 @@ module Rabl
   class Builder
     include Rabl::Helpers
 
-    # Constructs a new ejs hash based on given object and options
+    # Constructs a new rabl hash based on given object and options
     # options = { :format => "json", :attributes, :root => true,
     #   :child_root => true, :node, :child, :glue, :extends }
-    def initialize(data, options={}, &block)
+    def initialize(options={}, &block)
       @options    = options
       @_scope     = options[:scope]
-      @_data      = data
-      @_object    = data_object(data)
-      @_result    = {}
     end
 
+    # Given an object and options, returns the hash representation
+    # build(@user, :format => "json", :attributes => { ... })
+    def build(data, options={})
+      @_data      = data
+      @_object    = data_object(data)
+      @_result = {}
+      compile_hash(options)
+    end
+
+    protected
+
     # Returns a hash representation of the data object
-    # to_hash(:root => true)
-    def to_hash(options={})
+    # compile_hash(:root => true)
+    def compile_hash(options={})
       # Extends
       @options[:extends].each do |settings|
         extends(settings[:file], settings[:options], &settings[:block])
@@ -36,23 +44,22 @@ module Rabl
       @options[:glue].each do |settings|
         glue(settings[:data], &settings[:block])
       end if @options.has_key?(:glue)
-      # Return Hash
-      @_root_name ||= data_name(@_data)
-      (@options[:root] || options[:root]) && @_root_name ? { @_root_name => @_result } : @_result
+
+      # Wrap result in root
+      if @options[:root] || options[:root]
+        @_root_name ||= data_name(@_data)
+      else # no root
+        @_root_name = nil
+      end
+
+      # Return Results
+      @_root_name ? { @_root_name => @_result } : @_result
     end
 
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
-    # attribute :foo => :bar
-    def attribute(*args)
-      if args.first.is_a?(Hash)
-        args.first.each_pair { |k,v| self.attribute(k, :as => v) }
-      else # array of attributes
-        options = args.extract_options!
-        args.each do |attribute|
-          @_result[options[:as] || attribute] = @_object.send(attribute) if @_object && @_object.respond_to?(attribute)
-        end
-      end
+    def attribute(name, options={})
+      @_result[options[:as] || name] = @_object.send(name) if @_object && @_object.respond_to?(name)
     end
     alias_method :attributes, :attribute
 
