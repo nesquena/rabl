@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.5.5 (Unreleased)
+## 0.5.5.a
+
+ * Change engine to only instantiate one builder when rendering a collection
 
 ## 0.5.4
 
