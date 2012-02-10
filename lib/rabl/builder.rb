@@ -15,7 +15,6 @@ module Rabl
     def build(data, options={})
       @_data      = data
       @_object    = data_object(data)
-      @_result = {}
       compile_hash(options)
     end
 
@@ -24,6 +23,7 @@ module Rabl
     # Returns a hash representation of the data object
     # compile_hash(:root => true)
     def compile_hash(options={})
+      @_result = {}
       # Extends
       @options[:extends].each do |settings|
         extends(settings[:file], settings[:options], &settings[:block])
