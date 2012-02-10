@@ -62,6 +62,7 @@ module Rabl
       result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
       Rabl.configuration.msgpack_engine.pack result
     end
+    alias_method :to_mpac, :to_msgpack
 
     # Returns an xml representation of the data object
     # to_xml(:root => true)
