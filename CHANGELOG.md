@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## 0.5.5.a
+## 0.5.5.a-b
 
  * Change engine to only instantiate one builder when rendering a collection
+ * Alias to\_msgpack to to\_mpac
 
 ## 0.5.4
 
