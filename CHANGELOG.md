@@ -1,9 +1,10 @@
 # CHANGELOG
 
-## 0.5.5.a-b
+## 0.5.5.a-c
 
  * Change engine to only instantiate one builder when rendering a collection
  * Alias to\_msgpack to to\_mpac
+ * Cache template sources for faster partial lookups
 
 ## 0.5.4
 
