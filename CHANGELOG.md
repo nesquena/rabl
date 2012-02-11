@@ -4,7 +4,7 @@
 
  * Change engine to only instantiate one builder when rendering a collection
  * Alias to\_msgpack to to\_mpac
- * Cache template sources for faster partial lookups
+ * Cache template sources for faster partial lookups (thanks cj)
 
 ## 0.5.4
 
