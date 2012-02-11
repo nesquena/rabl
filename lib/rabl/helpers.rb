@@ -32,7 +32,10 @@ module Rabl
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
       object, view_path = options.delete(:object), options.delete(:view_path)
-      source, location = self.fetch_source(file, :view_path => view_path)
+      if !template = Rabl.configuration.cache[file]
+        template = Rabl.configuration.cache[file] = self.fetch_source(file, :view_path => view_path)
+      end
+      source, location = template
       engine_options = options.merge(:source => source, :source_location => location)
       self.object_to_hash(object, engine_options, &block)
     end
@@ -74,16 +77,16 @@ module Rabl
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
-      if defined? Rails
-        root_path = Rails.root
-        view_path = options[:view_path] || File.join(root_path, "app/views/")
-        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
-      elsif defined? Padrino
+      if defined? Padrino
         root_path = Padrino.root
         # use Padrino's own template resolution mechanism
         file_path, _ = @_scope.instance_eval { resolve_template(file) }
         # Padrino chops the extension, stitch it back on
         file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
+      elsif defined? Rails
+        root_path = Rails.root
+        view_path = options[:view_path] || File.join(root_path, "app/views/")
+        file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
       elsif defined? Sinatra
         view_path = options[:view_path] || @_scope.settings.views
         file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
