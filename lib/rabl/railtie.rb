@@ -6,5 +6,6 @@ module Rabl
         Rabl.register!
       end
     end
-  end
-end
+
+  end # Railtie
+end # Rabl
