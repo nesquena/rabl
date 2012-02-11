@@ -27,6 +27,7 @@ module Rabl
       @json_engine           = nil
       @msgpack_engine        = nil
       @xml_options           = {}
+      @cache                 = {}
     end
 
     # @param [Symbol, String, #encode] engine_name The name of a JSON engine,
@@ -57,6 +58,19 @@ module Rabl
     # Returns merged default and inputted xml options
     def default_xml_options
       @_default_xml_options ||= @xml_options.reverse_merge(DEFAULT_XML_OPTIONS)
+    end
+
+    def cache=(key, value)
+      @cache[key] = value
+    end
+
+    # Used to store partials in cache, to avoid reading from disk.
+    def cache
+      @cache ||= {}
+    end
+
+    def clear_cache
+      @cache = {}
     end
 
     private

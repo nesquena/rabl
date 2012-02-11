@@ -32,7 +32,10 @@ module Rabl
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
       object, view_path = options.delete(:object), options.delete(:view_path)
-      source, location = self.fetch_source(file, :view_path => view_path)
+      if !template = Rabl.configuration.cache[file]
+        template = Rabl.configuration.cache[file] = self.fetch_source(file, :view_path => view_path)
+      end
+      source, location = template
       engine_options = options.merge(:source => source, :source_location => location)
       self.object_to_hash(object, engine_options, &block)
     end
