@@ -45,6 +45,8 @@ module Rabl
     # Used to cache the contents and paths to various rabl templates
     # source_cache("users/index", "path/to/view") { "/full/path/to/template/users/index" }
     def source_cache(file, view_path, &block)
+      return yield unless Rabl.configuration.cache_sources
+
       @_source_cache ||= {}
       cache_key = [file, view_path].compact.join(":")
       if cached_result = @_source_cache[cache_key]

@@ -16,6 +16,7 @@ module Rabl
     attr_accessor :enable_json_callbacks
     attr_writer   :msgpack_engine
     attr_writer   :xml_options
+    attr_accessor :cache_sources
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -27,6 +28,7 @@ module Rabl
       @json_engine           = nil
       @msgpack_engine        = nil
       @xml_options           = {}
+      @cache_sources         = false
     end
 
     # @param [Symbol, String, #encode] engine_name The name of a JSON engine,

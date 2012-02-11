@@ -97,7 +97,8 @@ RABL is intended to require little to no configuration to get working. This is t
 ```ruby
 # config/initializers/rabl_init.rb
 Rabl.configure do |config|
-  # Commented as these are the defaults
+  # Commented as these are defaults
+  # config.cache_sources = false
   # config.json_engine = nil # Any multi\_json engines
   # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.include_json_root = true
@@ -108,9 +109,16 @@ Rabl.configure do |config|
 end
 ```
 
-Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback output if the incoming request has a 'callback' parameter.
+Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the
+root node for each child in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
+output if the incoming request has a 'callback' parameter.
 
-Note that the `json_engine` option uses the [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) intelligent engine defaults so in most cases you **don't need to configure this** directly. If you wish to use yajl as the primary JSON encoding engine simply add that to your Gemfile:
+If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
+The cache can be reset manually by running `Rabl.reset_source_cache!` within your application.
+
+Note that the `json_engine` option uses the [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) intelligent engine
+defaults so in most cases you **don't need to configure this** directly. If you wish to use yajl as
+the primary JSON encoding engine simply add that to your Gemfile:
 
 ```ruby
 # Gemfile
