@@ -1,6 +1,6 @@
 module Rabl
   class Builder
-    include Rabl::Helpers
+    include Rabl::Partials
 
     # Constructs a new rabl hash based on given object and options
     # options = { :format => "json", :attributes, :root => true,
@@ -106,6 +106,18 @@ module Rabl
       options = @options.slice(:child_root).merge(options).merge(:object => @_object)
       result = self.partial(file, options, &block)
       @_result.merge!(result) if result
+    end
+
+    protected
+
+    # resolve_condition(:if => true) => true
+    # resolve_condition(:if => lambda { |m| false }) => false
+    # resolve_condition(:unless => lambda { |m| true }) => true
+    def resolve_condition(options)
+      return true if options[:if].nil? && options[:unless].nil?
+      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
+      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
+      result
     end
   end
 end

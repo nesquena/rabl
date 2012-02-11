@@ -1,6 +1,6 @@
 module Rabl
   class Engine
-    include Rabl::Helpers
+    include Rabl::Partials
 
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
@@ -193,6 +193,7 @@ module Rabl
     end
 
     private
+
     def clear_compile_state
       @_options.delete(:extends)
       @_options.delete(:attributes)
