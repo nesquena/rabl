@@ -1,11 +1,12 @@
 # CHANGELOG
 
-## 0.5.5.a-e
+## 0.5.5.a-f
 
  * Change engine to only instantiate one builder when rendering a collection
  * Alias to\_msgpack to to\_mpac
  * Cache template sources for faster partial lookups (thanks cj)
  * Adds BSON format support (thanks Antiarchitect)
+ * Use Rails template lookup mechanism to find templates (in Rails 3)
 
 ## 0.5.4
 

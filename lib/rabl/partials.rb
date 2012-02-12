@@ -36,9 +36,16 @@ module Rabl
           # Padrino chops the extension, stitch it back on
           file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
         elsif defined? Rails
-          root_path = Rails.root
-          view_path = options[:view_path] || File.join(root_path, "app/views/")
-          file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
+          if defined?(@_scope) && @_scope.respond_to?(:find_template)
+            # use Rails's own template resolution mechanism (partials and no partial)
+            lookup_proc = lambda { |partial| @_scope.find_template(file, [], partial) }
+            template = lookup_proc.call(false) rescue lookup_proc.call(true)
+            file_path = File.join(Rails.root.to_s, template.inspect) if template
+          else # fallback to manual
+            root_path = Rails.root
+            view_path = options[:view_path] || File.join(root_path, "app/views/")
+            file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
+          end
         elsif defined? Sinatra
           view_path = options[:view_path] || @_scope.settings.views
           file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
