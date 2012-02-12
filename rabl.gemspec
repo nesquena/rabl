@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Nathan Esquenazi"]
   s.email       = ["nesquena@gmail.com"]
   s.homepage    = "https://github.com/nesquena/rabl"
-  s.summary     = %q{General ruby templating for json or xml}
-  s.description = %q{General ruby templating for json or xml}
+  s.summary     = %q{General ruby templating with json, bson, xml and msgpack support}
+  s.description = %q{General ruby templating with json, bson, xml and msgpack support}
 
   s.rubyforge_project = "rabl"
 
@@ -28,4 +28,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'tilt'
   s.add_development_dependency 'yajl-ruby'
   s.add_development_dependency 'msgpack', '~> 0.4.5'
+  s.add_development_dependency 'bson', '~> 1.5.2'
 end

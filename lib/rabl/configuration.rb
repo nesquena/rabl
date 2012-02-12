@@ -4,6 +4,12 @@ begin
 rescue LoadError
 end
 
+# We load the bson library if it is available.
+begin
+  require 'bson'
+  rescue LoadError
+end
+
 # Load MultiJSON
 require 'multi_json'
 
@@ -13,8 +19,12 @@ module Rabl
     attr_accessor :include_json_root
     attr_accessor :include_msgpack_root
     attr_accessor :include_xml_root
+    attr_accessor :include_bson_root
     attr_accessor :enable_json_callbacks
+    attr_accessor :bson_check_keys
+    attr_accessor :bson_move_id
     attr_writer   :msgpack_engine
+    attr_writer   :bson_engine
     attr_writer   :xml_options
     attr_accessor :cache_sources
 
@@ -24,9 +34,13 @@ module Rabl
       @include_json_root     = true
       @include_msgpack_root  = true
       @include_xml_root      = false
+      @include_bson_root     = true
       @enable_json_callbacks = false
+      @bson_check_keys       = false
+      @bson_move_id          = false
       @json_engine           = nil
       @msgpack_engine        = nil
+      @bson_engine           = nil
       @xml_options           = {}
       @cache_sources         = false
     end
@@ -47,6 +61,12 @@ module Rabl
     # @return the MessagePack encoder/engine to use.
     def msgpack_engine
       @msgpack_engine || ::MessagePack
+    end
+
+    ##
+    # @return the Bson encoder/engine to use.
+    def bson_engine
+      @bson_engine || ::BSON
     end
 
     # Allows config options to be read like a hash
