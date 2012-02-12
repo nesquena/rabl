@@ -80,8 +80,8 @@ module Rabl
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
       result = if defined?(@_collection_name)
                  { @_collection_name => to_hash(options) }
-               elsif defined?(@_bson_collection_name)
-                 { @_bson_collection_name => to_hash(options) }
+               elsif is_collection?(@_data) && @_data.is_a?(Array)
+                 { data_name(@_data) => to_hash(options) }
                else
                  to_hash(options)
                end
@@ -101,7 +101,6 @@ module Rabl
     # collection @users => :people
     def collection(data)
       @_collection_name = data.values.first if data.respond_to?(:each_pair)
-      @_bson_collection_name = data_name(data) if is_collection?(data)
       self.object(data_object(data).to_a) if data
     end
 
