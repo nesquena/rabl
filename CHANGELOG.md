@@ -6,7 +6,9 @@
  * Alias to\_msgpack to to\_mpac
  * Cache template sources for faster partial lookups (thanks cj)
  * Adds BSON format support (thanks Antiarchitect)
- * Use Rails template lookup mechanism to find templates (in Rails 3)
+ * Use template lookup mechanism to find templates in Rails 3 (thanks blakewatters)
+ * Adds a 'object_root' option to collection (thanks blakewatters)
+ * Adds a 'root_name' option to collection
 
 ## 0.5.4
 

@@ -28,7 +28,7 @@ context "Rabl::Builder" do
 
       setup { builder({ :attributes => { :name => :name } }) }
       asserts "that the object is set properly" do
-        topic.build(User.new, :root => true)
+        topic.build(User.new, :root_name => "user")
       end.equivalent_to({ "user" => { :name => "rabl" } })
 
     end
@@ -37,7 +37,7 @@ context "Rabl::Builder" do
 
      setup { builder({ :attributes => { :name => :name } }) }
       asserts "that the object is set properly" do
-        topic.build({ User.new => "person" }, :root => true)
+        topic.build(User.new, :root_name => "person")
       end.equivalent_to({ "person" => { :name => "rabl" } })
 
     end

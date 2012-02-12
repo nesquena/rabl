@@ -31,17 +31,15 @@ module Rabl
     # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
       options = @_options.merge(options)
-      data = data_object(@_data)
+      data, root_name = data_object(@_data), data_name(@_data)
       builder = Rabl::Builder.new(options)
       if is_object?(data) || !data # object @user
-        builder.build(@_data, options)
+        options[:root_name] = root_name if options[:root]
+        builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        if options[:root] # only calculate root name if needed
-          object_name = data_name(@_data).to_s.singularize # @users => :users
-          data.map { |object| builder.build({ object => object_name }, options) }
-        else # skip root name
-          data.map { |object| builder.build(object, options) }
-        end
+        options[:root_name] = object_root_name if object_root_name
+        options[:root_name] ||= root_name.to_s.singularize if options[:root]
+        data.map { |object| builder.build(object, options) }
       end
     end
 
@@ -99,8 +97,12 @@ module Rabl
     # Sets the object as a collection casted to a simple array
     # collection @users
     # collection @users => :people
-    def collection(data)
-      @_collection_name = data.values.first if data.respond_to?(:each_pair)
+    # collection @users, :root => :person
+    # collection @users, :object_root => :person
+    def collection(data, options={})
+      @_collection_name = options[:root] if options[:root]
+      @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
+      @_object_root_name = options[:object_root] if options[:object_root]
       self.object(data_object(data).to_a) if data
     end
 

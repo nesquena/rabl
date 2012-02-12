@@ -216,11 +216,18 @@ collection @users
 # => [ { "user" : { ... } } ]
 ```
 
-or even specify a root node label for the collection:
+or specify a root node label for the collection:
 
 ```ruby
 collection @users => :people
 # => { "people" : [ { "person" : { ... } } ] }
+```
+
+or even specify both the child and root labels for a collection:
+
+```ruby
+collection @users, :root_name => "people", :object_root => "user"
+# => { "people" : [ { "user" : { ... } } ] }
 ```
 
 and this will be used as the default data for the rendering.

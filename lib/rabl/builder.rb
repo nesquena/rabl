@@ -3,25 +3,26 @@ module Rabl
     include Rabl::Partials
 
     # Constructs a new rabl hash based on given object and options
-    # options = { :format => "json", :attributes, :root => true,
-    #   :child_root => true, :node, :child, :glue, :extends }
+    # options = { :format => "json", :root => true, :child_root => true,
+    #   :attributes, :node, :child, :glue, :extends }
+    #
     def initialize(options={}, &block)
       @options    = options
       @_scope     = options[:scope]
     end
 
     # Given an object and options, returns the hash representation
-    # build(@user, :format => "json", :attributes => { ... })
-    def build(data, options={})
-      @_data      = data
-      @_object    = data_object(data)
+    # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
+    def build(object, options={})
+      @_object = object
       compile_hash(options)
     end
 
     protected
 
     # Returns a hash representation of the data object
-    # compile_hash(:root => true)
+    # compile_hash(:root_name => false)
+    # compile_hash(:root_name => "user")
     def compile_hash(options={})
       @_result = {}
       # Extends
@@ -46,8 +47,8 @@ module Rabl
       end if @options.has_key?(:glue)
 
       # Wrap result in root
-      if @options[:root] || options[:root]
-        @_root_name ||= data_name(@_data)
+      if options[:root_name].present?
+        @_root_name = options[:root_name]
       else # no root
         @_root_name = nil
       end

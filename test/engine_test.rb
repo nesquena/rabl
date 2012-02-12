@@ -263,15 +263,32 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "[{},{}]"
 
-      asserts "that it sets root node for objects" do
+      asserts "that it sets root node for objects using hash" do
         template = rabl %{
-          collection @users => :person
+          collection @users => :people
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope)
-      end.equals "{\"person\":[{},{}]}"
+      end.equals "{\"people\":[{},{}]}"
 
+    asserts "that it sets root node for objects using root option" do
+        template = rabl %{
+          collection @users, :root => :people
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals "{\"people\":[{},{}]}"
+
+      asserts "that it sets root node for objects using object_root option" do
+        template = rabl %{
+          collection @users, :root => :humans, :object_root => :person
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals %Q^{"humans":[{"person":{}},{"person":{}}]}^
     end
 
     context "#attribute" do
