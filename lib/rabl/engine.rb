@@ -155,8 +155,8 @@ module Rabl
     # Returns a guess at the default object for this template
     # default_object => @user
     def default_object
-      if @_scope.respond_to?(:controller)
-        full_name = @_scope.controller.controller_name
+      if context_scope.respond_to?(:controller)
+        full_name = context_scope.controller.controller_name
         instance_variable_get("@#{ full_name.split("::").last }")
       end
     end
@@ -164,8 +164,8 @@ module Rabl
     # Returns a guess at the format in this scope
     # request_format => "xml"
     def request_format
-      format = self.request_params.has_key?(:format) ? @_scope.params[:format] : nil
-      if request = @_scope.respond_to?(:request) && @_scope.request
+      format = self.request_params.has_key?(:format) ? context_scope.params[:format] : nil
+      if request = context_scope.respond_to?(:request) && context_scope.request
         format ||= request.format.to_sym.to_s if request.respond_to?(:format)
       end
       format && self.respond_to?("to_#{format}") ? format : "json"
@@ -174,7 +174,7 @@ module Rabl
     # Returns the request parameters if available in the scope
     # request_params => { :foo => "bar" }
     def request_params
-      @_scope.respond_to?(:params) ? @_scope.params : {}
+      context_scope.respond_to?(:params) ? context_scope.params : {}
     end
 
     # Returns data as json embraced with callback when detected
@@ -188,12 +188,12 @@ module Rabl
 
     # Augments respond to supporting scope methods
     def respond_to?(name, include_private=false)
-      @_scope.respond_to?(name, include_private) ? true : super
+      context_scope.respond_to?(name, include_private) ? true : super
     end
 
     # Supports calling helpers defined for the template scope using method_missing hook
     def method_missing(name, *args, &block)
-      @_scope.respond_to?(name) ? @_scope.send(name, *args, &block) : super
+      context_scope.respond_to?(name) ? context_scope.send(name, *args, &block) : super
     end
 
     def copy_instance_variables_from(object, exclude = []) #:nodoc:
@@ -210,6 +210,11 @@ module Rabl
       @_options[:child] = []
       @_options[:glue] = []
       @_options[:extends] = []
+    # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
+    # In Rails, this is the controller and in Padrino this is the request context
+    def context_scope
+      defined?(@_scope) ? @_scope : nil
+    end
     end
   end
 end
