@@ -50,7 +50,7 @@ module Rabl
     def to_json(options={})
       include_root = Rabl.configuration.include_json_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
+      result = collection_root_name ? { collection_root_name => to_hash(options) } : to_hash(options)
       format_json(result)
     end
 
@@ -59,7 +59,7 @@ module Rabl
     def to_msgpack(options={})
       include_root = Rabl.configuration.include_msgpack_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
+      result = collection_root_name ? { collection_root_name => to_hash(options) } : to_hash(options)
       Rabl.configuration.msgpack_engine.pack result
     end
     alias_method :to_mpac, :to_msgpack
@@ -78,8 +78,8 @@ module Rabl
     def to_bson(options={})
       include_root = Rabl.configuration.include_bson_root
       options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = if defined?(@_collection_name)
-                 { @_collection_name => to_hash(options) }
+      result = if collection_root_name
+                 { collection_root_name => to_hash(options) }
                elsif is_collection?(@_data) && @_data.is_a?(Array)
                  { data_name(@_data) => to_hash(options) }
                else
@@ -210,11 +210,7 @@ module Rabl
       @_options[:child] = []
       @_options[:glue] = []
       @_options[:extends] = []
-    # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
-    # In Rails, this is the controller and in Padrino this is the request context
-    def context_scope
-      defined?(@_scope) ? @_scope : nil
-    end
+      @_options[:root_name]  = nil
     end
   end
 end

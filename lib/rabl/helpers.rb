@@ -23,7 +23,8 @@ module Rabl
       if data.respond_to?(:first)
         data_name(data.first).to_s.pluralize if data.first.present?
       else # actual data object
-        object_name = @_collection_name.to_s.singularize if defined? @_collection_name
+        object_name = object_root_name if object_root_name
+        object_name ||= collection_root_name.to_s.singularize if collection_root_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
         object_name
       end
@@ -40,6 +41,26 @@ module Rabl
     # Returns true if the obj is a collection of items
     def is_collection?(obj)
       obj && data_object(obj).respond_to?(:each)
+    end
+
+    # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
+    # In Rails, this is the controller and in Padrino this is the request context
+    def context_scope
+      defined?(@_scope) ? @_scope : nil
+    end
+
+    # Returns the root (if any) name for an object within a collection
+    # Sets the name of the object i.e "person"
+    # => { "users" : [{ "person" : {} }] }
+    def object_root_name
+      defined?(@_object_root_name) ? @_object_root_name : nil
+    end
+
+    # Returns the root for the collection
+    # Sets the name of the collection i.e "people"
+    #  => { "people" : [] }
+    def collection_root_name
+      defined?(@_collection_name) ? @_collection_name : nil
     end
 
   end
