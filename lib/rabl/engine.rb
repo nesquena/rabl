@@ -108,7 +108,7 @@ module Rabl
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options={}, &block)
       @_options[:node] ||= []
-      @_options[:node] << { :name => name, :options => options, :block => block }
+      @_options[:node].push({ :name => name, :options => options, :block => block })
     end
     alias_method :code, :node
 
