@@ -12,7 +12,7 @@ module Rabl
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
-      clear_options!
+      reset_options!
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_options[:scope] = @_scope
@@ -109,11 +109,10 @@ module Rabl
     # attribute :foo, :as => "bar"
     # attribute :foo => :bar
     def attribute(*args)
-      if args.first.is_a?(Hash)
+      if args.first.is_a?(Hash) # :foo => :bar, :bar => :baz
         args.first.each_pair { |k,v| self.attribute(k, :as => v) }
-      else # array of attributes
+      else # array of attributes i.e :foo, :bar, :baz
         options = args.extract_options!
-        @_options[:attributes] ||= {}
         args.each { |name| @_options[:attributes][name] = options[:as] || name }
       end
     end
@@ -123,7 +122,6 @@ module Rabl
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options={}, &block)
-      @_options[:node] ||= []
       @_options[:node].push({ :name => name, :options => options, :block => block })
     end
     alias_method :code, :node
@@ -131,21 +129,18 @@ module Rabl
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
     def child(data, options={}, &block)
-      @_options[:child] ||= []
       @_options[:child].push({ :data => data, :options => options, :block => block })
     end
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
     def glue(data, &block)
-      @_options[:glue] ||= []
       @_options[:glue].push({ :data => data, :block => block })
     end
 
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options={}, &block)
-      @_options[:extends] ||= []
       @_options[:extends].push({ :file => file, :options => options, :block => block })
     end
 
@@ -209,12 +204,13 @@ module Rabl
 
     private
 
-    def clear_options!
-      @_options.delete(:extends)
-      @_options.delete(:attributes)
-      @_options.delete(:node)
-      @_options.delete(:child)
-      @_options.delete(:glue)
+    # Resets the options parsed from a rabl template.
+    def reset_options!
+      @_options[:attributes] = {}
+      @_options[:node] = []
+      @_options[:child] = []
+      @_options[:glue] = []
+      @_options[:extends] = []
     end
   end
 end
