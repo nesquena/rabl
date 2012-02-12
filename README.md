@@ -462,16 +462,20 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
 * [Tim Lee](https://github.com/timothy1ee) - RABL is an awesome name and was chosen by the Miso CTO.
 * [Rick Thomas](https://github.com/rickthomasjr) - Added options for extends and Sinatra testing
+* [Benjamin Yu](https://github.com/byu) - Added msgpack format support
 * [Chris Kimpton](https://github.com/kimptoc) - Helping with documentation and wiki
 * [Marjun](https://github.com/mpagalan) - Added xml option configurations
 * [Anton Orel](https://github.com/skyeagle) - Added Rails 3.1 compatibility
 * [Sasha Koss](https://github.com/kossnocorp) - Added multi_json support
 * [Matthew Schulkind](https://github.com/mschulkind) - Cleanup of configuration and tests
 * [Luke van der Hoeven](https://github.com/plukevdh) - Support non-ORM objects in templates
+* [Andrey Voronkov](https://github.com/Antiarchitect) - Added BSON format support
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
-Want to contribute support for another format? Check out patch for [msgpack support](https://github.com/nesquena/rabl/pull/69).
+Want to contribute support for another format?
+Check out the patch for [msgpack support](https://github.com/nesquena/rabl/pull/69) and
+[BSON support](https://github.com/nesquena/rabl/pull/163).
 
 Please fork and contribute, any help in making this project better is appreciated!
 

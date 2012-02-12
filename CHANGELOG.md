@@ -1,10 +1,11 @@
 # CHANGELOG
 
-## 0.5.5.a-d
+## 0.5.5.a-e
 
  * Change engine to only instantiate one builder when rendering a collection
  * Alias to\_msgpack to to\_mpac
  * Cache template sources for faster partial lookups (thanks cj)
+ * Adds BSON format support (thanks Antiarchitect)
 
 ## 0.5.4
 
