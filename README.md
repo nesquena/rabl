@@ -153,7 +153,8 @@ Rabl.configure do |config|
 end
 ```
 
-*NOTE*: Attempting to render the msgpack format without either including the msgpack gem or setting a `msgpack_engine` will cause an exception to be raised.
+*NOTE*: Attempting to render the msgpack format without either including the msgpack gem
+or setting a `msgpack_engine` will cause an exception to be raised.
 
 ### BSON ###
 
@@ -170,7 +171,8 @@ To use it with Rails just register bson mime type format.
 Mime::Type.register "application/bson", :bson
 ```
 
-One can additionally use a custom BSON implementation by setting the Rabl `bson_engine` configuration attribute. This custom BSON engine must conform to the BSON#serialize method signature.
+One can additionally use a custom BSON implementation by setting the Rabl `bson_engine` configuration attribute.
+This custom BSON engine must conform to the BSON#serialize method signature.
 
 ```ruby
 class CustomEncodeEngine
@@ -184,7 +186,8 @@ Rabl.configure do |config|
 end
 ```
 
-*NOTE*: Attempting to render the bson format without either including the bson gem or setting a `bson_engine` will cause an exception to be raised.
+*NOTE*: Attempting to render the bson format without either including the bson gem or
+setting a `bson_engine` will cause an exception to be raised.
 
 ## Usage ##
 
