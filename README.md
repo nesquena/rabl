@@ -1,6 +1,6 @@
 # RABL #
 
-RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON and XML. When using the ActiveRecord 'to_json' method, I tend to quickly find myself wanting a more expressive and powerful solution for generating APIs.
+RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack and BSON. When using the ActiveRecord 'to_json' method, I tend to quickly find myself wanting a more expressive and powerful solution for generating APIs.
 This is especially frustrating when the JSON representation is complex or doesn't match the exact schema defined in the database.
 
 I wanted a simple and flexible system for generating my APIs. In particular, I wanted to easily:
@@ -100,8 +100,10 @@ Rabl.configure do |config|
   # Commented as these are the defaults
   # config.json_engine = nil # Any multi\_json engines
   # config.msgpack_engine = nil # Defaults to ::MessagePack
+  # config.bson_engine = nil # Defaults to ::BSON
   # config.include_json_root = true
   # config.include_msgpack_root = true
+  # config.include_bson_root = true
   # config.include_xml_root  = false
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
@@ -144,6 +146,37 @@ end
 ```
 
 *NOTE*: Attempting to render the msgpack format without either including the msgpack gem or setting a `msgpack_engine` will cause an exception to be raised.
+
+### BSON ###
+
+Rabl also includes optional support for [BSON](http://bsonspec.org/) serialization format using the [bson gem](https://rubygems.org/gems/bson).
+To enable, include the bson gem in your project's Gemfile. Then use Rabl as normal with the `bson` format (akin to json and xml formats).
+
+```ruby
+# Gemfile
+gem 'bson', '~> 1.5.2'
+```
+To use it with Rails just register bson mime type format.
+```ruby
+# config/initializers/mime_types.rb
+Mime::Type.register "application/bson", :bson
+```
+
+One can additionally use a custom BSON implementation by setting the Rabl `bson_engine` configuration attribute. This custom BSON engine must conform to the BSON#serialize method signature.
+
+```ruby
+class CustomEncodeEngine
+  def self.serialize string
+    # Custom Encoding by your own engine.
+  end
+end
+
+Rabl.configure do |config|
+  config.bson_engine = CustomEncodeEngine
+end
+```
+
+*NOTE*: Attempting to render the bson format without either including the bson gem or setting a `bson_engine` will cause an exception to be raised.
 
 ## Usage ##
 

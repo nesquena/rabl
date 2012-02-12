@@ -1,3 +1,5 @@
+require 'active_support/inflector' # for the sake of pluralizing
+
 module Rabl
   module Helpers
     # data_object(data) => <AR Object>
@@ -18,7 +20,7 @@ module Rabl
       return data.values.first if data.is_a?(Hash) # @user => :user
       data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
       if data.respond_to?(:first)
-        data_name(data.first).pluralize if data.first.present?
+        data_name(data.first).to_s.pluralize if data.first.present?
       else # actual data object
         object_name = @_collection_name.to_s.singularize if defined? @_collection_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase

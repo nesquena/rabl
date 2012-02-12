@@ -72,6 +72,21 @@ module Rabl
       to_hash(options).to_xml(xml_options)
     end
 
+    # Returns a bson representation of the data object
+    # to_bson(:root => true)
+    def to_bson(options={})
+      include_root = Rabl.configuration.include_bson_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      result = if defined?(@_collection_name)
+                 { @_collection_name => to_hash(options) }
+               elsif defined?(@_bson_collection_name)
+                 { @_bson_collection_name => to_hash(options) }
+               else
+                 to_hash(options)
+               end
+      Rabl.configuration.bson_engine.serialize(result).to_s
+    end
+
     # Sets the object to be used as the data source for this template
     # object(@user)
     # object @user => :person
@@ -85,6 +100,7 @@ module Rabl
     # collection @users => :people
     def collection(data)
       @_collection_name = data.values.first if data.respond_to?(:each_pair)
+      @_bson_collection_name = data_name(data) if is_collection?(data)
       self.object(data_object(data).to_a) if data
     end
 
