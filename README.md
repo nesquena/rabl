@@ -165,7 +165,9 @@ To enable, include the bson gem in your project's Gemfile. Then use Rabl as norm
 # Gemfile
 gem 'bson', '~> 1.5.2'
 ```
-To use it with Rails just register bson mime type format.
+
+To use it with Rails, also register the bson mime type format:
+
 ```ruby
 # config/initializers/mime_types.rb
 Mime::Type.register "application/bson", :bson
