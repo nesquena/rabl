@@ -226,7 +226,7 @@ collection @users => :people
 or even specify both the child and root labels for a collection:
 
 ```ruby
-collection @users, :root_name => "people", :object_root => "user"
+collection @users, :root => "people", :object_root => "user"
 # => { "people" : [ { "user" : { ... } } ] }
 ```
 
