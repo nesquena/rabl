@@ -443,6 +443,8 @@ Tutorials can always be helpful when first getting started:
  * http://www.rodrigoalvesvieira.com/developing-json-api-rails-rabl/
  * http://tech.favoritemedium.com/2011/06/using-rabl-in-rails-json-web-api.html
  * http://seesparkbox.com/foundry/better_rails_apis_with_rabl
+ * http://blog.dcxn.com/2011/06/22/rails-json-templates-through-rabl
+ * http://teohm.github.com/blog/2011/05/31/using-rabl-in-rails-json-web-api
 
 Let me know if there's any other useful resources.
 
