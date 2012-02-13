@@ -5,7 +5,6 @@ rvm:
   - 1.9.2
   - 1.9.3
   - rbx-18mode
-  - rbx-19mode
   - ree
 notifications:
   recipients:
