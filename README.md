@@ -430,7 +430,8 @@ Links to resources for advanced usage:
  * Layouts (erb, haml and rabl) in RABL: https://github.com/nesquena/rabl/wiki/Using-Layouts
  * Backbone or [Ember.js](http://www.emberjs.com) Integration: https://github.com/nesquena/rabl/wiki/Backbone-Integration
 
-Please add your own usages and let me know so we can add them here!
+Please add your own usages and let me know so we can add them here! Also be sure to check out
+the [RABL Wiki](https://github.com/nesquena/rabl/wiki) for other usages.
 
 ### Tutorials ###
 
