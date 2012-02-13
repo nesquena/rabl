@@ -37,8 +37,11 @@ module Rabl
         options[:root_name] = root_name if options[:root]
         builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        options[:root_name] = object_root_name if object_root_name
-        options[:root_name] ||= root_name.to_s.singularize if options[:root]
+        if object_root_name.nil?
+          options[:root_name] = root_name.to_s.singularize if options[:root]
+        else
+          options[:root_name] = object_root_name
+        end
         data.map { |object| builder.build(object, options) }
       end
     end
@@ -102,7 +105,7 @@ module Rabl
     def collection(data, options={})
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
-      @_object_root_name = options[:object_root] if options[:object_root]
+      @_object_root_name = options[:object_root] if options.has_key?(:object_root)
       self.object(data_object(data).to_a) if data
     end
 

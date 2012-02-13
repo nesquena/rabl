@@ -77,15 +77,23 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "[{\"user\":{}},{\"user\":{}}]"
 
-      # TODO fix this test
-      # asserts "that it sets root node for objects" do
-      #   template = rabl %{
-      #     collection @users => :people
-      #   }
-      #   scope = Object.new
-      #   scope.instance_variable_set :@users, [User.new, User.new]
-      #   template.render(scope)
-      # end.equals "{\"people\":[{\"person\":{}},{\"person\":{}}]}"
+      asserts "that it sets root node for objects" do
+       template = rabl %{
+         collection @users => :users
+       }
+       scope = Object.new
+       scope.instance_variable_set :@users, [User.new, User.new]
+       template.render(scope)
+      end.equals "{\"users\":[{\"user\":{}},{\"user\":{}}]}"
+
+      asserts "that it doesn't set root node for objects when specified" do
+       template = rabl %{
+         collection @users, :root => :users, :object_root => false
+       }
+       scope = Object.new
+       scope.instance_variable_set :@users, [User.new, User.new]
+       template.render(scope)
+      end.equals "{\"users\":[{},{}]}"
 
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
