@@ -1,3 +1,3 @@
 module Rabl
-  VERSION = "0.5.5.f"
+  VERSION = "0.5.5.g"
 end
