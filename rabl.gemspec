@@ -29,4 +29,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'yajl-ruby'
   s.add_development_dependency 'msgpack', '~> 0.4.5'
   s.add_development_dependency 'bson', '~> 1.5.2'
+  s.add_development_dependency 'plist'
 end

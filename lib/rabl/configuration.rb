@@ -10,6 +10,12 @@ begin
   rescue LoadError
 end
 
+# We load the plist library if it is available.
+begin
+  require 'plist'
+rescue LoadError
+end
+
 # Load MultiJSON
 require 'multi_json'
 
@@ -18,6 +24,7 @@ module Rabl
   class Configuration
     attr_accessor :include_json_root
     attr_accessor :include_msgpack_root
+    attr_accessor :include_plist_root
     attr_accessor :include_xml_root
     attr_accessor :include_bson_root
     attr_accessor :enable_json_callbacks
@@ -25,6 +32,7 @@ module Rabl
     attr_accessor :bson_move_id
     attr_writer   :msgpack_engine
     attr_writer   :bson_engine
+    attr_writer   :plist_engine
     attr_writer   :xml_options
     attr_accessor :cache_sources
 
@@ -33,6 +41,7 @@ module Rabl
     def initialize
       @include_json_root     = true
       @include_msgpack_root  = true
+      @include_plist_root    = true
       @include_xml_root      = false
       @include_bson_root     = true
       @enable_json_callbacks = false
@@ -41,6 +50,7 @@ module Rabl
       @json_engine           = nil
       @msgpack_engine        = nil
       @bson_engine           = nil
+      @plist_engine          = nil
       @xml_options           = {}
       @cache_sources         = false
     end
@@ -67,6 +77,11 @@ module Rabl
     # @return the Bson encoder/engine to use.
     def bson_engine
       @bson_engine || ::BSON
+
+    ##
+    # @return the Plist encoder/engine to use.
+    def plist_engine
+      @plist_engine || ::Plist::Emit
     end
 
     # Allows config options to be read like a hash
