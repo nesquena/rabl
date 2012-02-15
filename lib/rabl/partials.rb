@@ -7,8 +7,9 @@ module Rabl
     # options must have :object
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
-      raise ArgumentError, "Must provide an :object option to render a partial" unless options[:object]
+      raise ArgumentError, "Must provide an :object option to render a partial" unless options.has_key?(:object)
       object, view_path = options.delete(:object), options.delete(:view_path)
+      return if object.blank?
       source, location = self.fetch_source(file, :view_path => view_path)
       engine_options = options.merge(:source => source, :source_location => location)
       self.object_to_hash(object, engine_options, &block)
