@@ -77,6 +77,7 @@ module Rabl
     # @return the Bson encoder/engine to use.
     def bson_engine
       @bson_engine || ::BSON
+    end
 
     ##
     # @return the Plist encoder/engine to use.
