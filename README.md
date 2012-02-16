@@ -515,8 +515,8 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
 Want to contribute support for another format?
-Check out the patch for [msgpack support](https://github.com/nesquena/rabl/pull/69) and
-[BSON support](https://github.com/nesquena/rabl/pull/163).
+Check out the patches for [msgpack support](https://github.com/nesquena/rabl/pull/69), [plist support](https://github.com/nesquena/rabl/pull/153) and
+[BSON support](https://github.com/nesquena/rabl/pull/163) for reference.
 
 Please fork and contribute, any help in making this project better is appreciated!
 

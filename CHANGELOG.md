@@ -1,14 +1,15 @@
 # CHANGELOG
 
-## 0.5.5.a-f
+## 0.5.5.a-h
 
  * Change engine to only instantiate one builder when rendering a collection
  * Alias to\_msgpack to to\_mpac
- * Cache template sources for faster partial lookups (thanks cj)
- * Adds BSON format support (thanks Antiarchitect)
- * Use template lookup mechanism to find templates in Rails 3 (thanks blakewatters)
- * Adds a 'object_root' option to collection (thanks blakewatters)
+ * Cache template sources for faster partial lookups (thanks @cj)
+ * Adds BSON format support (thanks @Antiarchitect)
+ * Use template lookup mechanism to find templates in Rails 3 (thanks @blakewatters)
+ * Adds a 'object_root' option to collection (thanks @blakewatters)
  * Adds a 'root_name' option to collection
+ * Adds PList format support (thanks @alzeih)
 
 ## 0.5.4
 
