@@ -485,6 +485,7 @@ Let me know if there's any other useful resources.
 ### Troubleshooting ###
 
  * Redundant calls for a collection: https://github.com/nesquena/rabl/issues/142#issuecomment-2969107
+ * Testing RABL Views: https://github.com/nesquena/rabl/issues/130#issuecomment-4179285
 
 ## Issues ##
 
