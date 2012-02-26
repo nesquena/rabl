@@ -258,7 +258,12 @@ collection @users, :root => "people", :object_root => "user"
 # => { "people" : [ { "user" : { ... } } ] }
 ```
 
-and this will be used as the default data for the rendering.
+and this will be used as the default data for the rendering, or disable the object root explicitly:
+
+```ruby
+collection @users, :root => "people", :object_root => false
+# => { "people" : [ { ... }, { ... } ] }
+```
 
 There can also be odd cases where the root-level of the response doesn't map directly to any object:
 

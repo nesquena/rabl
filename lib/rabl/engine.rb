@@ -31,14 +31,12 @@ module Rabl
     # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
       options = @_options.merge(options)
-      data, root_name = data_object(@_data), data_name(@_data)
+      data = data_object(@_data)
       builder = Rabl::Builder.new(options)
+      options[:root_name] = determine_object_root(@_data, options[:root])
       if is_object?(data) || !data # object @user
-        options[:root_name] = root_name if options[:root]
         builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        options[:root_name] = object_root_name if object_root_name
-        options[:root_name] ||= root_name.to_s.singularize if options[:root]
         data.map { |object| builder.build(object, options) }
       end
     end
@@ -111,7 +109,7 @@ module Rabl
     def collection(data, options={})
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
-      @_object_root_name = options[:object_root] if options[:object_root]
+      @_object_root_name = options[:object_root] if options.has_key?(:object_root)
       self.object(data_object(data).to_a) if data
     end
 

@@ -30,6 +30,21 @@ module Rabl
       end
     end
 
+    # Returns the object rootname based on if the root should be included
+    # Can be called with data as a collection or object
+    # determine_object_root(@user, true) => "user"
+    # determine_object_root(@user => :person) => "person"
+    # determine_object_root([@user, @user]) => "user"
+    def determine_object_root(data, include_root=true)
+      return if object_root_name == false
+      root_name = data_name(data).to_s if include_root
+      if is_object?(data)
+        root_name
+      elsif is_collection?(data)
+        object_root_name || (root_name.singularize if root_name)
+      end
+    end
+
     # Returns true if obj is not enumerable
     # is_object?(@user) => true
     # is_object?([]) => false

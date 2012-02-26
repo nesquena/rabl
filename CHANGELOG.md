@@ -12,6 +12,7 @@
  * Adds PList format support (thanks @alzeih)
  * Fixes infinite recursion in edge case calculating object root name
  * Fixes issue with nameless node that has an array result
+ * Adds support for `object_root => false` (Thanks @Lytol)
 
 ## 0.5.4
 
