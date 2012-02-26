@@ -73,8 +73,8 @@ module Rabl
       result = block.call(@_object)
       if name.present?
         @_result[name] = result
-      else # merge into root hash
-        @_result.merge!(result) if result.respond_to?(:each_pair)
+      elsif result.respond_to?(:each_pair) # merge hash into root hash
+        @_result.merge!(result)
       end
     end
     alias_method :code, :node
