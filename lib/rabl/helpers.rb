@@ -14,15 +14,15 @@ module Rabl
     # data_name(data) => "user"
     # data_name(@user => :person) => :person
     # data_name(@users) => :user
-    # data_name([@user]) => "user"
+    # data_name([@user]) => "users"
     # data_name([]) => "array"
     def data_name(data)
       return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
       data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
-      if data.respond_to?(:first)
+      if is_collection?(data) && data.respond_to?(:first) # data collection
         data_name(data.first).to_s.pluralize if data.first.present?
-      else # actual data object
+      elsif is_object?(data) # actual data object
         object_name = object_root_name if object_root_name
         object_name ||= collection_root_name.to_s.singularize if collection_root_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
