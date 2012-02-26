@@ -9,7 +9,6 @@ module Rabl
     def partial(file, options={}, &block)
       raise ArgumentError, "Must provide an :object option to render a partial" unless options.has_key?(:object)
       object, view_path = options.delete(:object), options.delete(:view_path)
-      return if object.blank?
       source, location = self.fetch_source(file, :view_path => view_path)
       engine_options = options.merge(:source => source, :source_location => location)
       self.object_to_hash(object, engine_options, &block)
@@ -18,10 +17,12 @@ module Rabl
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
+    # object_to_hash([@user], :source => "...") { attribute :full_name } => { ... }
     # options must have :source (rabl file contents)
     # options can have :source_location (source filename)
     def object_to_hash(object, options={}, &block)
       return object unless is_object?(object) || is_collection?(object)
+      return [] if is_collection?(object) && object.blank? # empty collection
       engine_options = options.merge(:format => "hash", :root => (options[:root] || false))
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
