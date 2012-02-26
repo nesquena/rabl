@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.5.5.a-h
+## 0.5.5.a-i
 
  * Change engine to only instantiate one builder when rendering a collection
  * Alias to\_msgpack to to\_mpac
@@ -10,6 +10,8 @@
  * Adds a 'object_root' option to collection (thanks @blakewatters)
  * Adds a 'root_name' option to collection
  * Adds PList format support (thanks @alzeih)
+ * Fixes infinite recursion in edge case calculating object root name
+ * Fixes issue with nameless node that has an array result
 
 ## 0.5.4
 
