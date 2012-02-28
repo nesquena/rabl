@@ -418,7 +418,7 @@ end
 
 Using partials and inheritance can significantly reduce code duplication in your templates.
 
-## Template Scope ##
+### Template Scope ###
 
 In RABL, you have access to everything you need to build an API response. Each RABL template has full access to the controllers
 instance variables as well as all view helpers and routing urls.
@@ -455,6 +455,11 @@ end
 This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
 Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
 
+## Resources ##
+
+There are many resources available relating to RABL including the [RABL Wiki](https://github.com/nesquena/rabl/wiki),
+and many tutorials and guides detailed below.
+
 ### Advanced Usage ###
 
 Links to resources for advanced usage:
@@ -480,12 +485,25 @@ Tutorials can always be helpful when first getting started:
  * http://blog.dcxn.com/2011/06/22/rails-json-templates-through-rabl
  * http://teohm.github.com/blog/2011/05/31/using-rabl-in-rails-json-web-api
 
-Let me know if there's any other useful resources.
+Let me know if there's any other useful resources not listed here.
+
+### Related Libraries ###
+
+There are several libraries that either complement or extend the functionality of RABL:
+
+ * [grape-rabl](https://github.com/LTe/grape-rabl) - Allows rabl templates to be used with [grape](https://github.com/intridea/grape)
+ * [gon](https://github.com/gazay/gon) - Exposes your Rails variables in JS with RABL support integrated.
+
+Let me know if there's any other related libraries not listed here.
 
 ### Troubleshooting ###
 
  * Redundant calls for a collection: https://github.com/nesquena/rabl/issues/142#issuecomment-2969107
  * Testing RABL Views: https://github.com/nesquena/rabl/issues/130#issuecomment-4179285
+
+### Examples ###
+
+See the [examples](https://github.com/nesquena/rabl/tree/master/examples) directory.
 
 ## Issues ##
 
@@ -494,7 +512,7 @@ Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full l
  * Better Tilt template support (precompiling templates)
  * Benchmarks and performance optimizations
 
-## Continuous Integration
+## Continuous Integration ##
 
 [![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.png)](http://travis-ci.org/nesquena/rabl)
 
@@ -536,10 +554,6 @@ There are a few excellent libraries that helped inspire RABL and they are listed
 
 Thanks again for all of these great projects.
 
-## Examples
-
-See the [examples](https://github.com/nesquena/rabl/tree/master/examples) directory.
-
-## Copyright
+## Copyright ##
 
 Copyright © 2011-2012 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
