@@ -45,7 +45,8 @@ module Rabl
     # to_json(:root => true)
     def to_json(options={})
       include_root = Rabl.configuration.include_json_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      include_child_root = Rabl.configuration.include_child_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       result = collection_root_name ? { collection_root_name => to_hash(options) } : to_hash(options)
       format_json(result)
     end
@@ -54,7 +55,8 @@ module Rabl
     # to_msgpack(:root => true)
     def to_msgpack(options={})
       include_root = Rabl.configuration.include_msgpack_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      include_child_root = Rabl.configuration.include_child_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       result = collection_root_name ? { collection_root_name => to_hash(options) } : to_hash(options)
       Rabl.configuration.msgpack_engine.pack result
     end
@@ -64,7 +66,8 @@ module Rabl
     # to_plist(:root => true)
     def to_plist(options={})
       include_root = Rabl.configuration.include_plist_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      include_child_root = Rabl.configuration.include_child_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
       Rabl.configuration.plist_engine.dump(result)
     end
@@ -73,7 +76,8 @@ module Rabl
     # to_xml(:root => true)
     def to_xml(options={})
       include_root = Rabl.configuration.include_xml_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      include_child_root = Rabl.configuration.include_child_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       xml_options = Rabl.configuration.default_xml_options.merge(:root => data_name(@_data))
       to_hash(options).to_xml(xml_options)
     end
@@ -82,7 +86,8 @@ module Rabl
     # to_bson(:root => true)
     def to_bson(options={})
       include_root = Rabl.configuration.include_bson_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+      include_child_root = Rabl.configuration.include_child_root
+      options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       result = if collection_root_name
                  { collection_root_name => to_hash(options) }
                elsif is_collection?(@_data) && @_data.is_a?(Array)
