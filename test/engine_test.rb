@@ -234,6 +234,48 @@ context "Rabl::Engine" do
       end.equals "{\"user\":{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}}".split('').sort
     end
 
+    context "#sibling" do
+      asserts "that it adds a sibling method in output" do
+        template = rabl %{
+          collection @users, :root => :users
+          sibling :size
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals %{{"users":[{"user":{}},{"user":{}}],"size":2}}
+
+      asserts "that it can add sibling with :as option" do
+        template = rabl %{
+          collection @users, :root => :users
+          sibling :size, :as => 'total_count'
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals %{{"users":[{"user":{}},{"user":{}}],"total_count":2}}
+
+      asserts "that it can add sibling as hash" do
+        template = rabl %{
+          collection @users, :root => :users
+          sibling :size => 'total_count'
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals %{{"users":[{"user":{}},{"user":{}}],"total_count":2}}
+
+      asserts "that it doesn't add sibling methods on a simple array" do
+        template = rabl %{
+          collection @users
+          sibling :size
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals %{[{"user":{}},{"user":{}}]}
+    end
+
     teardown do
       Rabl.reset_configuration!
     end

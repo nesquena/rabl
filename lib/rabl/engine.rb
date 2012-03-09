@@ -55,7 +55,7 @@ module Rabl
       data = to_hash(options)
       data = { root_name => data } if root_name
 
-      data.merge! Hash[@_options[:siblings].map { |k,v| [k, @_data.send(v)] }] if data.is_a?(Hash)
+      data.merge! Hash[@_options[:siblings].map { |k,v| [v, @_data.send(k)] }] if data.is_a?(Hash)
 
       data
     end
