@@ -455,6 +455,16 @@ end
 This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
 Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
 
+## Content Type Assignment ##
+
+Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
+to work for any Rack-based framework and as agostic to format as possible.
+Check [this issue](https://github.com/nesquena/rabl/issues/185#issuecomment-4501232) for more
+details, and if you have any ideas or patches please let me know.
+
+In the meantime, be sure to set the proper content-types if needed. This is usually pretty simple in both
+Rails and Padrino. I recommend a before_filter on that controller or directly specified in an action.
+
 ## Resources ##
 
 There are many resources available relating to RABL including the [RABL Wiki](https://github.com/nesquena/rabl/wiki),
