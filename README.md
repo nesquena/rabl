@@ -455,7 +455,7 @@ end
 This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
 Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
 
-## Content Type Assignment ##
+### Content Type Assignment ###
 
 Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
 to work for any Rack-based framework and as agostic to format as possible.
