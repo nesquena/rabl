@@ -115,11 +115,13 @@ module Rabl
     end
 
     # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key
-    # cache @user            // calls @user.cache_key
-    # cache ['rabl', @user]  // calls @user.cache_key and prefixes with rabl/
-    # cache 'user'           // explicit key of 'user'
-    def cache(key)
-      @_cache = key
+    # cache @user            # calls @user.cache_key
+    # cache ['rabl', @user]  # calls @user.cache_key and prefixes with rabl/
+    # cache 'user'           # explicit key of 'user'
+    # cache 'user', expires_in: 1.hour
+    # options is passed through to the cache store
+    def cache(key, options = nil)
+      @_cache = [key, options]
     end
 
     # Indicates an attribute or method should be included in the json output
