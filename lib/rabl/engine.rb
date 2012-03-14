@@ -17,6 +17,7 @@ module Rabl
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
+      @_options[:cache] = @_cache if defined? @_cache
       @_data = locals[:object] || self.default_object
       if @_options[:source_location]
         instance_eval(@_source, @_options[:source_location]) if @_source.present?
@@ -111,6 +112,14 @@ module Rabl
       @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
       @_object_root_name = options[:object_root] if options.has_key?(:object_root)
       self.object(data_object(data).to_a) if data
+    end
+
+    # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key
+    # cache @user            // calls @user.cache_key
+    # cache ['rabl', @user]  // calls @user.cache_key and prefixes with rabl/
+    # cache 'user'           // explicit key of 'user'
+    def cache(key)
+      @_cache = key
     end
 
     # Indicates an attribute or method should be included in the json output
