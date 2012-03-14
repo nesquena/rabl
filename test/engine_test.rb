@@ -17,7 +17,6 @@ context "Rabl::Engine" do
     asserts_topic.assigns :_options
   end
 
-
   context "with defaults" do
     setup do
       Rabl.configure do |config|
@@ -28,7 +27,6 @@ context "Rabl::Engine" do
     end
 
     context "#object" do
-
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
@@ -47,7 +45,6 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":{}}"
 
-
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
           object @other
@@ -63,11 +60,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new
         template.render(scope)
       end.matches "{}"
-
     end
 
     context "#collection" do
-
       asserts "that it sets object to be casted as a simple array" do
         template = rabl %{
           collection @users
@@ -115,7 +110,6 @@ context "Rabl::Engine" do
     end
 
     context "#attribute" do
-
       asserts "that it adds an attribute or method to be included in output" do
         template = rabl %{
           object @user
@@ -145,11 +139,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope).split('').sort
       end.equals "{\"user\":{\"city\":\"irvine\"}}".split('').sort
-
     end
 
     context "#code" do
-
       asserts "that it can create an arbitraty code node" do
         template = rabl %{
           code(:foo) { 'bar' }
@@ -190,11 +182,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         template.render(scope).split('').sort
       end.equals "{\"user\":{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}}".split('').sort
-
     end
 
     context "#child" do
-
       asserts "that it can create a child node" do
         template = rabl %{
           object @user
@@ -220,7 +210,6 @@ context "Rabl::Engine" do
     end
 
     context "#glue" do
-
       asserts "that it glues data from a child node" do
         template = rabl %{
           object @user
@@ -249,7 +238,6 @@ context "Rabl::Engine" do
     end
 
     context "#object" do
-
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
@@ -270,7 +258,6 @@ context "Rabl::Engine" do
     end
 
     context "#collection" do
-
       asserts "that it sets object to be casted as a simple array" do
         template = rabl %{
           collection @users
@@ -289,7 +276,7 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"people\":[{},{}]}"
 
-    asserts "that it sets root node for objects using root option" do
+      asserts "that it sets root node for objects using root option" do
         template = rabl %{
           collection @users, :root => :people
         }
@@ -309,7 +296,6 @@ context "Rabl::Engine" do
     end
 
     context "#attribute" do
-
       asserts "that it adds an attribute or method to be included in output" do
         template = rabl %{
           object @user
@@ -339,11 +325,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope)
       end.equals "{\"city\":\"irvine\"}"
-
     end
 
     context "#code" do
-
       asserts "that it can create an arbitraty code node" do
         template = rabl %{
           code(:foo) { 'bar' }
@@ -357,11 +341,9 @@ context "Rabl::Engine" do
         }
         template.render(Object.new)
       end.equals "{}"
-
     end
 
     context "#child" do
-
       asserts "that it can create a child node" do
         template = rabl %{
           object @user
@@ -385,7 +367,6 @@ context "Rabl::Engine" do
 
       end.equals "{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}".split('').sort
 
-
       asserts "that it can be passed conditionals" do
         template = rabl %{
           object @user
@@ -397,11 +378,9 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
 
       end.equals "{\"name\":\"leo\"}".split('').sort
-
     end
 
     context "#glue" do
-
       asserts "that it glues data from a child node" do
         template = rabl %{
           object @user
