@@ -23,34 +23,26 @@ context "Rabl::Builder" do
   end
 
   context "#to_hash" do
-
     context "when given a simple object" do
-
       setup { builder({ :attributes => { :name => :name } }) }
       asserts "that the object is set properly" do
         topic.build(User.new, :root_name => "user")
       end.equivalent_to({ "user" => { :name => "rabl" } })
-
     end
 
     context "when given an object alias" do
-
      setup { builder({ :attributes => { :name => :name } }) }
       asserts "that the object is set properly" do
         topic.build(User.new, :root_name => "person")
       end.equivalent_to({ "person" => { :name => "rabl" } })
-
     end
 
     context "when specified with no root" do
-
       setup { builder({ :attributes => { :name => :name } }) }
       asserts "that the object is set properly" do
         topic.build(User.new, :root => false)
       end.equivalent_to({ :name => "rabl" })
-
     end
-
   end
 
   context "#attribute" do
@@ -62,7 +54,6 @@ context "Rabl::Builder" do
       build_hash @user, :attributes => { :fake => :fake }
     end.equals({})
   end
-
 
   context "#node" do
     asserts "that it has node :foo" do
@@ -78,7 +69,6 @@ context "Rabl::Builder" do
   end
 
   context "#child" do
-
     asserts "that it generates if no data present" do
       builder(:child => []).build(@user)
     end.equals({})
@@ -115,9 +105,7 @@ context "Rabl::Builder" do
     end.equivalent_to({ :users => 'xyz'})
   end
 
-
   context "#glue" do
-
     asserts "that it generates if no data present" do
       builder(:glue => []).build(@user)
     end.equals({})
@@ -141,7 +129,6 @@ context "Rabl::Builder" do
   end
 
   context "#extend" do
-
     asserts "that it does not genereate if no data is present" do
       b = builder :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
       mock(b).partial('users/show',{ :object => @user}).returns({}).subject
