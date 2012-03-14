@@ -17,6 +17,30 @@ context "Rabl::Engine" do
     asserts_topic.assigns :_options
   end
 
+  context "#cache" do
+    context "with cache" do
+      setup do
+        template = rabl %q{
+          cache 'foo'
+        }
+        template.render(Object.new)
+        template.instance_eval('@engine')
+      end
+
+      asserts_topic.assigns(:_cache) { 'foo' }
+    end
+
+    context "without cache" do
+      setup do
+        template = RablTemplate.new {}
+        template.render(Object.new)
+        template.instance_eval('@engine')
+      end
+
+      denies(:instance_variable_defined?, :@_cache)
+    end
+  end
+
   context "with defaults" do
     setup do
       Rabl.configure do |config|
@@ -24,6 +48,18 @@ context "Rabl::Engine" do
         config.include_xml_root      = false
         config.enable_json_callbacks = false
       end
+    end
+
+    context "#cache" do
+      asserts "does not modify output" do
+        template = rabl %q{
+          object @user
+          cache @user
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        template.render(scope)
+      end.matches "{\"user\":{}}"
     end
 
     context "#object" do
