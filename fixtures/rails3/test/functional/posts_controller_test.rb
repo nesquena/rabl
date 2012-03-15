@@ -12,6 +12,7 @@ context "PostsController" do
 
   setup do
     create_users!
+    Rails.cache.clear
     Post.delete_all
     @post1 = Post.create(:title => "Foo", :body => "Bar", :user_id => @user1.id)
     @post2 = Post.create(:title => "Baz", :body => "Bah", :user_id => @user2.id)
@@ -107,7 +108,9 @@ context "PostsController" do
   end # show action
 
   context "for index action with caching" do
-    helper(:cache_hit) { Rails.cache.read(ActiveSupport::Cache.expand_cache_key(['kittens!', @posts], :rabl)) }
+    helper(:cache_hit) do |key|
+      Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
+    end
 
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
@@ -118,7 +121,7 @@ context "PostsController" do
       json_output['articles'].map { |o| o["article"]["title"] }
     end.equals { @posts.map(&:title) }
 
-    asserts(:body).equals { cache_hit }
+    asserts(:body).equals { cache_hit ['kittens!', @posts] }
   end
 
   context "for show action with caching" do
@@ -127,6 +130,7 @@ context "PostsController" do
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
       get "/posts/#{@post1.id}"
+      get "/posts/#{@post1.id}" # cache hits
     end
 
     asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
