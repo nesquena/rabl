@@ -459,7 +459,7 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 Caching works by saving the entire template output to the Rails cache_store.
 
-Requires Rails, action_controller.perform_caching set to true in your environment, and `cache` to be set to a key (object that has cache_key defined, array or string).
+Requires Rails, `action_controller.perform_caching` set to true in your environment, and `cache` to be set to a key (object that has cache_key method, array or string).
 
 ```ruby
 # app/views/users/show.json.rabl
@@ -483,6 +483,7 @@ The cache keyword is used from within the base template. It will ignore any cach
 # app/views/users/index.json.rabl
 collection @users
 cache @users  # key = rabl/users/[cache_key]/users/[cache_key]/...
+
 extends "users/show"
 ```
 
