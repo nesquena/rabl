@@ -7,6 +7,8 @@ rescue LoadError # Rails
   require File.expand_path(File.dirname(__FILE__) + '/../test_helper.rb')
 end
 
+require 'ruby-debug'
+
 context "PostsController" do
   helper(:json_output) { JSON.parse(last_response.body) }
 
@@ -136,6 +138,22 @@ context "PostsController" do
     asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
 
     asserts(:body).equals { cache_hit }
+  end
+
+  context "cache_all_output" do
+    helper(:cache_hit) do |key|
+      Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, nil], :rabl_build))
+    end
+
+    setup do
+      mock(ActionController::Base).perform_caching.any_number_of_times { true }
+      Rabl.configuration.cache_all_output = true
+      get "/posts"
+    end
+
+    asserts("contains cache hits per object (posts by title)") do
+      json_output['articles'].map { |o| o["article"]["title"] }
+    end.equals { @posts.map{ |p| cache_hit(p)[:title] } }
   end
 
 end

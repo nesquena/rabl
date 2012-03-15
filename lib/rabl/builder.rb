@@ -15,7 +15,10 @@ module Rabl
     # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
     def build(object, options={})
       @_object = object
-      compile_hash(options)
+
+      cache_results do
+        compile_hash(options)
+      end
     end
 
     protected
@@ -117,6 +120,24 @@ module Rabl
       result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
       result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
       result
+    end
+
+    private
+
+    def cache_configured?
+      defined?(Rails) && ActionController::Base.perform_caching &&
+          Rabl.configuration.cache_all_output
+    end
+
+    def cache_results(&block)
+      if cache_configured? && @_object.respond_to?(:cache_key)
+        Rails.cache.fetch(
+            ActiveSupport::Cache.expand_cache_key([@_object, @options[:root_name]], :rabl_build),
+            nil,
+            &block)
+      else
+        yield
+      end
     end
   end
 end
