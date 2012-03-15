@@ -17,7 +17,6 @@ module Rabl
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
-      @_options[:cache] = @_cache if defined? @_cache
       @_data = locals[:object] || self.default_object
       if @_options[:source_location]
         instance_eval(@_source, @_options[:source_location]) if @_source.present?
@@ -35,10 +34,15 @@ module Rabl
       data = data_object(@_data)
       builder = Rabl::Builder.new(options)
       options[:root_name] = determine_object_root(@_data, options[:root])
-      if is_object?(data) || !data # object @user
-        builder.build(data, options)
-      elsif is_collection?(data) # collection @users
-        data.map { |object| builder.build(object, options) }
+
+      _cache = @_cache if defined?(@_cache)
+      cache_key, cache_options = *_cache || nil
+      cache_results(cache_key, cache_options) do
+        if is_object?(data) || !data # object @user
+          builder.build(data, options)
+        elsif is_collection?(data) # collection @users
+          data.map { |object| builder.build(object, options) }
+        end
       end
     end
 
@@ -231,6 +235,18 @@ module Rabl
       @_options[:glue] = []
       @_options[:extends] = []
       @_options[:root_name]  = nil
+    end
+
+    def cache_configured?
+      defined?(Rails) && ActionController::Base.perform_caching
+    end
+
+    def cache_results(key, options = {}, &block)
+      if cache_configured? && key
+        Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(key, :rabl), options, &block)
+      else
+        yield
+      end
     end
   end
 end

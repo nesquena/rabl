@@ -78,7 +78,7 @@ context "PostsController" do
       json_output['post']
     end
 
-     # Attributes (regular)
+    # Attributes (regular)
     asserts("contains post title") { topic['title'] }.equals { @post1.title }
     asserts("contains post body")  { topic['body'] }.equals { @post1.body }
 
@@ -105,4 +105,27 @@ context "PostsController" do
       asserts("contains date partial with full")  { topic['full'] }.equals { @post1.created_at.iso8601 }
     end # date node
   end # show action
+
+  context "for index action with caching" do
+    setup do
+      mock(ActionController::Base).perform_caching.any_number_of_times { true }
+      get "/posts"
+    end
+
+    asserts("contains post titles") do
+      json_output['articles'].map { |o| o["article"]["title"] }
+    end.equals { @posts.map(&:title) }
+  end
+
+  context "for show action with caching" do
+    setup do
+      mock(ActionController::Base).perform_caching.any_number_of_times { true }
+      get "/posts/#{@post1.id}"
+      json_output['post']
+    end
+
+    asserts("contains post title") { topic['title'] }.equals { @post1.title }
+    asserts("contains post body")  { topic['body'] }.equals { @post1.body }
+  end
+
 end
