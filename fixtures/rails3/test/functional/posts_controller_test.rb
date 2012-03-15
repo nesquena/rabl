@@ -107,6 +107,8 @@ context "PostsController" do
   end # show action
 
   context "for index action with caching" do
+    helper(:cache_hit) { Rails.cache.read(ActiveSupport::Cache.expand_cache_key(['kittens!', @posts], :rabl)) }
+
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
       get "/posts"
@@ -115,17 +117,21 @@ context "PostsController" do
     asserts("contains post titles") do
       json_output['articles'].map { |o| o["article"]["title"] }
     end.equals { @posts.map(&:title) }
+
+    asserts(:body).equals { cache_hit }
   end
 
   context "for show action with caching" do
+    helper(:cache_hit) { Rails.cache.read(ActiveSupport::Cache.expand_cache_key(@post1, :rabl)) }
+
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
       get "/posts/#{@post1.id}"
-      json_output['post']
     end
 
-    asserts("contains post title") { topic['title'] }.equals { @post1.title }
-    asserts("contains post body")  { topic['body'] }.equals { @post1.body }
+    asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
+
+    asserts(:body).equals { cache_hit }
   end
 
 end

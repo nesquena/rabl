@@ -24,7 +24,9 @@ module Rabl
         instance_eval(@_source) if @_source.present?
       end
       instance_eval(&block) if block_given?
-      self.send("to_" + @_options[:format].to_s)
+      cache_results do
+        self.send("to_" + @_options[:format].to_s)
+      end
     end
 
     # Returns a hash representation of the data object
@@ -35,14 +37,10 @@ module Rabl
       builder = Rabl::Builder.new(options)
       options[:root_name] = determine_object_root(@_data, options[:root])
 
-      _cache = @_cache if defined?(@_cache)
-      cache_key, cache_options = *_cache || nil
-      cache_results(cache_key, cache_options) do
-        if is_object?(data) || !data # object @user
-          builder.build(data, options)
-        elsif is_collection?(data) # collection @users
-          data.map { |object| builder.build(object, options) }
-        end
+      if is_object?(data) || !data # object @user
+        builder.build(data, options)
+      elsif is_collection?(data) # collection @users
+        data.map { |object| builder.build(object, options) }
       end
     end
 
@@ -241,9 +239,14 @@ module Rabl
       defined?(Rails) && ActionController::Base.perform_caching
     end
 
-    def cache_results(key, options = {}, &block)
-      if cache_configured? && key
-        Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(key, :rabl), options, &block)
+    def cache_results(&block)
+      _cache = @_cache if defined?(@_cache)
+      cache_key, cache_options = *_cache || nil
+
+      if cache_configured? && cache_key
+        Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(cache_key, :rabl),
+            cache_options,
+            &block)
       else
         yield
       end
