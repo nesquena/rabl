@@ -35,6 +35,7 @@ module Rabl
     attr_writer   :plist_engine
     attr_writer   :xml_options
     attr_accessor :cache_sources
+    attr_accessor :cache_all_output
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -53,6 +54,7 @@ module Rabl
       @plist_engine          = nil
       @xml_options           = {}
       @cache_sources         = false
+      @cache_all_output      = false
     end
 
     # @param [Symbol, String, #encode] engine_name The name of a JSON engine,
