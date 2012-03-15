@@ -109,8 +109,6 @@ module Rabl
       @_result.merge!(result) if result
     end
 
-    protected
-
     # resolve_condition(:if => true) => true
     # resolve_condition(:if => lambda { |m| false }) => false
     # resolve_condition(:unless => lambda { |m| true }) => true
