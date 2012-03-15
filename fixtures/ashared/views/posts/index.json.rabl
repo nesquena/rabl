@@ -1,4 +1,5 @@
 collection @posts => :articles
+cache ['kittens!', @posts]
 
 extends "posts/show"
 

@@ -455,6 +455,45 @@ end
 This will display the quiz object with nested questions and answers as you would expect with a quiz node, and embedded questions and answers.
 Note that RABL can be nested arbitrarily deep within child nodes to allow for these representations to be defined.
 
+### Caching ###
+
+Caching works by saving the entire template output to the Rails cache_store.
+
+Requires Rails, action_controller.perform_caching set to true in your environment, and `cache` to be set to a key (object that has cache_key defined, array or string).
+
+```ruby
+# app/views/users/show.json.rabl
+object @quiz
+cache @quiz  # key = rabl/quiz/[cache_key]
+attribute :title
+```
+
+The `cache` keyword accepts the same parameters as fragment caching for Rails.
+
+```ruby
+cache @user            # calls @user.cache_key
+cache ['keel', @user]  # calls @user.cache_key and prefixes with kewl/
+cache 'lists'          # explicit key of 'lists'
+cache 'lists', expires_in: 1.hour
+```
+
+The cache keyword is used from within the base template. It will ignore any cache keys specified in an extended template or within partials.
+
+```ruby
+# app/views/users/index.json.rabl
+collection @users
+cache @users  # key = rabl/users/[cache_key]/users/[cache_key]/...
+extends "users/show"
+```
+
+```ruby
+# app/views/users/show.json.rabl
+object @user
+cache @user  # ignored
+
+attributes :name, :email
+```
+
 ## Resources ##
 
 There are many resources available relating to RABL including the [RABL Wiki](https://github.com/nesquena/rabl/wiki),

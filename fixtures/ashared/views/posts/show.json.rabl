@@ -1,4 +1,5 @@
 object @post
+cache @post
 
 attributes :title, :body
 attributes :created_at => :posted_at

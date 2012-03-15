@@ -1,5 +1,6 @@
 require 'rack/test'
 require 'riot'
+require 'riot/rr'
 
 Riot.pretty_dots
 
