@@ -7,8 +7,6 @@ rescue LoadError # Rails
   require File.expand_path(File.dirname(__FILE__) + '/../test_helper.rb')
 end
 
-require 'ruby-debug'
-
 context "PostsController" do
   helper(:json_output) { JSON.parse(last_response.body) }
 
