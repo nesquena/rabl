@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.1
+
+  * Upgrade dependency to multi_json 1.1.0 (Thanks @geronimo)
+
 ## 0.6.0
 
  * Change engine to only instantiate one builder when rendering a collection
