@@ -131,8 +131,8 @@ module Rabl
 
     def cache_results(&block)
       if cache_configured? && @_object.respond_to?(:cache_key)
-        Rails.cache.fetch(
-            ActiveSupport::Cache.expand_cache_key([@_object, @options[:root_name]], :rabl_build),
+        expanded_cache_key = [@_object, @options[:root_name], @options[:format]]
+        Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(expanded_cache_key, :rabl),
             nil,
             &block)
       else

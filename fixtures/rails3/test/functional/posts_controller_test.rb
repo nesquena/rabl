@@ -7,6 +7,8 @@ rescue LoadError # Rails
   require File.expand_path(File.dirname(__FILE__) + '/../test_helper.rb')
 end
 
+require 'rexml/document'
+
 context "PostsController" do
   helper(:json_output) { JSON.parse(last_response.body) }
 
@@ -107,18 +109,36 @@ context "PostsController" do
     end # date node
   end # show action
 
-  context "for index action with caching" do
+  context "for index action with caching in json" do
     helper(:cache_hit) do |key|
       Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
     end
 
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
-      get "/posts"
+      get "/posts.json"
     end
 
     asserts("contains post titles") do
-      json_output['articles'].map { |o| o["article"]["title"] }
+      json_output['articles'].map { |o| o['article']['title'] }
+    end.equals { @posts.map(&:title) }
+
+    asserts(:body).equals { cache_hit ['kittens!', @posts] }
+  end
+
+  context "for index action with caching in xml" do
+    helper(:cache_hit) do |key|
+      Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
+    end
+
+    setup do
+      mock(ActionController::Base).perform_caching.any_number_of_times { true }
+      get "/posts.xml"
+    end
+
+    asserts("contains post titles") do
+      doc = REXML::Document.new topic.body
+      doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
     end.equals { @posts.map(&:title) }
 
     asserts(:body).equals { cache_hit ['kittens!', @posts] }
@@ -130,7 +150,6 @@ context "PostsController" do
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
       get "/posts/#{@post1.id}"
-      get "/posts/#{@post1.id}" # cache hits
     end
 
     asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
@@ -140,7 +159,7 @@ context "PostsController" do
 
   context "cache_all_output" do
     helper(:cache_hit) do |key|
-      Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, nil], :rabl_build))
+      Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, 'article', 'json'], :rabl))
     end
 
     setup do
@@ -150,8 +169,8 @@ context "PostsController" do
     end
 
     asserts("contains cache hits per object (posts by title)") do
-      json_output['articles'].map { |o| o["article"]["title"] }
-    end.equals { @posts.map{ |p| cache_hit(p)[:title] } }
+      json_output['articles'].map { |o| o['article']['title'] }
+    end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
   end
 
 end
