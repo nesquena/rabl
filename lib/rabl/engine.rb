@@ -244,6 +244,8 @@ module Rabl
       cache_key, cache_options = *_cache || nil
 
       if cache_configured? && cache_key
+        expanded_cache_key = (cache_key.is_a?(Array) ? cache_key : [cache_key]) +
+            [@_options[:root_name], @_options[:format]]
         Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(cache_key, :rabl),
             cache_options,
             &block)
