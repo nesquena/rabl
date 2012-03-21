@@ -123,10 +123,10 @@ The cache can be reset manually by running `Rabl.reset_source_cache!` within you
 
 If `cache_all_output` is set to `true` then every template including each individual template used as part of a collection will be cached separately.
 Additionally, anything within child, glue and partial will also be cached separately.
-To cache a single template once, see the section titled Caching below.
+To cache just a single template, see the section titled 'Caching' below.
 
-Note that the `json_engine` option uses the [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) intelligent engine
-defaults so in most cases you **don't need to configure this** directly. If you wish to use yajl as
+Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
+defaults so that in most cases you **don't need to configure this** directly. If you wish to use yajl as
 the primary JSON encoding engine simply add that to your Gemfile:
 
 ```ruby
@@ -462,14 +462,15 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 ### Caching ###
 
-Caching works by saving the entire template output to the Rails cache_store.
+Caching works by saving the entire template output to the configured cache_store in your application. Note that caching is currently **only available** for
+Rails but support for other frameworks is planned in a future release. 
 
-Requires Rails, `action_controller.perform_caching` set to true in your environment, and `cache` to be set to a key (object that has cache_key method, array or string).
+For Rails, requires `action_controller.perform_caching` to be set to true in your environment, and for `cache` to be set to a key (object that responds to cache_key method, array or string).
 
 ```ruby
 # app/views/users/show.json.rabl
 object @quiz
-cache @quiz  # key = rabl/quiz/[cache_key]
+cache @quiz # key = rabl/quiz/[cache_key]
 attribute :title
 ```
 
@@ -492,13 +493,17 @@ cache @users  # key = rabl/users/[cache_key]/users/[cache_key]/...
 extends "users/show"
 ```
 
+and within the inherited template:
+
 ```ruby
 # app/views/users/show.json.rabl
 object @user
-cache @user  # ignored
+cache @user # will be ignored
 
 attributes :name, :email
 ```
+Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible.
+
 ### Content Type Assignment ###
 
 Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
@@ -589,6 +594,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Luke van der Hoeven](https://github.com/plukevdh) - Support non-ORM objects in templates
 * [Andrey Voronkov](https://github.com/Antiarchitect) - Added BSON format support
 * [Alli Witheford](https://github.com/alzeih) - Added Plist format support
+* [David Sommers](https://github.com/databyte) - Added template caching support for Rails
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 

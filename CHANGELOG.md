@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.2
+
+  * Adds template caching support for Rails (Thanks @databyte)
+
 ## 0.6.1
 
   * Upgrade dependency to multi_json 1.1.0 (Thanks @geronimo)
