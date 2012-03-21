@@ -124,20 +124,16 @@ module Rabl
 
     private
 
-    def cache_configured?
-      defined?(Rails) && ActionController::Base.perform_caching &&
-          Rabl.configuration.cache_all_output
-    end
-
+    # Caches the results of the block based on object cache_key
+    # cache_results { compile_hash(options) }
     def cache_results(&block)
-      if cache_configured? && @_object.respond_to?(:cache_key)
-        expanded_cache_key = [@_object, @options[:root_name], @options[:format]]
-        Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(expanded_cache_key, :rabl),
-            nil,
-            &block)
-      else
+      if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
+        result_cache_key = [@_object, @options[:root_name], @options[:format]]
+        fetch_result_from_cache(result_cache_key, &block)
+      else # skip cache
         yield
       end
     end
+
   end
 end

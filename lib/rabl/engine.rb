@@ -24,9 +24,7 @@ module Rabl
         instance_eval(@_source) if @_source.present?
       end
       instance_eval(&block) if block_given?
-      cache_results do
-        self.send("to_" + @_options[:format].to_s)
-      end
+      cache_results { self.send("to_" + @_options[:format].to_s) }
     end
 
     # Returns a hash representation of the data object
@@ -235,23 +233,18 @@ module Rabl
       @_options[:root_name]  = nil
     end
 
-    def cache_configured?
-      defined?(Rails) && ActionController::Base.perform_caching
-    end
-
+    # Caches the results of the block based on object cache_key
+    # cache_results { compile_hash(options) }
     def cache_results(&block)
       _cache = @_cache if defined?(@_cache)
       cache_key, cache_options = *_cache || nil
-
-      if cache_configured? && cache_key
-        expanded_cache_key = (cache_key.is_a?(Array) ? cache_key : [cache_key]) +
-            [@_options[:root_name], @_options[:format]]
-        Rails.cache.fetch(ActiveSupport::Cache.expand_cache_key(cache_key, :rabl),
-            cache_options,
-            &block)
-      else
+      if template_cache_configured? && cache_key
+        result_cache_key = Array(cache_key) + [@_options[:root_name], @_options[:format]]
+        fetch_result_from_cache(result_cache_key, cache_options, &block)
+      else # skip caching
         yield
       end
     end
+
   end
 end

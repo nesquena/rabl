@@ -78,5 +78,17 @@ module Rabl
       defined?(@_collection_name) ? @_collection_name : nil
     end
 
+    # Fetches a key from the cache and stores rabl template result otherwise
+    # fetch_from_cache('some_key') { ...rabl template result... }
+    def fetch_result_from_cache(cache_key, cache_options=nil, &block)
+      expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+      Rails.cache.fetch(expanded_cache_key, cache_options, &block) if defined?(Rails)
+    end
+
+    # Returns true if the cache has been enabled for the application
+    def template_cache_configured?
+      defined?(Rails) && defined?(ActionController) && ActionController::Base.perform_caching
+    end
+
   end
 end

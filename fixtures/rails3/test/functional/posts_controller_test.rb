@@ -123,8 +123,8 @@ context "PostsController" do
       json_output['articles'].map { |o| o['article']['title'] }
     end.equals { @posts.map(&:title) }
 
-    asserts(:body).equals { cache_hit ['kittens!', @posts] }
-  end
+    asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'json'] }
+  end # index action, caching, json
 
   context "for index action with caching in xml" do
     helper(:cache_hit) do |key|
@@ -141,11 +141,13 @@ context "PostsController" do
       doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
     end.equals { @posts.map(&:title) }
 
-    asserts(:body).equals { cache_hit ['kittens!', @posts] }
-  end
+    asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'xml'] }
+  end # index action, caching, xml
 
   context "for show action with caching" do
-    helper(:cache_hit) { Rails.cache.read(ActiveSupport::Cache.expand_cache_key(@post1, :rabl)) }
+    helper(:cache_hit) do |key|
+      Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
+    end
 
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
@@ -154,8 +156,8 @@ context "PostsController" do
 
     asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
 
-    asserts(:body).equals { cache_hit }
-  end
+    asserts(:body).equals { cache_hit [@post1, nil, 'json'] }
+  end # show action, caching, json
 
   context "cache_all_output" do
     helper(:cache_hit) do |key|
@@ -171,6 +173,6 @@ context "PostsController" do
     asserts("contains cache hits per object (posts by title)") do
       json_output['articles'].map { |o| o['article']['title'] }
     end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
-  end
+  end  # index action, cache_all_output
 
 end
