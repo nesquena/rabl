@@ -45,7 +45,7 @@ module Rabl
             lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
             template = lookup_proc.call(false) rescue lookup_proc.call(true)
             file_path = File.join(Rails.root.to_s, template.inspect) if template
-          elsif source_format && context_scope.respond_to?(:view_paths)
+          elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
             template = context_scope.view_paths.find_template(file, source_format, false)
             file_path = File.join(view_path.first.to_s, template.inspect) if template
           else # fallback to manual
