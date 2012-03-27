@@ -463,7 +463,7 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 ### Caching ###
 
 Caching works by saving the entire template output to the configured cache_store in your application. Note that caching is currently **only available** for
-Rails but support for other frameworks is planned in a future release. 
+Rails but support for other frameworks is planned in a future release.
 
 For Rails, requires `action_controller.perform_caching` to be set to true in your environment, and for `cache` to be set to a key (object that responds to cache_key method, array or string).
 
@@ -595,6 +595,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Andrey Voronkov](https://github.com/Antiarchitect) - Added BSON format support
 * [Alli Witheford](https://github.com/alzeih) - Added Plist format support
 * [David Sommers](https://github.com/databyte) - Added template caching support for Rails
+* [Ryan Bigg](https://github.com/radar) - Improved template resolution code
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 

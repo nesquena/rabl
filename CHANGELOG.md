@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.4 (Unreleased)
+
+ * Further improvements to template path resolution (Thanks @radar)
+
 ## 0.6.3
 
  * Adds Rails 3.2 Integration Test
