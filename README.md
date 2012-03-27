@@ -568,8 +568,7 @@ See the [examples](https://github.com/nesquena/rabl/tree/master/examples) direct
 
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
 
- * Better Tilt template support (precompiling templates)
- * Benchmarks and performance optimizations
+ * Rigorous benchmarking and performance optimizations
 
 ## Continuous Integration ##
 
