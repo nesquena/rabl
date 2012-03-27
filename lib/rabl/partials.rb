@@ -23,7 +23,7 @@ module Rabl
     def object_to_hash(object, options={}, &block)
       return object unless is_object?(object) || is_collection?(object)
       return [] if is_collection?(object) && object.blank? # empty collection
-      engine_options = options.merge(:format => "hash", :root => (options[:root] || false))
+      engine_options = options.reverse_merge(:format => "hash", :root => (options[:root] || false))
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
 
@@ -32,33 +32,52 @@ module Rabl
     def fetch_source(file, options={})
       Rabl.source_cache(file, options[:view_path]) do
         if defined? Padrino
-          view_path = Array(options[:view_path] || context_scope.settings.views)
-          # use Padrino's own template resolution mechanism
-          file_path, _ = context_scope.instance_eval { resolve_template(file) }
-          # Padrino chops the extension, stitch it back on
-          file_path = File.join(view_path.first.to_s, (file_path.to_s + ".rabl"))
+          file_path = fetch_padrino_source(file, options={})
         elsif defined?(Rails) && context_scope
-          # use Rails template resolution mechanism if possible (find_template)
-          source_format = request_format if defined?(request_format)
-          view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
-          if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
-            lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
-            template = lookup_proc.call(false) rescue lookup_proc.call(true)
-            file_path = template.identifier if template
-          elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
-            template = context_scope.view_paths.find_template(file, source_format, false)
-            file_path = template.filename if template
-          else # fallback to manual
-            file_path = Dir[File.join("{#{view_path.join(",")}}", file + ".{*.,}rabl")].first
-          end
+          file_path = fetch_rails_source(file, options={})
         elsif defined? Sinatra
-          view_path = Array(options[:view_path] || context_scope.settings.views)
-          file_path = Dir[File.join("{#{view_path.join(",")}}", file + ".{*.,}rabl")].first
+          file_path = fetch_sinatra_source(file, options={})
         end
 
         raise "Cannot find rabl template '#{file}' within registered views!" unless File.exist?(file_path.to_s)
         [File.read(file_path.to_s), file_path.to_s] if file_path
       end
+    end
+
+    private
+
+    def fetch_padrino_source(file, options={})
+      view_path = Array(options[:view_path] || context_scope.settings.views)
+      # use Padrino's own template resolution mechanism
+      file_path, _ = context_scope.instance_eval { resolve_template(file) }
+      # Padrino chops the extension, stitch it back on
+      File.join(view_path.first.to_s, (file_path.to_s + ".rabl"))
+    end
+
+    def fetch_rails_source(file, options={})
+      # use Rails template resolution mechanism if possible (find_template)
+      source_format = request_format if defined?(request_format)
+      view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
+      if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
+        lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
+        template = lookup_proc.call(false) rescue lookup_proc.call(true)
+        file_path = template.identifier if template
+      elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
+        template = context_scope.view_paths.find_template(file, source_format, false)
+        file_path = template.filename if template
+      else # fallback to manual
+        file_path = fetch_manual_template(view_path, file)
+      end
+      file_path
+    end
+
+    def fetch_sinatra_source(file, options={})
+      view_path = Array(options[:view_path] || context_scope.settings.views)
+      file_path = fetch_manual_template(view_path, file)
+    end
+
+    def fetch_manual_template(view_path, file)
+      Dir[File.join("{#{view_path.join(",")}}", file + ".{*.,}rabl")].first
     end
 
   end # Partials
