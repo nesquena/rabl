@@ -39,13 +39,14 @@ module Rabl
           fetch_sinatra_source(file, options)
         end
 
-        raise "Cannot find rabl template '#{file}' within registered views!" unless File.exist?(file_path.to_s)
+        raise "Cannot find rabl template '#{file}' within registered view paths!" unless File.exist?(file_path.to_s)
         [File.read(file_path.to_s), file_path.to_s] if file_path
       end
     end
 
     private
 
+    # Returns the rabl template path for padrino views using configured views
     def fetch_padrino_source(file, options={})
       view_path = Array(options[:view_path] || context_scope.settings.views)
       # use Padrino's own template resolution mechanism
@@ -54,6 +55,7 @@ module Rabl
       File.join(view_path.first.to_s, (file_path.to_s + ".rabl"))
     end
 
+    # Returns the rabl template path for Rails, including special lookups for Rails 2 and 3
     def fetch_rails_source(file, options={})
       # use Rails template resolution mechanism if possible (find_template)
       source_format = request_format if defined?(request_format)
@@ -65,18 +67,28 @@ module Rabl
       elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
         template = context_scope.view_paths.find_template(file, source_format, false)
         template.filename if template
-      else # fallback to manual
+      else # manual file lookup
         fetch_manual_template(view_path, file)
       end
     end
 
+    # Returns the rabl template path for sinatra views using configured views
     def fetch_sinatra_source(file, options={})
       view_path = Array(options[:view_path] || context_scope.settings.views)
       fetch_manual_template(view_path, file)
     end
 
+    # Returns the rabl template by looking up files within the view_path and specified file path
     def fetch_manual_template(view_path, file)
-      Dir[File.join("{#{view_path.join(",")}}", "{,_}" + file + ".{*.,}rabl")].first
+      Dir[File.join("{#{view_path.join(",")}}", "{#{file},#{partialized(file)}}" + ".{*.,}rabl")].first
+    end
+
+    # Returns a partialized version of a file path
+    # partialized("v1/variants/variant") => "v1/variants/_variant"
+    def partialized(file)
+      partial_file = file.split(File::SEPARATOR)
+      partial_file[-1] = "_#{partial_file[-1]}" unless partial_file[-1].start_with?("_")
+      partial_file.join(File::SEPARATOR)
     end
 
   end # Partials
