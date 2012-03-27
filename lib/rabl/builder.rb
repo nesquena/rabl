@@ -90,7 +90,7 @@ module Rabl
       return false unless data.present? && resolve_condition(options)
       name, object = data_name(data), data_object(data)
       include_root = is_collection?(object) && @options[:child_root] # child @users
-      engine_options = @options.slice(:child_root, :format).merge(:root => include_root)
+      engine_options = @options.slice(:child_root).merge(:root => include_root)
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
       @_result[name] = self.object_to_hash(object, engine_options, &block)
     end
