@@ -2,8 +2,8 @@
 
 ## 0.6.4 (Unreleased)
 
- * Further improvements to template path resolution (Thanks @radar)
- * Upgrade to multi_json 1.2.0 with Oj support (Thanks @jherdman)
+ * Further improvements to template path resolution for Rails (Thanks @radar)
+ * Change multi_json to be > 1.1.0 to support 1.2.0 with Oj support (Thanks @jherdman)
 
 ## 0.6.3
 
