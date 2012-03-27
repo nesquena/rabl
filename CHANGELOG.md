@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.3
+
+ * Adds Rails 3.2 Integration Test
+ * Much improved Rails template path resolution
+
 ## 0.6.2
 
   * Adds template caching support for Rails (Thanks @databyte)
