@@ -44,10 +44,10 @@ module Rabl
           if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
             lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
             template = lookup_proc.call(false) rescue lookup_proc.call(true)
-            file_path = File.join(Rails.root.to_s, template.inspect) if template
+            file_path = template.identifier if template
           elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
             template = context_scope.view_paths.find_template(file, source_format, false)
-            file_path = File.join(view_path.first.to_s, template.inspect) if template
+            file_path = template.filename if template
           else # fallback to manual
             file_path = Dir[File.join("{#{view_path.join(",")}}", file + ".{*.,}rabl")].first
           end
