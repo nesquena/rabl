@@ -78,7 +78,7 @@ node(:read) { |post| post.read_by?(@user) }
 
 Which would output the following JSON or XML when visiting `http://localhost:3000/posts.json`
 
-```json
+```js
 [{  post :
   {
     id : 5, title: "...", subject: "...",
