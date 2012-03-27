@@ -25,6 +25,15 @@ ln -s "../../ashared/migrate" db/migrate
 ln ../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
 ln ../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
 
+# Rails 3.2
+
+cd fixtures/rails3_2
+ln -s "../../ashared/models" app/models
+ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/migrate" db/migrate
+ln ../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln ../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
+
 # Sinatra
 
 cd fixtures/sinatra_test

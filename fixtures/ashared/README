@@ -1,5 +1,9 @@
 Fixtures to test RABL:
 
+Gemfile:
+  gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
+  gem 'riot', :group => "test"
+
 models:
 
   user
