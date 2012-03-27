@@ -76,7 +76,7 @@ module Rabl
     end
 
     def fetch_manual_template(view_path, file)
-      Dir[File.join("{#{view_path.join(",")}}{_,}", file + ".{*.,}rabl")].first
+      Dir[File.join("{#{view_path.join(",")}}", "{,_}" + file + ".{*.,}rabl")].first
     end
 
   end # Partials
