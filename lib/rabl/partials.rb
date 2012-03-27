@@ -32,27 +32,31 @@ module Rabl
     def fetch_source(file, options={})
       Rabl.source_cache(file, options[:view_path]) do
         if defined? Padrino
-          root_path = Padrino.root
+          view_path = Array(options[:view_path] || context_scope.settings.views)
           # use Padrino's own template resolution mechanism
-          file_path, _ = @_scope.instance_eval { resolve_template(file) }
+          file_path, _ = context_scope.instance_eval { resolve_template(file) }
           # Padrino chops the extension, stitch it back on
-          file_path = File.join(@_scope.settings.views, (file_path.to_s + ".rabl"))
-        elsif defined? Rails
-          if defined?(@_scope) && @_scope.respond_to?(:find_template)
-            # use Rails's own template resolution mechanism (partials and no partial)
-            lookup_proc = lambda { |partial| @_scope.find_template(file, [], partial) }
+          file_path = File.join(view_path.first.to_s, (file_path.to_s + ".rabl"))
+        elsif defined?(Rails) && context_scope
+          # use Rails template resolution mechanism if possible (find_template)
+          source_format = request_format if defined?(request_format)
+          view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
+          if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
+            lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
             template = lookup_proc.call(false) rescue lookup_proc.call(true)
             file_path = File.join(Rails.root.to_s, template.inspect) if template
+          elsif source_format && context_scope.respond_to?(:view_paths)
+            template = context_scope.view_paths.find_template(file, source_format, false)
+            file_path = File.join(view_path.first.to_s, template.inspect) if template
           else # fallback to manual
-            root_path = Rails.root
-            view_path = options[:view_path] || File.join(root_path, "app/views/")
-            file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
+            file_path = Dir[File.join("{#{view_path.join(",")}}", file + ".{*.,}rabl")].first
           end
         elsif defined? Sinatra
-          view_path = options[:view_path] || @_scope.settings.views
-          file_path = Dir[File.join(view_path, file + ".{*.,}rabl")].first
+          view_path = Array(options[:view_path] || context_scope.settings.views)
+          file_path = Dir[File.join("{#{view_path.join(",")}}", file + ".{*.,}rabl")].first
         end
 
+        raise "Cannot find rabl template '#{file}' within registered views!" unless File.exist?(file_path.to_s)
         [File.read(file_path.to_s), file_path.to_s] if file_path
       end
     end

@@ -124,6 +124,12 @@ module Rabl
 
     private
 
+    # Returns a guess at the format in this scope
+    # request_format => "xml"
+    def request_format
+      @options[:format] if @options[:format] != "hash"
+    end
+
     # Caches the results of the block based on object cache_key
     # cache_results { compile_hash(options) }
     def cache_results(&block)
