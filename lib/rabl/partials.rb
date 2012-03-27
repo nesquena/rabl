@@ -31,12 +31,12 @@ module Rabl
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
       Rabl.source_cache(file, options[:view_path]) do
-        if defined? Padrino
-          file_path = fetch_padrino_source(file, options={})
+        file_path = if defined? Padrino
+          fetch_padrino_source(file, options)
         elsif defined?(Rails) && context_scope
-          file_path = fetch_rails_source(file, options={})
+          fetch_rails_source(file, options)
         elsif defined? Sinatra
-          file_path = fetch_sinatra_source(file, options={})
+          fetch_sinatra_source(file, options)
         end
 
         raise "Cannot find rabl template '#{file}' within registered views!" unless File.exist?(file_path.to_s)
@@ -61,19 +61,18 @@ module Rabl
       if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
         lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)
-        file_path = template.identifier if template
+        template.identifier if template
       elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
         template = context_scope.view_paths.find_template(file, source_format, false)
-        file_path = template.filename if template
+        template.filename if template
       else # fallback to manual
-        file_path = fetch_manual_template(view_path, file)
+        fetch_manual_template(view_path, file)
       end
-      file_path
     end
 
     def fetch_sinatra_source(file, options={})
       view_path = Array(options[:view_path] || context_scope.settings.views)
-      file_path = fetch_manual_template(view_path, file)
+      fetch_manual_template(view_path, file)
     end
 
     def fetch_manual_template(view_path, file)
