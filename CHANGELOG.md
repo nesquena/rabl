@@ -3,6 +3,7 @@
 ## 0.6.4 (Unreleased)
 
  * Further improvements to template path resolution (Thanks @radar)
+ * Upgrade to multi_json 1.2.0 with Oj support (Thanks @jherdman)
 
 ## 0.6.3
 
