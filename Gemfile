@@ -15,7 +15,5 @@ group :test do
   gem 'rack-test', :require => "rack/test"
   gem 'activerecord', :require => "active_record"
   gem 'sqlite3'
-  gem 'padrino', '>= 0.10.2'
   gem 'sinatra', '>= 1.2.0'
-  gem 'rails', '>= 2.3.0'
 end
