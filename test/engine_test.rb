@@ -33,13 +33,13 @@ context "Rabl::Engine" do
     context "with cache and options" do
       setup do
         template = rabl %q{
-          cache 'foo', expires_in: 'bar'
+          cache 'foo', :expires_in => 'bar'
         }
         template.render(Object.new)
         template.instance_eval('@engine')
       end
 
-      asserts_topic.assigns(:_cache) { ['foo', { expires_in: 'bar' }] }
+      asserts_topic.assigns(:_cache) { ['foo', { :expires_in => 'bar' }] }
     end
 
     context "without cache" do
