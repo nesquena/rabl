@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.5
+
+  * Fixed issue with multi_json version use ~> 1.0 (Thanks @sferik)
+
 ## 0.6.4
 
  * Further improvements to template path resolution for Rails (Thanks @radar)
