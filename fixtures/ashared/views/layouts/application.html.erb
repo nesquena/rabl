@@ -1,6 +1,13 @@
-<head>
-  Not for RABL
-</head>
-<body>
-  Not for RABL
-</body>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RABL ROCKS!</title>
+  </head>
+  <body>
+    <%= yield %>
+
+    <%= javascript_tag do %>
+      <%= yield(:footer_scripts) %>
+    <% end %>
+  </body>
+</html>

@@ -109,6 +109,22 @@ context "PostsController" do
     end # date node
   end # show action, json
 
+  context "for index action rendering JSON within HTML" do
+    setup do
+      get "/posts", format: :html
+    end
+
+    asserts(:body).includes { "<html>" }
+  end # index action, html
+
+  context "for show action rendering JSON within HTML" do
+    setup do
+      get "/posts/#{@post1.id}", format: :html
+    end
+
+    asserts(:body).includes { "<html>" }
+  end # show action, html
+
   context "caching" do
     helper(:cache_hit) do |key|
       Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
