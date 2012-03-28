@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.6.4 (Unreleased)
+## 0.6.4
 
  * Further improvements to template path resolution for Rails (Thanks @radar)
  * Change multi_json to be > 1.1.0 to support 1.2.0 with Oj support (Thanks @jherdman)
