@@ -61,7 +61,8 @@ module Rabl
       # use Rails template resolution mechanism if possible (find_template)
       source_format = request_format if defined?(request_format)
       if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
-        lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
+        lookup_proc = lambda { |partial|
+          context_scope.lookup_context.find_template(file, [], partial, [], {:formats => [:json]}) }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)
         template.identifier if template
       elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
