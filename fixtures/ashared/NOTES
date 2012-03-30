@@ -1,3 +1,12 @@
+# Sinatra
+
+cd fixtures/sinatra_test
+ln -s "../ashared/models" models
+ln -s "../ashared/views/" views
+ln -s "../../ashared/migrate" db/migrate
+ln -s ../../../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln -s ../../../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
+
 # Padrino
 
 cd fixtures/padrino_test
@@ -20,10 +29,10 @@ ln -s ../../../../test/integration/users_controller_test.rb test/functionals/use
 
 cd fixtures/rails3
 ln -s "../../ashared/models" app/models
-ln -s "../../ashared/views_rails_3/" app/views
+ln -s "../../ashared/views/" app/views
 ln -s "../../ashared/migrate" db/migrate
-ln -s ../../../../test/integration/rails3/posts_controller_test.rb test/functional/posts_controller_test.rb
-ln -s ../../../../test/integration/rails3/users_controller_test.rb test/functional/users_controller_test.rb
+ln -s ../../../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln -s ../../../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
 
 # Rails 3.2
 
@@ -31,14 +40,5 @@ cd fixtures/rails3_2
 ln -s "../../ashared/models" app/models
 ln -s "../../ashared/views_rails_3/" app/views
 ln -s "../../ashared/migrate" db/migrate
-ln -s ../../../../test/integration/rails3/posts_controller_test.rb test/functional/posts_controller_test.rb
-ln -s ../../../../test/integration/rails3/users_controller_test.rb test/functional/users_controller_test.rb
-
-# Sinatra
-
-cd fixtures/sinatra_test
-ln -s "../ashared/models" models
-ln -s "../ashared/views/" views
-ln -s "../../ashared/migrate" db/migrate
-ln -s ../../../../test/integration/posts_controller_test.rb test/functional/posts_controller_test.rb
-ln -s ../../../../test/integration/users_controller_test.rb test/functional/users_controller_test.rb
+ln -s ../../../../test/integration/rails3_2/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln -s ../../../../test/integration/rails3_2/users_controller_test.rb test/functional/users_controller_test.rb

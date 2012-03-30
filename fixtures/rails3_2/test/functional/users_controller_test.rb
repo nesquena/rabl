@@ -1,1 +1,1 @@
-../../../../test/integration/rails3/users_controller_test.rb
+../../../../test/integration/rails3_2/users_controller_test.rb

@@ -1,1 +1,1 @@
-../../../../test/integration/rails3/posts_controller_test.rb
+../../../../test/integration/posts_controller_test.rb
