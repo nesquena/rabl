@@ -4,6 +4,7 @@
 
   * Even more improvements to Rails template resolution (Thanks @databyte)
   * Added fixture integration tests for rendering rabl inline from html (Thanks @databyte)
+  * Added useful note to README about Padrino (Thanks @simonc)
 
 ## 0.6.5
 
