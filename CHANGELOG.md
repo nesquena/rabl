@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.6 (Unreleased)
+
+  * Even more improvements to Rails template resolution (Thanks @databyte)
+  * Added fixture integration tests for rendering rabl inline from html (Thanks @databyte)
+
 ## 0.6.5
 
   * Fixed issue with multi_json version use ~> 1.0 (Thanks @sferik)
