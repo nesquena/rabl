@@ -36,6 +36,9 @@ and run `bundle install` to install the dependency.
 
 If you are using **Rails 2.X, Rails 3.X or Padrino**, RABL works without configuration.
 
+**Important:** With Padrino, be sure that **the rabl gem is listed after the padrino gem in your Gemfile**, otherwise
+Rabl will not register as a template engine.
+
 With Sinatra, or any other tilt-based framework, simply register:
 
     Rabl.register!
