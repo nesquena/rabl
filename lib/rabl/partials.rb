@@ -62,7 +62,11 @@ module Rabl
       view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
       if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
         lookup_proc = lambda { |partial|
-          context_scope.lookup_context.find_template(file, [], partial, [], {:formats => [:json]}) }
+          if context_scope.lookup_context.method(:find).parameters.count < 5
+            context_scope.lookup_context.find(file, [], partial)
+          else
+            context_scope.lookup_context.find(file, [], partial, [], {:formats => [:json]})
+          end }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)
         template.identifier if template
       elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
