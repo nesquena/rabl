@@ -7,11 +7,14 @@ rescue LoadError # Rails
   require File.expand_path(File.dirname(__FILE__) + '/../test_helper.rb')
 end
 
+require 'rexml/document'
+
 context "PostsController" do
   helper(:json_output) { JSON.parse(last_response.body) }
 
   setup do
     create_users!
+    Rails.cache.clear
     Post.delete_all
     @post1 = Post.create(:title => "Foo", :body => "Bar", :user_id => @user1.id)
     @post2 = Post.create(:title => "Baz", :body => "Bah", :user_id => @user2.id)
@@ -70,7 +73,7 @@ context "PostsController" do
     denies("contains no created_by_admin node for non-admins") do
       json_output['articles'].first['article']
     end.includes(:created_by_admin)
-  end # index action
+  end # index action, json
 
   context "for show action" do
     setup do
@@ -78,7 +81,7 @@ context "PostsController" do
       json_output['post']
     end
 
-     # Attributes (regular)
+    # Attributes (regular)
     asserts("contains post title") { topic['title'] }.equals { @post1.title }
     asserts("contains post body")  { topic['body'] }.equals { @post1.body }
 
@@ -104,5 +107,82 @@ context "PostsController" do
       asserts("contains date partial with hour")  { topic['hour'] }.equals { @post1.created_at.hour }
       asserts("contains date partial with full")  { topic['full'] }.equals { @post1.created_at.iso8601 }
     end # date node
-  end # show action
+  end # show action, json
+
+  context "for index action rendering JSON within HTML" do
+    setup do
+      get "/posts", format: :html
+    end
+
+    asserts(:body).includes { "<html>" }
+  end # index action, html
+
+  context "for show action rendering JSON within HTML" do
+    setup do
+      get "/posts/#{@post1.id}", format: :html
+    end
+
+    asserts(:body).includes { "<html>" }
+  end # show action, html
+
+  context "caching" do
+    helper(:cache_hit) do |key|
+      Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
+    end
+
+    setup do
+      mock(ActionController::Base).perform_caching.any_number_of_times { true }
+    end
+
+    context "for index action with caching in json" do
+      setup do
+        get "/posts", format: :json
+      end
+
+      asserts("contains post titles") do
+        json_output['articles'].map { |o| o['article']['title'] }
+      end.equals { @posts.map(&:title) }
+
+      asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'json'] }
+    end # index action, caching, json
+
+    context "for index action with caching in xml" do
+      setup do
+        get "/posts", format: :xml
+      end
+
+      asserts("contains post titles") do
+        doc = REXML::Document.new topic.body
+        doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
+      end.equals { @posts.map(&:title) }
+
+      asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'xml'] }
+    end # index action, caching, xml
+
+    context "for show action with caching" do
+      setup do
+        get "/posts/#{@post1.id}", format: :json
+      end
+
+      asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
+
+      asserts(:body).equals { cache_hit [@post1, nil, 'json'] }
+    end # show action, caching, json
+
+    context "cache_all_output" do
+      helper(:cache_hit) do |key|
+        Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, 'article', 'json'], :rabl))
+      end
+
+      setup do
+        Rabl.configuration.cache_all_output = true
+        get "/posts", format: :json
+      end
+
+      asserts("contains cache hits per object (posts by title)") do
+        json_output['articles'].map { |o| o['article']['title'] }
+      end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
+    end  # index action, cache_all_output
+  end
+
 end
