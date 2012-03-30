@@ -20,7 +20,7 @@ ln -s ../../../../test/integration/users_controller_test.rb test/functionals/use
 
 cd fixtures/rails3
 ln -s "../../ashared/models" app/models
-ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/views_rails_3/" app/views
 ln -s "../../ashared/migrate" db/migrate
 ln -s ../../../../test/integration/rails3/posts_controller_test.rb test/functional/posts_controller_test.rb
 ln -s ../../../../test/integration/rails3/users_controller_test.rb test/functional/users_controller_test.rb
@@ -29,7 +29,7 @@ ln -s ../../../../test/integration/rails3/users_controller_test.rb test/function
 
 cd fixtures/rails3_2
 ln -s "../../ashared/models" app/models
-ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/views_rails_3/" app/views
 ln -s "../../ashared/migrate" db/migrate
 ln -s ../../../../test/integration/rails3/posts_controller_test.rb test/functional/posts_controller_test.rb
 ln -s ../../../../test/integration/rails3/users_controller_test.rb test/functional/users_controller_test.rb
