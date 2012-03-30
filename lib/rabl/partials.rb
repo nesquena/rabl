@@ -34,7 +34,8 @@ module Rabl
         file_path = if defined? Padrino
           fetch_padrino_source(file, options)
         elsif defined?(Rails) && context_scope
-          fetch_rails_source(file, options)
+          view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
+          fetch_rails_source(file, options) || fetch_manual_template(view_path, file)
         elsif defined? Sinatra
           fetch_sinatra_source(file, options)
         end
@@ -59,7 +60,6 @@ module Rabl
     def fetch_rails_source(file, options={})
       # use Rails template resolution mechanism if possible (find_template)
       source_format = request_format if defined?(request_format)
-      view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
       if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
         lookup_proc = lambda { |partial| context_scope.lookup_context.find_template(file, [], partial) }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)
@@ -67,8 +67,6 @@ module Rabl
       elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
         template = context_scope.view_paths.find_template(file, source_format, false)
         template.filename if template
-      else # manual file lookup
-        fetch_manual_template(view_path, file)
       end
     end
 
