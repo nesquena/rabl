@@ -32,7 +32,7 @@ task "test:setup" do
   Dir[File.dirname(__FILE__) + "/fixtures/#{fixture_list}"].each do |fixture|
     puts "\n*** Setting up for #{File.basename(fixture)} tests ***\n"
     `export BUNDLE_GEMFILE=#{fixture}/Gemfile` if ENV['TRAVIS']
-    puts `cd #{fixture}; bundle install;`
+    puts `cd #{fixture}; mkdir -p tmp/cache; bundle install;`
   end
 end
 
