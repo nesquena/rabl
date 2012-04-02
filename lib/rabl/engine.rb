@@ -121,6 +121,7 @@ module Rabl
     # cache 'user', expires_in: 1.hour
     # options is passed through to the cache store
     def cache(key, options = nil)
+      key ||= @_data # if called but missing, use object
       @_cache = [key, options]
     end
 
