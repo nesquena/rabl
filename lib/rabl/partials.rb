@@ -62,9 +62,9 @@ module Rabl
       source_format = request_format if defined?(request_format)
       if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
         lookup_proc = lambda { |partial|
-          if context_scope.lookup_context.method(:find).parameters.count < 5
+          if ActionPack::VERSION::MAJOR == 3 && ActionPack::VERSION::MINOR < 2
             context_scope.lookup_context.find(file, [], partial)
-          else
+          else # Rails 3.2 and higher
             context_scope.lookup_context.find(file, [], partial, [], {:formats => [:json]})
           end }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)
