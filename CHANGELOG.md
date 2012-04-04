@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.8
+
+  * Fix Rails 3 resolution on Ruby < 1.9.2
+
 ## 0.6.7
 
   * Fix format to default to json in the event that it is a 'hash' (Thanks @databyte)
