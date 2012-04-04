@@ -127,7 +127,8 @@ module Rabl
     # Returns a guess at the format in this scope
     # request_format => "xml"
     def request_format
-      @options[:format] if @options[:format] != "hash"
+      format = @options[:format]
+      format && format != "hash" ? format : 'json'
     end
 
     # Caches the results of the block based on object cache_key
