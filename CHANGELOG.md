@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.7
+
+  * Fix format to default to json in the event that it is a 'hash' (Thanks @databyte)
+  * Support using cache keys within extended templates (Thanks @databyte)
+
 ## 0.6.6
 
   * Even more improvements to Rails template resolution (Thanks @databyte)
