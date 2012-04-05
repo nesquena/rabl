@@ -14,7 +14,6 @@ context "PostsController" do
 
   setup do
     create_users!
-    Rails.cache.clear
     Post.delete_all
     @post1 = Post.create(:title => "Foo", :body => "Bar", :user_id => @user1.id)
     @post2 = Post.create(:title => "Baz", :body => "Bah", :user_id => @user2.id)
@@ -132,6 +131,7 @@ context "PostsController" do
 
     setup do
       mock(ActionController::Base).perform_caching.any_number_of_times { true }
+      Rails.cache.clear
     end
 
     context "for index action with caching in json" do

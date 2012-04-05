@@ -118,9 +118,10 @@ module Rabl
     # cache @user            # calls @user.cache_key
     # cache ['rabl', @user]  # calls @user.cache_key and prefixes with rabl/
     # cache 'user'           # explicit key of 'user'
+    # cache                  # uses the current item within a collection
     # cache 'user', expires_in: 1.hour
     # options is passed through to the cache store
-    def cache(key, options = nil)
+    def cache(key = nil, options = nil)
       key ||= @_data # if called but missing, use object
       @_cache = [key, options]
     end

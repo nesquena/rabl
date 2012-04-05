@@ -496,12 +496,28 @@ cache @users  # key = rabl/users/[cache_key]/users/[cache_key]/...
 extends "users/show"
 ```
 
-and within the inherited template:
+And within the extended template:
 
 ```ruby
 # app/views/users/show.json.rabl
 object @user
-cache @user # key = rabl/user/[cache_key]/...
+cache @user  # key = rabl/user/[cache_key]/...
+
+attributes :name, :email
+```
+
+Another example of extending your object templates.
+
+```ruby
+# app/views/users/show.json.rabl
+object @user
+
+extends "users/user"
+```
+
+```ruby
+# app/views/users/user.json.rabl
+cache  # key = rabl/user/[cache_key]/...
 
 attributes :name, :email
 ```
