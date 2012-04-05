@@ -486,7 +486,7 @@ cache 'lists'          # explicit key of 'lists'
 cache 'lists', expires_in: 1.hour
 ```
 
-The cache keyword is used from within the base template. It will ignore any cache keys specified in an extended template or within partials.
+The cache keyword can be used from within the base template or any extended template including partials.
 
 ```ruby
 # app/views/users/index.json.rabl
@@ -501,10 +501,11 @@ and within the inherited template:
 ```ruby
 # app/views/users/show.json.rabl
 object @user
-cache @user # will be ignored
+cache @user # key = rabl/user/[cache_key]/...
 
 attributes :name, :email
 ```
+
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible.
 
 ### Content Type Assignment ###
