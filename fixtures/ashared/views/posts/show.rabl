@@ -1,6 +1,5 @@
+cache @post
 object @post do
-  cache @post
-
   attributes :title, :body
   attributes :created_at => :posted_at
 

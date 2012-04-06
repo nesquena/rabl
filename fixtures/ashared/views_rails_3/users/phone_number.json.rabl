@@ -1,6 +1,8 @@
-attributes :prefix, :suffix, :area_code
-attributes :is_primary => :primary
+object do
+  attributes :prefix, :suffix, :area_code
+  attributes :is_primary => :primary
 
-node :formatted do |n|
-  n.formatted
+  node :formatted do |n|
+    n.formatted
+  end
 end
