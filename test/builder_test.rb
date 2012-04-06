@@ -85,24 +85,21 @@ context "Rabl::Builder" do
 
     asserts "that it generates with an object" do
       b = builder :child => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name } }]
-      mock(b).data_name(@user) { :user }
-      mock(b).object_to_hash(@user, { :root => false }).returns('xyz').subject
+      mock(b).data_name(@user) { :person }
       b.build(@user)
-    end.equivalent_to({ :user => 'xyz'})
+    end.equivalent_to({:person=>{:name=>"rabl"}})
 
     asserts "that it generates with an collection and child_root" do
       b = builder :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }], :child_root => true
       mock(b).data_name(@users) { :users }
-      mock(b).object_to_hash(@users, { :root => true, :child_root => true }).returns('xyz').subject
       b.build(@user)
-    end.equivalent_to({ :users => 'xyz'})
+    end.equivalent_to({:users => [{"user"=> {:name=>"rabl"}}, {"user"=>{:name=>"rabl"}}] })
 
     asserts "that it generates with an collection and no child root" do
       b = builder :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }], :child_root => false
       mock(b).data_name(@users) { :users }
-      mock(b).object_to_hash(@users, { :root => false, :child_root => false }).returns('xyz').subject
       b.build(@user)
-    end.equivalent_to({ :users => 'xyz'})
+    end.equivalent_to({:users => [{:name=>"rabl"}, {:name=>"rabl"}] })
   end
 
   context "#glue" do
@@ -112,9 +109,8 @@ context "Rabl::Builder" do
 
     asserts "that it generates the glue attributes" do
       b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name }}]
-      mock(b).object_to_hash(@user, { :root => false }).returns({:user => 'xyz'}).subject
       b.build(@user)
-    end.equivalent_to({ :user => 'xyz' })
+    end.equivalent_to({:name=>"rabl"})
 
     asserts "that it appends the glue attributes to result" do
       b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name => :user_name }}]
@@ -122,8 +118,7 @@ context "Rabl::Builder" do
     end.equivalent_to({ :user_name => 'rabl' })
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
-      b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name }}]
-      mock(b).object_to_hash(@user,{ :root => false }).returns({}).subject
+      b = builder :glue => [{ :data => @user, :block => lambda { |u| }}]
       b.build(@user)
     end.equals({})
   end

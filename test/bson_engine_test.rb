@@ -62,8 +62,9 @@ context "Rabl::Engine" do
 
       asserts "that it adds an attribute or method to be included in output" do
         template = rabl %{
-          object @user
-          attribute :name
+          object @user do
+            attribute :name
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
@@ -72,8 +73,9 @@ context "Rabl::Engine" do
 
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
-          object @user
-          attribute :name, :as => 'city'
+          object @user do
+            attribute :name, :as => 'city'
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
@@ -82,8 +84,9 @@ context "Rabl::Engine" do
 
       asserts "that it can add attribute under a different key name through hash" do
         template = rabl %{
-          object @user
-          attribute :name => :city
+          object @user do
+            attribute :name => :city
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
@@ -94,7 +97,7 @@ context "Rabl::Engine" do
 
     context "#code" do
 
-      asserts "that it can create an arbitraty code node" do
+      asserts "that it can create an arbitrary code node" do
         template = rabl %{
           code(:foo) { 'bar' }
         }
@@ -114,9 +117,10 @@ context "Rabl::Engine" do
 
       asserts "that it can create a child node" do
         template = rabl %{
-          object @user
-          attribute :name
-          child(@user) { attribute :city }
+          object @user do
+            attribute :name
+            child(@user) { attribute :city }
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
@@ -125,9 +129,10 @@ context "Rabl::Engine" do
 
       asserts "that it can create a child node with different key" do
         template = rabl %{
-          object @user
-          attribute :name
-          child(@user => :person) { attribute :city }
+          object @user do
+            attribute :name
+            child(@user => :person) { attribute :city }
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
@@ -139,10 +144,11 @@ context "Rabl::Engine" do
 
       asserts "that it glues data from a child node" do
         template = rabl %{
-          object @user
-          attribute :name
-          glue(@user) { attribute :city }
-          glue(@user) { attribute :age  }
+          object @user do
+            attribute :name
+            glue(@user) { attribute :city }
+            glue(@user) { attribute :age  }
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
@@ -236,8 +242,9 @@ context "Rabl::Engine" do
 
       asserts "that it adds an attribute or method to be included in output" do
         template = rabl %{
-          object @user
-          attribute :name
+          object @user do
+            attribute :name
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
@@ -246,8 +253,9 @@ context "Rabl::Engine" do
 
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
-          object @user
-          attribute :name, :as => 'city'
+          object @user do
+            attribute :name, :as => 'city'
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
@@ -256,8 +264,9 @@ context "Rabl::Engine" do
 
       asserts "that it can add attribute under a different key name through hash" do
         template = rabl %{
-          object @user
-          attribute :name => :city
+          object @user do
+            attribute :name => :city
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
@@ -268,7 +277,7 @@ context "Rabl::Engine" do
 
     context "#code" do
 
-      asserts "that it can create an arbitraty code node" do
+      asserts "that it can create an arbitrary code node" do
         template = rabl %{
           code(:foo) { 'bar' }
         }
@@ -288,9 +297,10 @@ context "Rabl::Engine" do
 
       asserts "that it can create a child node" do
         template = rabl %{
-          object @user
-          attribute :name
-          child(@user) { attribute :city }
+          object @user do
+            attribute :name
+            child(@user) { attribute :city }
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
@@ -299,9 +309,10 @@ context "Rabl::Engine" do
 
       asserts "that it can create a child node with different key" do
         template = rabl %{
-          object @user
-          attribute :name
-          child(@user => :person) { attribute :city }
+          object @user do
+            attribute :name
+            child(@user => :person) { attribute :city }
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
@@ -313,10 +324,11 @@ context "Rabl::Engine" do
 
       asserts "that it glues data from a child node" do
         template = rabl %{
-          object @user
-          attribute :name
-          glue(@user) { attribute :city }
-          glue(@user) { attribute :age  }
+          object @user do
+            attribute :name
+            glue(@user) { attribute :city }
+            glue(@user) { attribute :age  }
+          end
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
