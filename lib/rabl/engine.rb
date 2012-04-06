@@ -98,8 +98,9 @@ module Rabl
     # object(@user)
     # object @user => :person
     # object @users
-    def object(data)
+    def object(data=false, &block)
       @_data = data unless @_locals[:object]
+      instance_eval(&block) if block_given?
     end
 
     # Sets the object as a collection casted to a simple array
@@ -107,11 +108,11 @@ module Rabl
     # collection @users => :people
     # collection @users, :root => :person
     # collection @users, :object_root => :person
-    def collection(data, options={})
+    def collection(data, options={}, &block)
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
       @_object_root_name = options[:object_root] if options.has_key?(:object_root)
-      self.object(data_object(data).to_a) if data
+      self.object(data_object(data).to_a, &block) if data
     end
 
     # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key

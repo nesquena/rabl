@@ -1,3 +1,3 @@
-collection @users
-
-extends "users/show"
+collection @users do
+  extends "users/show"
+end

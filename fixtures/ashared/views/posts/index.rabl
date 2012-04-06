@@ -1,12 +1,13 @@
-collection @posts => :articles
-cache ['kittens!', @posts]
+collection @posts => :articles do
+  cache ['kittens!', @posts]
 
-extends "posts/show"
+  extends "posts/show"
 
-node(:created_by_admin, :if => lambda { |p| p.user.is_admin }) do |p|
-  true
-end
+  node(:created_by_admin, :if => lambda { |p| p.user.is_admin }) do |p|
+    true
+  end
 
-child({ :user => :admin }, { :if => lambda { |p| p.user.is_admin  }}) do |p|
-  extends "users/show"
+  child({ :user => :admin }, { :if => lambda { |p| p.user.is_admin  }}) do |p|
+    extends "users/show"
+  end
 end
