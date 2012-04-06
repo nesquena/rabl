@@ -15,7 +15,6 @@ module Rabl
     # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
     def build(object, options={})
       @_object = object
-
       cache_results do
         compile_hash(options)
       end
@@ -90,9 +89,9 @@ module Rabl
       return false unless data.present? && resolve_condition(options)
       name, object = data_name(data), data_object(data)
       include_root = is_collection?(object) && @options[:child_root] # child @users
-      engine_options = @options.slice(:child_root).merge(:root => include_root)
+      engine_options = @options.slice(:child_root).merge(:root => include_root, :scope => @_scope)
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
-      @_result[name] = self.object_to_hash(object, engine_options, &block)
+      @_result[name] = Rabl::ObjectNode.new(object, engine_options, &block).to_hash
     end
 
     # Glues data from a child node to the json_output
@@ -100,7 +99,7 @@ module Rabl
     def glue(data, &block)
       return false unless data.present?
       object = data_object(data)
-      glued_attributes = self.object_to_hash(object, :root => false, &block)
+      glued_attributes = Rabl::ObjectNode.new(object, :root => false, :scope => @_scope, &block).to_hash
       @_result.merge!(glued_attributes) if glued_attributes
     end
 

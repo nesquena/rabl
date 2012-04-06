@@ -68,14 +68,14 @@ module Rabl
     # Sets the name of the object i.e "person"
     # => { "users" : [{ "person" : {} }] }
     def object_root_name
-      defined?(@_object_root_name) ? @_object_root_name : nil
+      defined?(@_options) && @_options && @_options[:root_name]
     end
 
     # Returns the root for the collection
     # Sets the name of the collection i.e "people"
     #  => { "people" : [] }
     def collection_root_name
-      defined?(@_collection_name) ? @_collection_name : nil
+      defined?(@_options) && @_options && @_options[:collection_name]
     end
 
     # Fetches a key from the cache and stores rabl template result otherwise
