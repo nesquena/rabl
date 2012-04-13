@@ -33,11 +33,14 @@ module Rabl
       Rabl.source_cache(file, options[:view_path]) do
         file_path = if defined? Padrino
           fetch_padrino_source(file, options)
-        elsif defined?(Rails) && context_scope
+        elsif defined?(Rails) && context_scope && context_scope.respond_to?(:view_paths)
           view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
           fetch_rails_source(file, options) || fetch_manual_template(view_path, file)
         elsif defined? Sinatra
           fetch_sinatra_source(file, options)
+        else
+          view_path = Array(options[:view_path])
+          fetch_manual_template(view_path, file)
         end
 
         raise "Cannot find rabl template '#{file}' within registered view paths!" unless File.exist?(file_path.to_s)
