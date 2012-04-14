@@ -1,6 +1,16 @@
 module Rabl
   class Renderer
 
+    # Public: Instantiate a new renderer
+    # This is a standalone class used for rendering rabl templates
+    # outside of a framework like Rails. You may want to use
+    # this when using Rabl to render the request objects passed to
+    # message queues.
+    #
+    # Example:
+    #   renderer = Rabl::Renderer.new('template_name', user, { :format => 'json', :view_path => 'app/views' })
+    #   renderer.render # => "{\"user\":{\"name\":\"ivan\"}}"
+    #
     attr_reader :object, :options
     def initialize(source, object = nil, options = {})
       options = {
@@ -15,6 +25,13 @@ module Rabl
       engine.source = self.process_source(source)
     end
 
+    # Public: Actually render the template to the requested output format.
+    #
+    # - scope:
+    #     Override the render scope to the 'scope' object. Defaults to self.
+    #
+    # Returns: And object representing the tranformed object in the requested format.
+    #   e.g. json, xml, bson, plist
     def render(scope = nil)
       scope = scope ? scope : options.delete(:scope) || self
       set_instance_variable(object) if scope == self
@@ -34,6 +51,12 @@ module Rabl
       return source
     end
 
+    # Internal: Sets an instance variable named after the class of `object`
+    #
+    # Example:
+    #   object.class.name # => User
+    #   set_instance_variable(object) # => @user
+    #
     def set_instance_variable(object)
       name = model_name(object).split('/').last
       instance_variable_set(:"@#{name}", object)
