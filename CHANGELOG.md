@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.9
+
+  * Adds support for generic template rendering (Thanks @ivanvanderbyl)
+  * Allow cache to be called with an explicit key (Thanks @databyte)
+
 ## 0.6.8
 
   * Fix Rails 3 resolution on Ruby < 1.9.2
