@@ -10,6 +10,7 @@ require 'rabl/partials'
 require 'rabl/engine'
 require 'rabl/builder'
 require 'rabl/configuration'
+require 'rabl/renderer'
 require 'rabl/railtie' if defined?(Rails) && Rails.version =~ /^3/
 
 # Rabl.register!
@@ -59,6 +60,10 @@ module Rabl
     # Resets the RABL source cache
     def reset_source_cache!
       @_source_cache = {}
+    end
+
+    def render(object, source, options = {})
+      Rabl::Renderer.new(source, object, options).render
     end
 
   end
