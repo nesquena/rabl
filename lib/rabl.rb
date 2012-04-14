@@ -62,6 +62,10 @@ module Rabl
       @_source_cache = {}
     end
 
+    def render(object, source, options = {})
+      Rabl::Renderer.new(source, object, options).render
+    end
+
   end
 end
 
