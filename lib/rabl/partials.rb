@@ -31,19 +31,22 @@ module Rabl
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
       Rabl.source_cache(file, options[:view_path]) do
-        file_path = if defined? Padrino
+        file_path = if defined?(Padrino) && context_scope.respond_to?(:settings)
           fetch_padrino_source(file, options)
-        elsif defined?(Rails) && context_scope && context_scope.respond_to?(:view_paths)
+        elsif defined?(Rails) && context_scope.respond_to?(:view_paths)
           view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
           fetch_rails_source(file, options) || fetch_manual_template(view_path, file)
-        elsif defined? Sinatra
+        elsif defined?(Sinatra) && context_scope.respond_to?(:settings)
           fetch_sinatra_source(file, options)
-        else
+        else # generic template resolution
           view_path = Array(options[:view_path])
           fetch_manual_template(view_path, file)
         end
 
-        raise "Cannot find rabl template '#{file}' within registered (#{file_path}) view paths!" unless File.exist?(file_path.to_s)
+        unless File.exist?(file_path.to_s)
+          raise "Cannot find rabl template '#{file}' within registered (#{file_path}) view paths!"
+        end
+
         [File.read(file_path.to_s), file_path.to_s] if file_path
       end
     end
