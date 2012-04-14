@@ -2,6 +2,9 @@ module Rabl
   class Engine
     include Rabl::Partials
 
+    # List of supported rendering formats
+    FORMATS = [:json, :xml, :plist, :bson, :msgpack]
+
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options={})
@@ -166,8 +169,8 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options={}, &block)
-      view_path = options.fetch(:view_path, @_options[:view_path])
-      @_options[:extends].push({ :file => file, :options => options.merge(:view_path => view_path), :block => block })
+      extend_ops = options.merge(:view_path => options.fetch(:view_path, @_options[:view_path]))
+      @_options[:extends].push({ :file => file, :options => extend_ops, :block => block })
     end
 
     # Includes a helper module with a RABL template
