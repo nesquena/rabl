@@ -534,6 +534,26 @@ details, and if you have any ideas or patches please let me know.
 In the meantime, be sure to set the proper content-types if needed. This is usually pretty simple in both
 Rails and Padrino. I recommend a before_filter on that controller or directly specified in an action.
 
+### Rendering Templates Directly ###
+
+There are situations where an application requires RABL templates to be rendered outside
+a traditional view context. For instance, to render RABL within a Rake task or to create
+message queue payloads. For this case, `Rabl.render` can be used as show below:
+
+```ruby
+Rabl.render(object, template, :view_path => 'app/views', :format => :json) #=> "{...json...}"
+```
+
+You can use convenience methods on `Rabl::Renderer` to render the objects as well:
+
+```ruby
+Rabl::Renderer.new(@post, 'posts/show', :view_path => 'app/views')
+Rabl::Renderer.json(@post, 'posts/show')
+Rabl::Renderer.xml(@post, 'posts/show')
+```
+
+These methods allow RABL to be used for arbitrary conversions of an object into a desired format.
+
 ## Resources ##
 
 There are many resources available relating to RABL including the [RABL Wiki](https://github.com/nesquena/rabl/wiki),
@@ -602,7 +622,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 
 * [Nathan Esquenazi](https://github.com/nesquena) - Creator of the project
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
-* [Tim Lee](https://github.com/timothy1ee) - RABL is an awesome name and was chosen by the Miso CTO.
+* [Tim Lee](https://github.com/timothy1ee) - RABL was a great name chosen by the Miso CTO.
 * [David Sommers](https://github.com/databyte) - Enhanced template resolution and added caching support
 * [Rick Thomas](https://github.com/rickthomasjr) - Added options for extends and Sinatra testing
 * [Benjamin Yu](https://github.com/byu) - Added msgpack format support
@@ -615,6 +635,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Andrey Voronkov](https://github.com/Antiarchitect) - Added BSON format support
 * [Alli Witheford](https://github.com/alzeih) - Added Plist format support
 * [Ryan Bigg](https://github.com/radar) - Improved template resolution code
+* [Ivan Vanderbyl](https://github.com/ivanvanderbyl) - Added general purpose renderer
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
