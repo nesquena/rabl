@@ -43,7 +43,7 @@ module Rabl
           fetch_manual_template(view_path, file)
         end
 
-        raise "Cannot find rabl template '#{file}' within registered view paths!" unless File.exist?(file_path.to_s)
+        raise "Cannot find rabl template '#{file}' within registered (#{file_path}) view paths!" unless File.exist?(file_path.to_s)
         [File.read(file_path.to_s), file_path.to_s] if file_path
       end
     end
