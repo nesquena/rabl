@@ -9,6 +9,10 @@ module Rabl
       @_options = options
     end
 
+    def source=(string)
+      @_source = string
+    end
+
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
