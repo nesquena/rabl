@@ -166,7 +166,8 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options={}, &block)
-      @_options[:extends].push({ :file => file, :options => options, :block => block })
+      view_path = options.fetch(:view_path, @_options[:view_path])
+      @_options[:extends].push({ :file => file, :options => options.merge(:view_path => view_path), :block => block })
     end
 
     # Includes a helper module with a RABL template
