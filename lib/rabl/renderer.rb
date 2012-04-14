@@ -1,6 +1,32 @@
 module Rabl
   class Renderer
 
+    class << self
+      def json(object, source, options = {})
+        new(source, object, options.merge(:format => :json)).render
+      end
+
+      def xml(object, source, options = {})
+        new(source, object, options.merge(:format => :xml)).render
+      end
+
+      def hash(object, source, options = {})
+        new(source, object, options.merge(:format => :hash)).render
+      end
+
+      def plist(object, source, options = {})
+        new(source, object, options.merge(:format => :plist)).render
+      end
+
+      def bson(object, source, options = {})
+        new(source, object, options.merge(:format => :bson)).render
+      end
+
+      def msgpack(object, source, options = {})
+        new(source, object, options.merge(:format => :msgpack)).render
+      end
+    end
+
     # Public: Instantiate a new renderer
     # This is a standalone class used for rendering rabl templates
     # outside of a framework like Rails. You may want to use
