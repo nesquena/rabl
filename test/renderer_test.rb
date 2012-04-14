@@ -119,6 +119,20 @@ context "Rabl::Renderer" do
     end.equals "{\"user\":{\"age\":24,\"name\":\"ivan\"}}"
   end
 
+  context '.msgpack' do
+    asserts 'it renders msgpack' do
+      File.open(tmp_path + "test.rabl", "w") do |f|
+        f.puts %q{
+          object @user
+          attributes :age, :name
+        }
+      end
+
+      user = User.new(:name => 'ivan')
+      Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path).split
+    end.equals "\x81\xA4user\x82\xA3age\x18\xA4name\xA4ivan".split
+  end
+
   context '.plist' do
     asserts 'it renders xml' do
       File.open(tmp_path + "test.rabl", "w") do |f|

@@ -1,30 +1,14 @@
 module Rabl
   class Renderer
-
-    class << self
-      def json(object, source, options = {})
-        new(source, object, options.merge(:format => :json)).render
+    # Defines class method rendering in supported formats
+    # Rabl::Renderer.json('posts/show', @post)
+    # Rabl::Renderer.xml('posts/show', @post)
+    Rabl::Engine::FORMATS.each do |fmt|
+      instance_eval <<-CODE
+      def #{fmt}(object, source, options = {})
+        new(source, object, options.merge(:format => :#{fmt})).render
       end
-
-      def xml(object, source, options = {})
-        new(source, object, options.merge(:format => :xml)).render
-      end
-
-      def hash(object, source, options = {})
-        new(source, object, options.merge(:format => :hash)).render
-      end
-
-      def plist(object, source, options = {})
-        new(source, object, options.merge(:format => :plist)).render
-      end
-
-      def bson(object, source, options = {})
-        new(source, object, options.merge(:format => :bson)).render
-      end
-
-      def msgpack(object, source, options = {})
-        new(source, object, options.merge(:format => :msgpack)).render
-      end
+      CODE
     end
 
     # Public: Instantiate a new renderer
@@ -35,7 +19,7 @@ module Rabl
     #
     # Example:
     #   renderer = Rabl::Renderer.new('template_name', user, { :format => 'json', :view_path => 'app/views' })
-    #   renderer.render # => "{\"user\":{\"name\":\"ivan\"}}"
+    #   renderer.render # => '{"user":{"name": "ivan" }}'
     #
     attr_reader :object, :options
     def initialize(source, object = nil, options = {})
@@ -44,24 +28,23 @@ module Rabl
         :scope => self,
         :view_path => []
       }.update(options)
+
       @options = options
-
       @object = object
-
       engine.source = self.process_source(source)
     end
 
     # Public: Actually render the template to the requested output format.
     #
-    # - scope:
+    # - context_scope:
     #     Override the render scope to the 'scope' object. Defaults to self.
     #
     # Returns: And object representing the tranformed object in the requested format.
     #   e.g. json, xml, bson, plist
-    def render(scope = nil)
-      scope = scope ? scope : options.delete(:scope) || self
-      set_instance_variable(object) if scope == self
-      engine.render(scope, options.fetch(:locals, {}))
+    def render(context_scope = nil)
+      context_scope = context_scope ? context_scope : options.delete(:scope) || self
+      set_instance_variable(object) if context_scope == self
+      engine.render(context_scope, options.fetch(:locals, {}))
     end
 
     protected
@@ -70,11 +53,11 @@ module Rabl
       @engine ||= Rabl::Engine.new(nil, options)
     end
 
+    # Returns the source given a relative template path
     def process_source(source)
-      unless source.is_a?(String) && source =~ /\n/
-        source, _ = engine.fetch_source(source, {:view_path => options[:view_path]})
-      end
-      return source
+      return source if source.is_a?(String) && source =~ /\n/
+      source, _ = engine.fetch_source(source, { :view_path => options[:view_path] })
+      source
     end
 
     # Internal: Sets an instance variable named after the class of `object`
@@ -88,6 +71,11 @@ module Rabl
       instance_variable_set(:"@#{name}", object)
     end
 
+    # Internal: Returns the model name for an object
+    #
+    # Example:
+    #  model_name(@post) => "@post"
+    #
     def model_name(object)
       item = object.is_a?(Array) ? object.first : object
       name = item.class.name.underscore
