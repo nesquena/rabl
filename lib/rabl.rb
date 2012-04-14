@@ -17,6 +17,8 @@ require 'rabl/railtie' if defined?(Rails) && Rails.version =~ /^3/
 module Rabl
   class << self
 
+    # Initialize RABL within an application
+    # Rabl.register!
     def register!
       require 'rabl/template'
     end
@@ -62,6 +64,8 @@ module Rabl
       @_source_cache = {}
     end
 
+    # Renders an object using a specified template within an application.
+    # render(@post, 'posts/show', :view_path => "/path/to/app/views")
     def render(object, source, options = {})
       Rabl::Renderer.new(source, object, options).render
     end
