@@ -563,6 +563,7 @@ and many tutorials and guides detailed below.
 
 Links to resources for advanced usage:
 
+ * Grape Integration: https://github.com/nesquena/rabl/wiki/Using-Rabl-with-Grape
  * Rendering JSON for a tree structure using RABL: https://github.com/nesquena/rabl/issues/70
  * Layouts (erb, haml and rabl) in RABL: https://github.com/nesquena/rabl/wiki/Using-Layouts
  * Backbone or [Ember.js](http://www.emberjs.com) Integration: https://github.com/nesquena/rabl/wiki/Backbone-Integration
