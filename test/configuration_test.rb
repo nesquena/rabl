@@ -8,7 +8,7 @@ context 'Rabl::Configuration' do
     asserts(:include_json_root).equals true
     asserts(:include_xml_root).equals false
     asserts(:enable_json_callbacks).equals false
-    asserts(:json_engine).equals MultiJson.engine
+    asserts(:json_engine).equals MultiJson.adapter
   end
 
   context 'custom JSON engine' do
@@ -18,6 +18,6 @@ context 'Rabl::Configuration' do
       end
     end
 
-    asserts('uses a custom JSON engine') { topic.json_engine == MultiJson::Engines::Yajl }
+    asserts('uses a custom JSON engine') { topic.json_engine == MultiJson::Adapters::Yajl }
   end
 end
