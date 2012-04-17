@@ -49,32 +49,42 @@ module Rabl
       end
     end
 
+    def result(options={})
+      format = @_options[:format].to_s
+      format = 'msgpack' if format == 'mpac'
+
+      include_root = Rabl.configuration.send("include_#{format}_root")
+      options = options.reverse_merge(:root => include_root, :child_root => include_root)
+
+      root_name = collection_root_name
+      root_name = data_name(@_data) if format == 'bson' && !root_name &&
+        is_collection?(@_data) && @_data.is_a?(Array)
+
+      data = to_hash(options)
+      data = { root_name => data } if root_name
+
+      data.merge! Hash[@_options[:siblings].map { |k,v| [v, @_data.send(k)] }] if data.is_a?(Hash)
+
+      data
+    end
+
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options={})
-      include_root = Rabl.configuration.include_json_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = collection_root_name ? { collection_root_name => to_hash(options) } : to_hash(options)
-      format_json(result)
+      format_json result(options)
     end
 
     # Returns a msgpack representation of the data object
     # to_msgpack(:root => true)
     def to_msgpack(options={})
-      include_root = Rabl.configuration.include_msgpack_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = collection_root_name ? { collection_root_name => to_hash(options) } : to_hash(options)
-      Rabl.configuration.msgpack_engine.pack result
+      Rabl.configuration.msgpack_engine.pack result(options)
     end
     alias_method :to_mpac, :to_msgpack
 
     # Returns a plist representation of the data object
     # to_plist(:root => true)
     def to_plist(options={})
-      include_root = Rabl.configuration.include_plist_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = defined?(@_collection_name) ? { @_collection_name => to_hash(options) } : to_hash(options)
-      Rabl.configuration.plist_engine.dump(result)
+      Rabl.configuration.plist_engine.dump result(options)
     end
 
     # Returns an xml representation of the data object
@@ -89,16 +99,7 @@ module Rabl
     # Returns a bson representation of the data object
     # to_bson(:root => true)
     def to_bson(options={})
-      include_root = Rabl.configuration.include_bson_root
-      options = options.reverse_merge(:root => include_root, :child_root => include_root)
-      result = if collection_root_name
-                 { collection_root_name => to_hash(options) }
-               elsif is_collection?(@_data) && @_data.is_a?(Array)
-                 { data_name(@_data) => to_hash(options) }
-               else
-                 to_hash(options)
-               end
-      Rabl.configuration.bson_engine.serialize(result).to_s
+      Rabl.configuration.bson_engine.serialize(result(options)).to_s
     end
 
     # Sets the object to be used as the data source for this template
@@ -118,8 +119,27 @@ module Rabl
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
       @_object_root_name = options[:object_root] if options.has_key?(:object_root)
-      self.object(data_object(data).to_a) if data
+      
+      # I don't convert the data object (to_a).
+      # The user must be aware of what he pass
+      # and we need to keep the original object for "siblings" methods
+      # self.object(data_object(data).to_a) if data
+
+      self.object(data_object(data)) if data
     end
+
+    # Indicates a method to call on collection that should be included in the json output
+    # attribute :foo, :as => "bar"
+    # attribute :foo => :bar
+    def sibling *args
+      if args.first.is_a?(Hash)
+        args.first.each_pair { |k,v| self.sibling(k, :as => v) }
+      else
+        options = args.extract_options!
+        args.each { |name| @_options[:siblings][name] = options[:as] || name }
+      end
+    end
+    alias_method :siblings, :sibling
 
     # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key
     # cache @user            # calls @user.cache_key
@@ -235,6 +255,7 @@ module Rabl
 
     # Resets the options parsed from a rabl template.
     def reset_options!
+      @_options[:siblings] = {}
       @_options[:attributes] = {}
       @_options[:node] = []
       @_options[:child] = []
