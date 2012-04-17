@@ -41,7 +41,9 @@ Rabl will not register as a template engine.
 
 With Sinatra, or any other tilt-based framework, simply register:
 
-    Rabl.register!
+```ruby
+Rabl.register!
+```
 
 and RABL will be initialized and ready for use. For usage with Sinatra, check out
 the [Sinatra Usage](https://github.com/nesquena/rabl/wiki/Setup-for-Sinatra) guide.
