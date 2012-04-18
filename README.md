@@ -393,10 +393,7 @@ cache @quiz # key = rabl/quiz/[cache_key]
 attribute :title
 ```
 
-For more a more detailed look at caching, check out the 
-[Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
-
-Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible.
+Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
 ### Content Type Assignment ###
 
