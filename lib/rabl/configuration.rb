@@ -61,7 +61,7 @@ module Rabl
     #   or class that responds to `encode`, to use to encode Rabl templates
     #   into JSON. For more details, see the MultiJson gem.
     def json_engine=(engine_name_or_class)
-      MultiJson.engine = @engine_name = engine_name_or_class
+      MultiJson.use @engine_name = engine_name_or_class
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
@@ -105,7 +105,7 @@ module Rabl
       if !defined?(@engine_name) && defined?(Rails)
         ActiveSupport::JSON
       else
-        MultiJson.engine
+        MultiJson.adapter
       end
     end
   end
