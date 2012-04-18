@@ -111,6 +111,14 @@ context "Rabl::Engine" do
     end
 
     context "#collection" do
+       asserts "that it sets object to be blank array" do
+          template = rabl %{
+            collection []
+          }
+          scope = Object.new
+          template.render(scope)
+        end.equals "[]"
+
       asserts "that it sets object to be casted as a simple array" do
         template = rabl %{
           collection @users

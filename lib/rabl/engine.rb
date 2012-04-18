@@ -118,7 +118,7 @@ module Rabl
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.respond_to?(:each_pair)
       @_object_root_name = options[:object_root] if options.has_key?(:object_root)
-      self.object(data_object(data).to_a) if data
+      self.object(data_object(data || []).to_a) if data
     end
 
     # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key

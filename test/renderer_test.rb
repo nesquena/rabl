@@ -4,6 +4,19 @@ require 'pathname'
 context "Rabl::Renderer" do
   helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
   context "#render" do
+    asserts 'renders empty array' do
+      source = %q{
+        collection @users
+        attribute :name, :as => 'city'
+      }
+
+      scope = Object.new
+      scope.instance_variable_set :@users, []
+
+      renderer = Rabl::Renderer.new(source, [], { :format => 'json', :root => true, :view_path => '/path/to/views', :scope => scope })
+      renderer.render
+    end.equals "[]"
+
     asserts 'renders string as source' do
       source = %q{
         object @user
