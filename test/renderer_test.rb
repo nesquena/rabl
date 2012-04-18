@@ -79,8 +79,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('test', user, :view_path => tmp_path)
-      renderer.render
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      renderer.render.split("")
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("")
 
 
     asserts 'handles paths for extends' do
@@ -101,8 +101,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
-      renderer.render
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      renderer.render.split("")
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("")
 
     asserts 'Rabl.render calls Renderer' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -114,8 +114,8 @@ context "Rabl::Renderer" do
 
       user = User.new(:name => 'irvine')
 
-      Rabl.render(user, 'test', :view_path => tmp_path)
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      Rabl.render(user, 'test', :view_path => tmp_path).split("")
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("")
 
     asserts 'it renders collections' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -127,8 +127,8 @@ context "Rabl::Renderer" do
 
       scope = Object.new
       scope.instance_variable_set :@users, nil
-      Rabl.render([], 'test', :view_path => tmp_path, :scope => scope)
-    end.equals "{\"users\":[]}"
+      Rabl.render([], 'test', :view_path => tmp_path, :scope => scope).split("")
+    end.equals "{\"users\":[]}".split("")
 
     asserts 'it renders an array when given an empty collection' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -154,8 +154,8 @@ context "Rabl::Renderer" do
       end
 
       user = User.new(:name => 'ivan')
-      Rabl::Renderer.json(user, 'test', :view_path => tmp_path)
-    end.equals "{\"user\":{\"age\":24,\"name\":\"ivan\"}}"
+      Rabl::Renderer.json(user, 'test', :view_path => tmp_path).split("")
+    end.equals "{\"user\":{\"age\":24,\"name\":\"ivan\"}}".split("")
   end
 
   context '.msgpack' do
@@ -168,8 +168,8 @@ context "Rabl::Renderer" do
       end
 
       user = User.new(:name => 'ivan')
-      Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path).split
-    end.equals "\x81\xA4user\x82\xA3age\x18\xA4name\xA4ivan".split
+      Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path).split("")
+    end.equals "\x81\xA4user\x82\xA3age\x18\xA4name\xA4ivan".split("")
   end
 
   context '.plist' do
