@@ -64,8 +64,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :locals => {:object => user} })
-      renderer.render
-    end.equals "{\"user\":{\"city\":\"irvine\"}}"
+      renderer.render.split("")
+    end.equals "{\"user\":{\"city\":\"irvine\"}}".split("")
 
 
     asserts 'loads source from file' do
