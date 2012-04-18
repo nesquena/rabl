@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.10 (Unreleased)
+
+  * Fixes expected behavior with nil and collection keyword
+
 ## 0.6.9
 
   * Adds support for generic template rendering (Thanks @ivanvanderbyl)
