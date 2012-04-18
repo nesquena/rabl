@@ -116,6 +116,32 @@ context "Rabl::Renderer" do
 
       Rabl.render(user, 'test', :view_path => tmp_path)
     end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+
+    asserts 'it renders collections' do
+      File.open(tmp_path + "test.json.rabl", "w") do |f|
+        f.puts %q{
+          collection @users => :users
+          attributes :age, :name
+        }
+      end
+
+      scope = Object.new
+      scope.instance_variable_set :@users, nil
+      Rabl.render([], 'test', :view_path => tmp_path, :scope => scope)
+    end.equals "{\"users\":[]}"
+
+    asserts 'it renders an array when given an empty collection' do
+      File.open(tmp_path + "test.json.rabl", "w") do |f|
+        f.puts %q{
+          collection @users
+          attribute :name, :age
+        }
+      end
+
+      scope = Object.new
+      scope.instance_variable_set :@users, nil
+      Rabl.render([], 'test', :view_path => tmp_path, :root => false, :scope => scope)
+    end.equals "[]"
   end
 
   context '.json' do
