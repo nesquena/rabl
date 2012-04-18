@@ -143,7 +143,8 @@ and RABL will automatically start using that engine for encoding your JSON respo
 
 ### Format Configuration ###
 
-RABL supports configuration for MessagePack, BSON, and Plist. Check the [Format Configuration]() page for more details.
+RABL supports configuration for MessagePack, BSON, and Plist. Check the 
+[Format Configuration](https://github.com/nesquena/rabl/wiki/Configuring-Formats) page for more details.
 
 ## Usage ##
 
