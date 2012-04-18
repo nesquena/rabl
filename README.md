@@ -141,93 +141,9 @@ gem 'yajl-ruby', :require => "yajl"
 
 and RABL will automatically start using that engine for encoding your JSON responses!
 
-### Message Pack ###
+### Format Configuration ###
 
-Rabl also includes optional support for [Message Pack](http://www.msgpack.org/) serialization format using the [msgpack gem](https://rubygems.org/gems/msgpack).
-To enable, include the msgpack gem in your project's Gemfile. Then use Rabl as normal with the `msgpack` format (akin to json and xml formats).
-
-```ruby
-# Gemfile
-gem 'msgpack', '~> 0.4.5'
-```
-
-One can additionally use a custom Message Pack implementation by setting the Rabl `msgpack_engine` configuration attribute. This custom message pack engine must conform to the MessagePack#pack method signature.
-
-```ruby
-class CustomEncodeEngine
-  def self.pack string
-    # Custom Encoding by your own engine.
-  end
-end
-
-Rabl.configure do |config|
-  config.msgpack_engine = CustomEncodeEngine
-end
-```
-
-*NOTE*: Attempting to render the msgpack format without either including the msgpack gem
-or setting a `msgpack_engine` will cause an exception to be raised.
-
-### BSON ###
-
-Rabl also includes optional support for [BSON](http://bsonspec.org/) serialization format using the [bson gem](https://rubygems.org/gems/bson).
-To enable, include the bson gem in your project's Gemfile. Then use Rabl as normal with the `bson` format (akin to json and xml formats).
-
-```ruby
-# Gemfile
-gem 'bson', '~> 1.5.2'
-```
-
-To use it with Rails, also register the bson mime type format:
-
-```ruby
-# config/initializers/mime_types.rb
-Mime::Type.register "application/bson", :bson
-```
-
-One can additionally use a custom BSON implementation by setting the Rabl `bson_engine` configuration attribute.
-This custom BSON engine must conform to the BSON#serialize method signature.
-
-```ruby
-class CustomEncodeEngine
-  def self.serialize string
-    # Custom Encoding by your own engine.
-  end
-end
-
-Rabl.configure do |config|
-  config.bson_engine = CustomEncodeEngine
-end
-```
-
-*NOTE*: Attempting to render the bson format without either including the bson gem or
-setting a `bson_engine` will cause an exception to be raised.
-
-### Plist ###
-
-Rabl also includes optional support for [Plist](http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/Introduction/Introduction.html]) serialization format using the [plist gem](http://plist.rubyforge.org/).
-To enable, include the plist gem in your project's Gemfile. Then use Rabl as normal with the `plist` format (akin to other formats).
-
-```ruby
-# Gemfile
-gem 'plist'
-```
-
-There is also an option for a custom Plist implementation by setting the Rabl `plist_engine` configuration attribute.
-
-```ruby
-class CustomEncodeEngine
-  def self.dump string
-    # Custom Encoding by your own engine.
-  end
-end
-
-Rabl.configure do |config|
-  config.plist_engine = CustomEncodeEngine
-end
-```
-
-*NOTE*: Attempting to render the plist format without either including the plist gem or setting a `plist_engine` will cause an exception to be raised.
+RABL supports configuration for MessagePack, BSON, and Plist. Check the [Format Configuration]() page for more details.
 
 ## Usage ##
 
@@ -467,10 +383,7 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 ### Caching ###
 
-Caching works by saving the entire template output to the configured cache_store in your application. Note that caching is currently **only available** for
-Rails but support for other frameworks is planned in a future release.
-
-For Rails, requires `action_controller.perform_caching` to be set to true in your environment, and for `cache` to be set to a key (object that responds to cache_key method, array or string).
+RABL has built-in caching support for templates leveraging fragment caching strategies. Note that caching is currently **only available** for but support for other frameworks is planned in a future release. Simplest caching usage is:
 
 ```ruby
 # app/views/users/show.json.rabl
@@ -479,50 +392,8 @@ cache @quiz # key = rabl/quiz/[cache_key]
 attribute :title
 ```
 
-The `cache` keyword accepts the same parameters as fragment caching for Rails.
-
-```ruby
-cache @user            # calls @user.cache_key
-cache ['keel', @user]  # calls @user.cache_key and prefixes with kewl/
-cache 'lists'          # explicit key of 'lists'
-cache 'lists', expires_in: 1.hour
-```
-
-The cache keyword can be used from within the base template or any extended template including partials.
-
-```ruby
-# app/views/users/index.json.rabl
-collection @users
-cache @users  # key = rabl/users/[cache_key]/users/[cache_key]/...
-
-extends "users/show"
-```
-
-And within the extended template:
-
-```ruby
-# app/views/users/show.json.rabl
-object @user
-cache @user  # key = rabl/user/[cache_key]/...
-
-attributes :name, :email
-```
-
-Another example of extending your object templates.
-
-```ruby
-# app/views/users/show.json.rabl
-object @user
-
-extends "users/user"
-```
-
-```ruby
-# app/views/users/user.json.rabl
-cache  # key = rabl/user/[cache_key]/...
-
-attributes :name, :email
-```
+For more a more detailed look at caching, check out the 
+[Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible.
 
@@ -591,9 +462,8 @@ Let me know if there's any other useful resources not listed here.
 
 ### Related Libraries ###
 
-There are several libraries that either complement or extend the functionality of RABL:
+There are other libraries that can either complement or extend the functionality of RABL:
 
- * [grape-rabl](https://github.com/LTe/grape-rabl) - Allows rabl templates to be used with [grape](https://github.com/intridea/grape)
  * [gon](https://github.com/gazay/gon) - Exposes your Rails variables in JS with RABL support integrated.
 
 Let me know if there's any other related libraries not listed here.
