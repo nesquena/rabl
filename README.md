@@ -395,16 +395,6 @@ attribute :title
 
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
-### Content Type Assignment ###
-
-Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
-to work for any Rack-based framework and as agostic to format as possible.
-Check [this issue](https://github.com/nesquena/rabl/issues/185#issuecomment-4501232) for more
-details, and if you have any ideas or patches please let me know.
-
-In the meantime, be sure to set the proper content-types if needed. This is usually pretty simple in both
-Rails and Padrino. I recommend a before_filter on that controller or directly specified in an action.
-
 ### Rendering Templates Directly ###
 
 There are situations where an application requires RABL templates to be rendered outside
@@ -424,6 +414,16 @@ Rabl::Renderer.xml(@post, 'posts/show')
 ```
 
 These methods allow RABL to be used for arbitrary conversions of an object into a desired format.
+
+### Content Type Headers ###
+
+Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
+to work for any Rack-based framework and as agostic to format as possible.
+Check [this issue](https://github.com/nesquena/rabl/issues/185#issuecomment-4501232) for more
+details, and if you have any ideas or patches please let me know.
+
+In the meantime, be sure to set the proper content-types if needed. This is usually pretty simple in both
+Rails and Padrino. I recommend a before_filter on that controller or directly specified in an action.
 
 ## Resources ##
 
