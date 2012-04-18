@@ -44,7 +44,8 @@ module Rabl
     def render(context_scope = nil)
       context_scope = context_scope ? context_scope : options.delete(:scope) || self
       set_instance_variable(object) if context_scope == self
-      engine.render(context_scope, options.fetch(:locals, {}))
+      locals = options.fetch(:locals, {}).reverse_merge(:object => object)
+      engine.render(context_scope, locals)
     end
 
     protected
