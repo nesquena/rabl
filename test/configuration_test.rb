@@ -3,6 +3,7 @@ require File.expand_path('../../lib/rabl', __FILE__)
 
 context 'Rabl::Configuration' do
   context 'defaults' do
+    helper(:json_engine) { MultiJson.respond_to?(:adapter) ? MultiJson.adapter : MultiJson.engine }
     setup { Rabl.configuration }
 
     asserts(:include_json_root).equals true
