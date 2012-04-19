@@ -50,12 +50,12 @@ module Rabl
     # is_object?([]) => false
     # is_object?({}) => false
     def is_object?(obj)
-      obj && !obj.class.included_modules.include?(Enumerable)
+      obj && !data_object(obj).class.included_modules.include?(Enumerable)
     end
 
     # Returns true if the obj is a collection of items
     def is_collection?(obj)
-      obj && obj.class.included_modules.include?(Enumerable)
+      obj && data_object(obj).class.included_modules.include?(Enumerable)
     end
 
     # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
