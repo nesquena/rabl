@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.6.10 (Unreleased)
+## 0.6.10
 
   * Fixes expected behavior with nil and collection keyword
   * Fixes multi_json to support newer form syntax (Thanks @rajatvig)
