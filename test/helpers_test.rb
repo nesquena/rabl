@@ -28,5 +28,51 @@ context "Rabl::Helpers" do
     asserts "returns name of an object" do
       @helper_class.data_name(@user)
     end.equals('user')
-  end
+  end # data_name method
+
+  context "for is_object method" do
+    asserts "returns nil if no data" do
+      @helper_class.is_object?(nil)
+    end.equals(nil)
+
+    asserts "returns true for an object" do
+      @helper_class.is_object?(@user)
+    end.equals(true)
+
+    # asserts "returns true for an object with each" do
+    #   obj = Class.new { def each; end }
+    #   @helper_class.is_object?(obj.new)
+    # end.equals(true)
+
+    asserts "returns true for a hash alias" do
+      @helper_class.is_object?(@user => :user)
+    end.equals(true)
+
+    asserts "returns false for an array" do
+      @helper_class.is_object?([@user])
+    end.equals(false)
+  end # is_object method
+
+  context "for is_collection method" do
+    asserts "returns nil if no data" do
+      @helper_class.is_collection?(nil)
+    end.equals(nil)
+
+    asserts "returns false for an object" do
+      @helper_class.is_collection?(@user)
+    end.equals(false)
+
+    # asserts "returns false for an object with each" do
+    #  obj = Class.new { def each; end }
+    #  @helper_class.is_collection?(obj.new)
+    # end.equals(false)
+
+    asserts "returns false for a hash alias" do
+      @helper_class.is_collection?(@user => :user)
+    end.equals(false)
+
+    asserts "returns true for an array" do
+      @helper_class.is_collection?([@user])
+    end.equals(true)
+  end # is_collection method
 end
