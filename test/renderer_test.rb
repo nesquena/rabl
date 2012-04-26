@@ -3,6 +3,7 @@ require 'pathname'
 
 context "Rabl::Renderer" do
   helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+
   context "#render" do
     asserts 'renders empty array' do
       source = %q{
@@ -67,7 +68,6 @@ context "Rabl::Renderer" do
       renderer.render.split("").sort
     end.equals "{\"user\":{\"city\":\"irvine\"}}".split("").sort
 
-
     asserts 'loads source from file' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
         f.puts %q{
@@ -81,7 +81,6 @@ context "Rabl::Renderer" do
       renderer = Rabl::Renderer.new('test', user, :view_path => tmp_path)
       renderer.render.split("").sort
     end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
-
 
     asserts 'handles paths for extends' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -185,5 +184,4 @@ context "Rabl::Renderer" do
       Rabl::Renderer.plist(user, 'test', :view_path => tmp_path)
     end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>user</key>\n\t<dict>\n\t\t<key>age</key>\n\t\t<integer>24</integer>\n\t\t<key>name</key>\n\t\t<string>ivan</string>\n\t</dict>\n</dict>\n</plist>\n"
   end
-
 end

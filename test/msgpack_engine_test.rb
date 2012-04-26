@@ -4,7 +4,6 @@ require File.expand_path('../../lib/rabl/template', __FILE__)
 require File.expand_path('../models/user', __FILE__)
 
 context "Rabl::Engine" do
-
   helper(:rabl) { |t| RablTemplate.new("code", :format => 'msgpack') { t } }
 
   context "with msgpack defaults" do
@@ -16,7 +15,6 @@ context "Rabl::Engine" do
     end
 
     context "#object" do
-
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
@@ -37,7 +35,6 @@ context "Rabl::Engine" do
     end
 
     context "#collection" do
-
       asserts "that it sets object to be casted as a simple array" do
         template = rabl %{
           collection @users
@@ -55,11 +52,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope).split("").sort
       end.equals "\x81\xA6person\x92\x81\xA6person\x80\x81\xA6person\x80".split("").sort
-
     end
 
     context "#attribute" do
-
       asserts "that it adds an attribute or method to be included in output" do
         template = rabl %{
           object @user
@@ -89,11 +84,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope).split("").sort
       end.equals "\x81\xA4user\x81\xA4city\xA6irvine".split("").sort
-
     end
 
     context "#code" do
-
       asserts "that it can create an arbitraty code node" do
         template = rabl %{
           code(:foo) { 'bar' }
@@ -107,11 +100,9 @@ context "Rabl::Engine" do
         }
         template.render(Object.new).split("").sort
       end.equals "\x80".split("").sort
-
     end
 
     context "#child" do
-
       asserts "that it can create a child node" do
         template = rabl %{
           object @user
@@ -137,7 +128,6 @@ context "Rabl::Engine" do
     end
 
     context "#glue" do
-
       asserts "that it glues data from a child node" do
         template = rabl %{
           object @user
@@ -191,7 +181,6 @@ context "Rabl::Engine" do
     end
 
     context "#object" do
-
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
@@ -212,7 +201,6 @@ context "Rabl::Engine" do
     end
 
     context "#collection" do
-
       asserts "that it sets object to be casted as a simple array" do
         template = rabl %{
           collection @users
@@ -230,11 +218,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope).split("").sort
       end.equals "\x81\xA6person\x92\x80\x80".split("").sort
-
     end
 
     context "#attribute" do
-
       asserts "that it adds an attribute or method to be included in output" do
         template = rabl %{
           object @user
@@ -264,11 +250,9 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope).split("").sort
       end.equals "\x81\xA4city\xA6irvine".split("").sort
-
     end
 
     context "#code" do
-
       asserts "that it can create an arbitraty code node" do
         template = rabl %{
           code(:foo) { 'bar' }
@@ -282,11 +266,9 @@ context "Rabl::Engine" do
         }
         template.render(Object.new).split("").sort
       end.equals "\x80".split("").sort
-
     end
 
     context "#child" do
-
       asserts "that it can create a child node" do
         template = rabl %{
           object @user
@@ -311,7 +293,6 @@ context "Rabl::Engine" do
     end
 
     context "#glue" do
-
       asserts "that it glues data from a child node" do
         template = rabl %{
           object @user

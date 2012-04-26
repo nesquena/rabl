@@ -2,7 +2,6 @@ require File.expand_path('../teststrap',   __FILE__)
 require File.expand_path('../models/user', __FILE__)
 
 context "Rabl::Builder" do
-
   helper(:builder)    { |opt| Rabl::Builder.new(opt) }
   helper(:build_hash) { |obj, opt| builder(opt).build(obj) }
 

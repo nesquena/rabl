@@ -5,7 +5,6 @@ class Scope
 end
 
 context "RablTemplate" do
-
   asserts "that it registers for .rabl files" do
     Tilt['test.rabl']
   end.equals RablTemplate
@@ -44,7 +43,6 @@ context "RablTemplate" do
   end
 
   context "#render compiled" do
-
     # asserts "that it can be passed locals" do
     #   template = RablTemplate.new { "code(:name) { @name }" }
     #   template.render(Scope.new, :object => 'Bob')
@@ -61,8 +59,5 @@ context "RablTemplate" do
       template = RablTemplate.new { "code(:lol) { 'Hey ' + yield + '!' }" }
       template.render(Scope.new) { 'Joe' }
     end.matches %r{"lol":"Hey Joe!"}
-
   end
-
-
 end

@@ -5,7 +5,6 @@ require File.expand_path('../models/user', __FILE__)
 require File.expand_path('../models/ormless', __FILE__)
 
 context "Rabl::Engine" do
-
   helper(:rabl) { |t| RablTemplate.new { t } }
 
   context "#initialize" do

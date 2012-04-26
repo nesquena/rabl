@@ -27,4 +27,3 @@ end
 class Riot::Context
   # Custom context code here
 end
-
