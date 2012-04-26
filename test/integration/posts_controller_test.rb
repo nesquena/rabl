@@ -21,7 +21,7 @@ context "PostsController" do
 
   context "for index action" do
     setup do
-      get "/posts", format: :json
+      get "/posts", :format => :json
     end
 
     # Attributes (regular)
@@ -74,7 +74,7 @@ context "PostsController" do
 
   context "for show action" do
     setup do
-      get "/posts/#{@post1.id}", format: :json
+      get "/posts/#{@post1.id}", :format => :json
       json_output['post']
     end
 
