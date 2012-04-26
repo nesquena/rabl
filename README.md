@@ -380,7 +380,7 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 ### Caching ###
 
-RABL has built-in caching support for templates leveraging fragment caching strategies. Note that caching is currently **only available** for but support for other frameworks is planned in a future release. Simplest caching usage is:
+RABL has built-in caching support for templates leveraging fragment caching strategies. Note that caching is currently **only available** for Rails but support for other frameworks is planned in a future release. Simplest caching usage is:
 
 ```ruby
 # app/views/users/show.json.rabl
