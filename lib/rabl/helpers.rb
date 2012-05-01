@@ -11,6 +11,11 @@ module Rabl
       data.is_a?(Symbol) && @_object ? @_object.send(data) : data
     end
 
+    # data_object_attribute(data) => @_object.send(data)
+    def data_object_attribute(data)
+      escape_output @_object.send(data)
+    end
+
     # data_name(data) => "user"
     # data_name(@user => :person) => :person
     # data_name(@users) => :user
