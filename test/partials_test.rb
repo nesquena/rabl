@@ -25,7 +25,7 @@ context "Rabl::Partials" do
 
     asserts(:first).equals {["content\n", (tmp_path + "test.json.rabl").to_s ]}
     asserts(:last).equals {["content_v1\n", (tmp_path + "test_v1.json.rabl").to_s ]}
-    teardown { Object.send(:remove_const, :Sinatra) }
+    teardown { Object.__send__(:remove_const, :Sinatra) }
   end
 
   context "fetch_source with rabl" do
@@ -41,7 +41,7 @@ context "Rabl::Partials" do
     asserts('detects file.rabl') { topic }.equals do
       ["content\n", (tmp_path + 'test.rabl').to_s]
     end
-    teardown { Object.send(:remove_const, :Sinatra) }
+    teardown { Object.__send__(:remove_const, :Sinatra) }
   end
 
   context "fetch_source with view_path" do
@@ -60,6 +60,6 @@ context "Rabl::Partials" do
     asserts('detects file.json.rabl first') { topic }.equals do
       ["content2\n", (tmp_path + 'test.json.rabl').to_s]
     end
-    teardown { Object.send(:remove_const, :Sinatra) }
+    teardown { Object.__send__(:remove_const, :Sinatra) }
   end
 end
