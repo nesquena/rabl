@@ -95,5 +95,10 @@ module Rabl
       defined?(Rails) && defined?(ActionController) && ActionController::Base.perform_caching
     end
 
+    # escape output if configured
+    def escape_output(data)
+      defined?(Rails) && Rabl.configuration.escape_all_output ? ERB::Util.h(data) : data
+    end
+
   end
 end

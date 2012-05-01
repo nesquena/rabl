@@ -17,7 +17,7 @@ context "PostsController" do
     Post.delete_all
     @post1 = Post.create(:title => "Foo", :body => "Bar", :user_id => @user1.id)
     @post2 = Post.create(:title => "Baz", :body => "Bah", :user_id => @user2.id)
-    @post3 = Post.create(:title => "Kaz", :body => "Paz", :user_id => @user3.id)
+    @post3 = Post.create(:title => "Kaz", :body => "<script>alert('xss & test');</script>", :user_id => @user3.id)
     @posts = [@post1, @post2, @post3]
   end
 
@@ -187,6 +187,18 @@ context "PostsController" do
         json_output['articles'].map { |o| o['article']['title'] }
       end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
     end  # index action, cache_all_output
+  end
+
+  context "escaping output" do
+    setup do
+      Rabl.configuration.escape_all_output = true
+      get "/posts/#{@post1.id}", format: :json
+      json_output['post']
+    end
+
+    # Attributes (regular)
+    asserts("contains post title") { topic['title'] }.equals { @post1.title }
+    asserts("contains post body")  { topic['body'] }.equals { @post1.body }
   end
 
 end
