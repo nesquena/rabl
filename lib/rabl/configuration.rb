@@ -94,7 +94,7 @@ module Rabl
     #
     # @param [Symbol] option Key for a given attribute
     def [](option)
-      send(option)
+      __send__(option)
     end
 
     # Returns merged default and inputted xml options
