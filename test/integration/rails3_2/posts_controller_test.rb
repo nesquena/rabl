@@ -87,7 +87,7 @@ context "PostsController" do
       asserts("contains post body")  { topic['body'] }.equals { @post1.body }
     end
 
-    context "for third post" do
+    context "for third post with script tags" do
       setup do
         Rabl.configuration.escape_all_output = true
         get "/posts/#{@post3.id}", format: :json
@@ -96,7 +96,7 @@ context "PostsController" do
 
       # Attributes (regular)
       asserts("contains post title") { topic['title'] }.equals { @post3.title }
-      asserts("contains post body")  { topic['body'] }.equals { ERB::Util.h(@post3.body) }
+      asserts("contains escaped post body")  { topic['body'] }.equals { ERB::Util.h(@post3.body) }
     end
   end # escaping output
 
