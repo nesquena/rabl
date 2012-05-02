@@ -74,6 +74,32 @@ context "PostsController" do
     end.includes(:created_by_admin)
   end # index action, json
 
+  context "escaping output in index action" do
+    context "for first post" do
+      setup do
+        Rabl.configuration.escape_all_output = true
+        get "/posts/#{@post1.id}", format: :json
+        json_output['post']
+      end
+
+      # Attributes (regular)
+      asserts("contains post title") { topic['title'] }.equals { @post1.title }
+      asserts("contains post body")  { topic['body'] }.equals { @post1.body }
+    end
+
+    context "for first post" do
+      setup do
+        Rabl.configuration.escape_all_output = true
+        get "/posts/#{@post3.id}", format: :json
+        json_output['post']
+      end
+
+      # Attributes (regular)
+      asserts("contains post title") { topic['title'] }.equals { @post3.title }
+      asserts("contains post body")  { topic['body'] }.equals { ERB::Util.h(@post3.body) }
+    end
+  end # escaping output
+
   context "for show action" do
     setup do
       get "/posts/#{@post1.id}", format: :json
@@ -85,7 +111,7 @@ context "PostsController" do
     asserts("contains post body")  { topic['body'] }.equals { @post1.body }
 
     # Attributes (custom name)
-    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.iso8601 }
+    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.utc.to_s }
 
     # Child
     asserts("contains post user child username") { topic["user"]["username"] }.equals { @post1.user.username }
@@ -187,18 +213,6 @@ context "PostsController" do
         json_output['articles'].map { |o| o['article']['title'] }
       end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
     end  # index action, cache_all_output
-  end
-
-  context "escaping output" do
-    setup do
-      Rabl.configuration.escape_all_output = true
-      get "/posts/#{@post1.id}", format: :json
-      json_output['post']
-    end
-
-    # Attributes (regular)
-    asserts("contains post title") { topic['title'] }.equals { @post1.title }
-    asserts("contains post body")  { topic['body'] }.equals { @post1.body }
   end
 
 end
