@@ -101,6 +101,7 @@ Rabl.configure do |config|
   # Commented as these are defaults
   # config.cache_all_output = false
   # config.cache_sources = false
+  # config.escape_all_output = false
   # config.json_engine = nil # Any multi\_json engines
   # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.bson_engine = nil # Defaults to ::BSON
@@ -122,9 +123,12 @@ output if the incoming request has a 'callback' parameter.
 If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
 The cache can be reset manually by running `Rabl.reset_source_cache!` within your application.
 
-If `cache_all_output` is set to `true` then every template including each individual template used as part of a collection will be cached separately.
+If `cache_all_output` is set to `true`, every template including each individual template used as part of a collection will be cached separately.
 Additionally, anything within child, glue and partial will also be cached separately.
 To cache just a single template, see the section titled 'Caching' below.
+
+If `escape_all_output` is set to `true` and ActiveSupport is available, attribute output will be escaped using [ERB::Util.html_escape](http://corelib.rubyonrails.org/classes/ERB/Util.html).
+Custom nodes will not be escaped, use `ERB::Util.h(value)`.
 
 Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
 defaults so that in most cases you **don't need to configure this** directly. If you wish to use yajl as

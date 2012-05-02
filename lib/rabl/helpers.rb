@@ -11,6 +11,11 @@ module Rabl
       data.is_a?(Symbol) && @_object ? @_object.send(data) : data
     end
 
+    # data_object_attribute(data) => @_object.send(data)
+    def data_object_attribute(data)
+      escape_output @_object.send(data)
+    end
+
     # data_name(data) => "user"
     # data_name(@user => :person) => :person
     # data_name(@users) => :user
@@ -88,6 +93,11 @@ module Rabl
     # Returns true if the cache has been enabled for the application
     def template_cache_configured?
       defined?(Rails) && defined?(ActionController) && ActionController::Base.perform_caching
+    end
+
+    # Escape output if configured and supported
+    def escape_output(data)
+      defined?(ERB::Util.h) && Rabl.configuration.escape_all_output ? ERB::Util.h(data) : data
     end
 
   end
