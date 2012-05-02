@@ -87,7 +87,7 @@ context "PostsController" do
       asserts("contains post body")  { topic['body'] }.equals { @post1.body }
     end
 
-    context "for first post" do
+    context "for third post" do
       setup do
         Rabl.configuration.escape_all_output = true
         get "/posts/#{@post3.id}", format: :json
