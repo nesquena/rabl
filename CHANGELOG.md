@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.6.11 (Unreleased)
+
+  * Changes send to __send__ (Thanks @alindeman)
+  * Change object/collection checks to :map instead of :each
+  * Adds support for auto-escaping attribute configuration (Thanks @databyte)
+
 ## 0.6.10
 
   * Fixes expected behavior with nil and collection keyword
