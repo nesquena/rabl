@@ -8,12 +8,12 @@ module Rabl
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
       data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && @_object ? @_object.send(data) : data
+      data.is_a?(Symbol) && @_object ? @_object.__send__(data) : data
     end
 
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
-      escape_output @_object.send(data)
+      escape_output @_object.__send__(data)
     end
 
     # data_name(data) => "user"
@@ -24,7 +24,7 @@ module Rabl
     def data_name(data)
       return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.send(data) if data.is_a?(Symbol) && @_object # :address
+      data = @_object.__send__(data) if data.is_a?(Symbol) && @_object # :address
       if is_collection?(data) && data.respond_to?(:first) # data collection
         data_name(data.first).to_s.pluralize if data.first.present?
       elsif is_object?(data) # actual data object

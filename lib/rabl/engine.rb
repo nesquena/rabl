@@ -176,7 +176,7 @@ module Rabl
     # Includes a helper module with a RABL template
     # helper ExampleHelper
     def helper(*klazzes)
-      klazzes.each { |klazz| self.class.send(:include, klazz) }
+      klazzes.each { |klazz| self.class.__send__(:include, klazz) }
     end
     alias_method :helpers, :helper
 
@@ -225,7 +225,7 @@ module Rabl
 
     # Supports calling helpers defined for the template scope using method_missing hook
     def method_missing(name, *args, &block)
-      context_scope.respond_to?(name, true) ? context_scope.send(name, *args, &block) : super
+      context_scope.respond_to?(name, true) ? context_scope.__send__(name, *args, &block) : super
     end
 
     def copy_instance_variables_from(object, exclude = []) #:nodoc:
