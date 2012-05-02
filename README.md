@@ -127,7 +127,7 @@ If `cache_all_output` is set to `true`, every template including each individual
 Additionally, anything within child, glue and partial will also be cached separately.
 To cache just a single template, see the section titled 'Caching' below.
 
-If `escape_all_output` is set to `true` and in Rails, attribute output will be escaped using [ERB::Util.html_escape](http://corelib.rubyonrails.org/classes/ERB/Util.html).
+If `escape_all_output` is set to `true` and ActiveSupport is available, attribute output will be escaped using [ERB::Util.html_escape](http://corelib.rubyonrails.org/classes/ERB/Util.html).
 Custom nodes will not be escaped, use `ERB::Util.h(value)`.
 
 Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
