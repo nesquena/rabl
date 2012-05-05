@@ -107,7 +107,7 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
-      options = @options.slice(:child_root).merge(options).merge(:object => @_object)
+      options = @options.slice(:child_root, :view_path).merge(options).merge(:object => @_object)
       result = self.partial(file, options, &block)
       @_result.merge!(result) if result
     end
