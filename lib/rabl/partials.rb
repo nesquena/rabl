@@ -30,21 +30,23 @@ module Rabl
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
-      Rabl.source_cache(file, options[:view_path]) do
+      view_paths = Array(options[:view_path])
+      view_paths += Array(Rabl.configuration.view_paths)
+
+      Rabl.source_cache(file, view_paths) do
         file_path = if defined?(Padrino) && context_scope.respond_to?(:settings)
           fetch_padrino_source(file, options)
         elsif defined?(Rails) && context_scope.respond_to?(:view_paths)
-          view_path = Array(options[:view_path] || context_scope.view_paths.to_a)
-          fetch_rails_source(file, options) || fetch_manual_template(view_path, file)
+          _view_paths = view_paths + Array(context_scope.view_paths.to_a)
+          fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file)
         elsif defined?(Sinatra) && context_scope.respond_to?(:settings)
           fetch_sinatra_source(file, options)
         else # generic template resolution
-          view_path = Array(options[:view_path])
-          fetch_manual_template(view_path, file)
+          fetch_manual_template(view_paths, file)
         end
 
         unless File.exist?(file_path.to_s)
-          raise "Cannot find rabl template '#{file}' within registered (#{file_path}) view paths!"
+          raise "Cannot find rabl template '#{file}' within registered (#{view_paths.map(&:to_s).inspect}) view paths!"
         end
 
         [File.read(file_path.to_s), file_path.to_s] if file_path

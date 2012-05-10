@@ -37,6 +37,7 @@ module Rabl
     attr_accessor :cache_sources
     attr_accessor :cache_all_output
     attr_accessor :escape_all_output
+    attr_accessor :view_paths
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -57,6 +58,7 @@ module Rabl
       @cache_sources         = false
       @cache_all_output      = false
       @escape_all_output     = false
+      @view_paths            = []
     end
 
     # @param [Symbol, String, #encode] engine_name The name of a JSON engine,
