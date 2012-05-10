@@ -61,7 +61,6 @@ context "Rabl::Renderer" do
         attribute :name, :as => 'city'
       }
 
-      scope = Object.new
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :locals => {:object => user} })
@@ -81,6 +80,24 @@ context "Rabl::Renderer" do
       renderer = Rabl::Renderer.new('test', user, :view_path => tmp_path)
       renderer.render.split("").sort
     end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
+
+    asserts 'uses globally configured view paths' do
+      Rabl.configure do |config|
+        config.view_paths << tmp_path
+      end
+
+      File.open(tmp_path + "test.rabl", "w") do |f|
+        f.puts %q{
+          attributes :age
+        }
+      end
+
+      user = User.new(:name => 'irvine')
+
+      renderer = Rabl::Renderer.new('test', user)
+      renderer.render.split("").sort
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
+
 
     asserts 'handles paths for extends' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
