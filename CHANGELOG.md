@@ -1,10 +1,12 @@
 # CHANGELOG
 
-## 0.6.11 (Unreleased)
+## 0.6.11
 
   * Changes send to __send__ (Thanks @alindeman)
   * Change object/collection checks to :map instead of :each
   * Adds support for auto-escaping attribute configuration (Thanks @databyte)
+  * Adds support for configuration of view_paths (Thanks @ivanvanderbyl)
+  * Fix issue with helpers caching check
 
 ## 0.6.10
 
