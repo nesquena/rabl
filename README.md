@@ -113,6 +113,7 @@ Rabl.configure do |config|
   # config.include_xml_root  = false
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
+  # config.view_paths = []
 end
 ```
 
@@ -130,6 +131,9 @@ To cache just a single template, see the section titled 'Caching' below.
 If `escape_all_output` is set to `true` and ActiveSupport is available, attribute output will be escaped using [ERB::Util.html_escape](http://corelib.rubyonrails.org/classes/ERB/Util.html).
 Custom nodes will not be escaped, use `ERB::Util.h(value)`.
 
+If `view_paths` is set to a path, this view path will be checked for every rabl template within your application.
+Add to this path especially when including Rabl in an engine and using view paths within a another Rails app.
+
 Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
 defaults so that in most cases you **don't need to configure this** directly. If you wish to use yajl as
 the primary JSON encoding engine simply add that to your Gemfile:
@@ -143,7 +147,7 @@ and RABL will automatically start using that engine for encoding your JSON respo
 
 ### Format Configuration ###
 
-RABL supports configuration for MessagePack, BSON, and Plist. Check the 
+RABL supports configuration for MessagePack, BSON, and Plist. Check the
 [Format Configuration](https://github.com/nesquena/rabl/wiki/Configuring-Formats) page for more details.
 
 ## Usage ##

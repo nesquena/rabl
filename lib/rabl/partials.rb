@@ -30,9 +30,7 @@ module Rabl
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options={})
-      view_paths = Array(options[:view_path])
-      view_paths += Array(Rabl.configuration.view_paths)
-
+      view_paths = Array(options[:view_path]) + Array(Rabl.configuration.view_paths)
       Rabl.source_cache(file, view_paths) do
         file_path = if defined?(Padrino) && context_scope.respond_to?(:settings)
           fetch_padrino_source(file, options)
