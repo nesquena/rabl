@@ -10,6 +10,7 @@ context 'Rabl::Configuration' do
     asserts(:include_json_root).equals true
     asserts(:include_xml_root).equals false
     asserts(:enable_json_callbacks).equals false
+    asserts(:view_paths).equals []
     asserts(:json_engine).equals { json_engine }
   end
 

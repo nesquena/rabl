@@ -62,4 +62,27 @@ context "Rabl::Partials" do
     end
     teardown { Object.send(:remove_const, :Sinatra) }
   end
+
+  context "fetch source using configured view paths" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+
+    setup do
+      Rabl.configure do |config|
+        config.view_paths = tmp_path
+      end
+
+      ::Sinatra = stub(Class.new)
+      File.open(tmp_path + "test.rabl", "w") do |f|
+        f.puts "content"
+      end
+      File.open(tmp_path + "test.json.rabl", "w") do |f|
+        f.puts "content2"
+      end
+      TestPartial.new.fetch_source('test')
+    end
+    asserts('detects file.json.rabl first') { topic }.equals do
+      ["content2\n", (tmp_path + 'test.json.rabl').to_s]
+    end
+    teardown { Object.send(:remove_const, :Sinatra) }
+  end
 end
