@@ -97,7 +97,7 @@ module Rabl
 
     # Escape output if configured and supported
     def escape_output(data)
-      defined?(ERB::Util.h) && Rabl.configuration.escape_all_output ? ERB::Util.h(data) : data
+      (data && defined?(ERB::Util.h) && Rabl.configuration.escape_all_output) ? ERB::Util.h(data) : data
     end
 
   end
