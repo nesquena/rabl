@@ -10,6 +10,7 @@ module Rabl
     def initialize(source, options={})
       @_source = source
       @_options = options
+      @_view_path = options[:view_path]
     end
 
     def source=(string)

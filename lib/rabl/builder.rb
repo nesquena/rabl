@@ -9,6 +9,7 @@ module Rabl
     def initialize(options={}, &block)
       @options    = options
       @_scope     = options[:scope]
+      @_view_path = options[:view_path]
     end
 
     # Given an object and options, returns the hash representation

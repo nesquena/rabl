@@ -158,6 +158,35 @@ context "Rabl::Renderer" do
       scope.instance_variable_set :@users, nil
       Rabl.render([], 'test', :view_path => tmp_path, :root => false, :scope => scope)
     end.equals "[]"
+
+    asserts 'handles view path for when it specified and config is empty' do
+      Rabl.configuration.view_paths = []
+
+      File.open(tmp_path + "profile.json.rabl", "w") do |f|
+        f.puts %q{
+          attributes :gender
+        }
+      end
+
+      File.open(tmp_path + "user.json.rabl", "w") do |f|
+        f.puts %(
+          object @user
+          attribute :name
+          glue(:profile) do
+            extends 'profile'
+          end
+          child(:profile) do
+            extends 'profile'
+          end
+        )
+      end
+
+      user = User.new(:name => 'irvine')
+      stub(user).profile { stub!.gender { "male" } }
+
+      renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
+      renderer.render.split("").sort
+    end.equals "{\"user\":{\"name\":\"irvine\",\"object\":{\"gender\":\"male\"},\"gender\":\"male\"}}".split("").sort
   end
 
   context '.json' do

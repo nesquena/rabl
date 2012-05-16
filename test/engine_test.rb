@@ -14,6 +14,7 @@ context "Rabl::Engine" do
 
     asserts_topic.assigns :_source
     asserts_topic.assigns :_options
+    asserts_topic.assigns :_view_path
   end
 
   context "#cache" do
