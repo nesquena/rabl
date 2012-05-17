@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.12 (unreleased)
+
+  * Fix view_path options for renderer (Thanks @ivanvanderbyl and @route)
+  * Only escape if data exists
+
 ## 0.6.11
 
   * Changes send to __send__ (Thanks @alindeman)
