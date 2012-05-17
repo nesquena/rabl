@@ -8,7 +8,7 @@ module Rabl
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
       raise ArgumentError, "Must provide an :object option to render a partial" unless options.has_key?(:object)
-      object, view_path = options.delete(:object), options.delete(:view_path)
+      object, view_path = options.delete(:object), options[:view_path] || @_view_path
       source, location = self.fetch_source(file, :view_path => view_path)
       engine_options = options.merge(:source => source, :source_location => location)
       self.object_to_hash(object, engine_options, &block)
@@ -23,7 +23,7 @@ module Rabl
     def object_to_hash(object, options={}, &block)
       return object unless is_object?(object) || is_collection?(object)
       return [] if is_collection?(object) && object.blank? # empty collection
-      engine_options = options.reverse_merge(:format => "hash", :root => (options[:root] || false))
+      engine_options = options.reverse_merge(:format => "hash", :view_path => @_view_path, :root => (options[:root] || false))
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
     end
 

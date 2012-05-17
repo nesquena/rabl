@@ -8,11 +8,12 @@ context "Rabl::Builder" do
   setup do
     @users = [User.new, User.new]
     @user = User.new
-    builder({})
+    builder({:view_path => '/path/to/views'})
   end
 
   context "#initialize" do
     asserts_topic.assigns :options
+    asserts_topic.assigns :_view_path
   end
 
   context "#build" do
