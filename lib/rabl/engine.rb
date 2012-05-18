@@ -187,8 +187,9 @@ module Rabl
     # default_object => @user
     def default_object
       if context_scope.respond_to?(:controller)
-        full_name = context_scope.controller.controller_name
-        instance_variable_get("@#{ full_name.split("::").last }")
+        controller_name = context_scope.controller.controller_name
+        stripped_name = controller_name.split(%r{::|\/}).last
+        instance_variable_get("@#{stripped_name}")
       end
     end
 

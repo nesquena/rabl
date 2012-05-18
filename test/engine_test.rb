@@ -294,6 +294,16 @@ context "Rabl::Engine" do
     end
 
     context "#object" do
+      asserts "that it sets default object" do
+        template = rabl %{
+          attribute :name
+        }
+        scope = Object.new
+        stub(scope).controller { stub(Object).controller_name { "a/b/c::d/user" } }
+        scope.instance_variable_set :@user, User.new
+        template.render(scope).split
+      end.equals "{\"name\":\"rabl\"}".split
+
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
