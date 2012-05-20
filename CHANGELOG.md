@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.6.12 (unreleased)
+## 0.6.12
 
   * Fix view_path options for renderer (Thanks @ivanvanderbyl and @route)
   * Only escape if data exists
