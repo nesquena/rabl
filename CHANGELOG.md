@@ -5,6 +5,7 @@
   * Fix view_path options for renderer (Thanks @ivanvanderbyl and @route)
   * Only escape if data exists
   * Fix default object recognition for Rails 2.3.2
+  * Adds `root_object` method on engine (Thanks @OliverLetterer)
 
 ## 0.6.11
 

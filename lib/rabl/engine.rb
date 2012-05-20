@@ -109,7 +109,10 @@ module Rabl
     def object(data)
       @_data = data unless @_locals[:object]
     end
-    
+
+    # Returns the current object that is the topic of this template
+    # Can be the collection or the object depending on topic assigned
+    # root_object => @user
     def root_object
       @_data
     end

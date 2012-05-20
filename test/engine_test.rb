@@ -303,7 +303,7 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new
         template.render(scope).split
       end.equals "{\"name\":\"rabl\"}".split
-      
+
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
@@ -312,7 +312,7 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new
         template.render(scope)
       end.matches "{}"
-      
+
       asserts "that it can set root node" do
         template = rabl %q{
           object @user => :person
@@ -371,7 +371,7 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope)
       end.equals "{\"name\":\"irvine\"}"
-      
+
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
           object @user
@@ -381,13 +381,16 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope)
       end.equals "{\"city\":\"irvine\"}"
-      
+
       asserts "that it exposes root_object" do
         template = rabl %q{
           object @user
 
-          attribute :name, :as => root_object.city.to_sym
+          attribute :name, :as => root_object.city
         }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine')
+        template.render(scope)
       end.equals "{\"irvine\":\"irvine\"}"
 
       asserts "that it can add attribute under a different key name through hash" do
