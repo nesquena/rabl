@@ -109,6 +109,10 @@ module Rabl
     def object(data)
       @_data = data unless @_locals[:object]
     end
+    
+    def root_object
+      @_data
+    end
 
     # Sets the object as a collection casted to a simple array
     # collection @users
