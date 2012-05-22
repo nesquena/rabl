@@ -50,17 +50,17 @@ module Rabl
       end
     end
 
-    # Returns true if obj is not enumerable
+    # Returns true if obj is not a collection
     # is_object?(@user) => true
     # is_object?([]) => false
     # is_object?({}) => false
     def is_object?(obj)
-      obj && !data_object(obj).respond_to?(:map)
+      obj && (!data_object(obj).respond_to?(:map) || !data_object(obj).respond_to?(:each))
     end
 
     # Returns true if the obj is a collection of items
     def is_collection?(obj)
-      obj && data_object(obj).respond_to?(:map)
+      obj && data_object(obj).respond_to?(:map) && data_object(obj).respond_to?(:each)
     end
 
     # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc

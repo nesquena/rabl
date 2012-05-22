@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.13 (Unreleased)
+
+  * Small tweak to is_collection detection (look for each and map)
+
 ## 0.6.12
 
   * Fix view_path options for renderer (Thanks @ivanvanderbyl and @route)
