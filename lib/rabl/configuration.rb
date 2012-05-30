@@ -23,6 +23,7 @@ module Rabl
   # Rabl.host
   class Configuration
     attr_accessor :include_json_root
+    attr_accessor :include_child_root
     attr_accessor :include_msgpack_root
     attr_accessor :include_plist_root
     attr_accessor :include_xml_root
@@ -43,6 +44,7 @@ module Rabl
 
     def initialize
       @include_json_root     = true
+      @include_child_root    = true
       @include_msgpack_root  = true
       @include_plist_root    = true
       @include_xml_root      = false

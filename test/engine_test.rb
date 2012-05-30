@@ -475,4 +475,31 @@ context "Rabl::Engine" do
       Rabl.reset_configuration!
     end
   end
+  
+  context "without child root" do
+    setup do
+      Rabl.configure do |config|
+        config.include_child_root    = false
+        config.include_xml_root      = false
+        config.enable_json_callbacks = false
+      end
+    end
+    
+    context "#child" do
+      
+      asserts "that it can create a child node without child root" do
+        template = rabl %{
+          child @users
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals "{\"users\":[{},{}]}"
+
+    end
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
 end
