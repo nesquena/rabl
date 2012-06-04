@@ -8,6 +8,7 @@ context 'Rabl::Configuration' do
     setup { Rabl.configuration }
 
     asserts(:include_json_root).equals true
+    asserts(:include_child_root).equals true
     asserts(:include_xml_root).equals false
     asserts(:enable_json_callbacks).equals false
     asserts(:view_paths).equals []
