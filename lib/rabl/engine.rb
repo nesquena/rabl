@@ -85,7 +85,7 @@ module Rabl
     # to_xml(:root => true)
     def to_xml(options={})
       include_root = Rabl.configuration.include_xml_root
-      include_child_root = Rabl.configuration.include_child_root
+      include_child_root = include_root && Rabl.configuration.include_child_root
       options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       xml_options = Rabl.configuration.default_xml_options.merge(:root => data_name(@_data))
       to_hash(options).to_xml(xml_options)

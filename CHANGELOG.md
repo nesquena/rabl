@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## 0.6.13 (Unreleased)
+## 0.6.13
 
-  * Small tweak to is_collection detection (look for each and map)
+  * Small tweak to is_collection detection (look for each and map) 
+  * Adds `include_child_root` configuration option (Thanks @yoon)
 
 ## 0.6.12
 
