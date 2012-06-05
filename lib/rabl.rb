@@ -11,6 +11,7 @@ require 'rabl/engine'
 require 'rabl/builder'
 require 'rabl/configuration'
 require 'rabl/renderer'
+require 'rabl/cache_engine'
 require 'rabl/railtie' if defined?(Rails) && Rails.version =~ /^3/
 
 # Rabl.register!
