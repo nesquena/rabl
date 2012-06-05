@@ -106,6 +106,7 @@ Rabl.configure do |config|
   # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.bson_engine = nil # Defaults to ::BSON
   # config.plist_engine = nil # Defaults to ::Plist::Emit
+  # config.csv_engine = nil # Defaults to ::CSV
   # config.include_json_root = true
   # config.include_msgpack_root = true
   # config.include_bson_root = true
@@ -114,6 +115,7 @@ Rabl.configure do |config|
   # config.include_child_root = true
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
+  # config.csv_options = { :col_sep => ';', :row_sep => '\n' }
   # config.view_paths = []
 end
 ```
@@ -515,6 +517,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Alli Witheford](https://github.com/alzeih) - Added Plist format support
 * [Ryan Bigg](https://github.com/radar) - Improved template resolution code
 * [Ivan Vanderbyl](https://github.com/ivanvanderbyl) - Added general purpose renderer
+* [Guilherme Vieira | Flip Studio](https://github.com/gvieira | https://github.com/flipstudio) - Added CSV format support
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 

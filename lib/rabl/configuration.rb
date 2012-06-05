@@ -16,6 +16,12 @@ begin
 rescue LoadError
 end
 
+# We load the csv library if it is available.
+begin
+  require 'csv'
+rescue LoadError
+end
+
 # Load MultiJSON
 require 'multi_json'
 
@@ -34,7 +40,9 @@ module Rabl
     attr_writer   :msgpack_engine
     attr_writer   :bson_engine
     attr_writer   :plist_engine
+    attr_writer   :csv_engine
     attr_writer   :xml_options
+    attr_accessor   :csv_options
     attr_accessor :cache_sources
     attr_accessor :cache_all_output
     attr_accessor :escape_all_output
@@ -56,7 +64,9 @@ module Rabl
       @msgpack_engine        = nil
       @bson_engine           = nil
       @plist_engine          = nil
+      @csv_engine            = nil
       @xml_options           = {}
+      @csv_options           = {}
       @cache_sources         = false
       @cache_all_output      = false
       @escape_all_output     = false
@@ -94,6 +104,12 @@ module Rabl
     # @return the Plist encoder/engine to use.
     def plist_engine
       @plist_engine || ::Plist::Emit
+    end
+
+    ##
+    # @return the CSV encoder/engine to use.
+    def csv_engine
+      @csv_engine || ::CSV
     end
 
     # Allows config options to be read like a hash

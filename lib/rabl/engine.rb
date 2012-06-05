@@ -3,7 +3,7 @@ module Rabl
     include Rabl::Partials
 
     # List of supported rendering formats
-    FORMATS = [:json, :xml, :plist, :bson, :msgpack]
+    FORMATS = [:json, :xml, :plist, :bson, :msgpack, :csv]
 
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
@@ -105,6 +105,19 @@ module Rabl
                  to_hash(options)
                end
       Rabl.configuration.bson_engine.serialize(result).to_s
+    end
+
+    # Returns a csv representation of the data object
+    # to_csv()
+    def to_csv(options={})
+      options = options.reverse_merge(:root => false, :child_root => false)
+      result = to_hash(options)
+      if !result.is_a?(Array); result = [result] end
+      options = Rabl.configuration.csv_options
+      Rabl.configuration.csv_engine.generate options do |csv|
+        csv << result.first.map { |k, v| k } unless result.empty?
+        result.each { |hash| csv << hash.map { |k, v| v } }
+      end
     end
 
     # Sets the object to be used as the data source for this template
