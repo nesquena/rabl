@@ -100,7 +100,7 @@ RABL is intended to require little to no configuration to get working. This is t
 Rabl.configure do |config|
   # Commented as these are defaults
   # config.cache_all_output = false
-  # config.cache_sources = false
+  # config.cache_sources = Rails.env != 'development' # Defaults to false
   # config.escape_all_output = false
   # config.json_engine = nil # Any multi\_json engines
   # config.msgpack_engine = nil # Defaults to ::MessagePack
@@ -110,7 +110,7 @@ Rabl.configure do |config|
   # config.include_msgpack_root = true
   # config.include_bson_root = true
   # config.include_plist_root = true
-  # config.include_xml_root  = false      
+  # config.include_xml_root  = false
   # config.include_child_root = true
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
@@ -120,9 +120,9 @@ end
 
 Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the
 root node for each root object in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
-output if the incoming request has a 'callback' parameter. 
+output if the incoming request has a 'callback' parameter.
 
-If `include_child_root` is set to false then child objects in the response will not include 
+If `include_child_root` is set to false then child objects in the response will not include
 a root node by default. This allows you to further fine-tune your desired response structure.
 
 If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
