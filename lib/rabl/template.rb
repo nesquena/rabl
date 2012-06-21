@@ -45,16 +45,11 @@ if defined?(ActionView) && defined?(Rails) && Rails.version =~ /^3/
   module ActionView
     module Template::Handlers
       class Rabl
-
         class_attribute :default_format
         self.default_format = Mime::JSON
 
         def self.call(template)
-          source = if template.source.empty?
-            File.read(template.identifier)
-          else # use source
-            template.source
-          end
+          source = template.source
 
           %{ ::Rabl::Engine.new(#{source.inspect}).
               render(self, assigns.merge(local_assigns)) }
