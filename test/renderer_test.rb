@@ -1,5 +1,7 @@
 require 'tmpdir'
 require 'pathname'
+require File.expand_path('../teststrap', __FILE__)
+require File.expand_path('../../lib/rabl', __FILE__)
 
 context "Rabl::Renderer" do
   helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
