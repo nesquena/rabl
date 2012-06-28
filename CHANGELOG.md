@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.6.14 (unreleased)
+## 0.6.15 (unreleased)
+
+## 0.6.14
 
   * Fix RSpec under Rails 3, use render_views to test output (Thanks @agibralter)
   * Fix extends allows passing in local object when root object is specified
