@@ -140,5 +140,11 @@ context "Rabl::Builder" do
       mock(b).partial('users/show', { :object => @user }).returns({:user => 'xyz'}).subject
       b.build(@user)
     end.equivalent_to({:user => 'xyz'})
+
+    asserts "that it generates if local data is present but object is false" do
+      b = builder :extends => [{ :file => 'users/show', :options => { :object => @user }, :block => lambda { |u| attribute :name  }}]
+      mock(b).partial('users/show', { :object => @user }).returns({:user => 'xyz'}).subject
+      b.build(false)
+    end.equivalent_to({:user => 'xyz'})
   end
 end
