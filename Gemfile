@@ -17,3 +17,7 @@ group :test do
   gem 'sqlite3'
   gem 'sinatra', '>= 1.2.0'
 end
+
+group :development, :test do
+  gem 'debugger'
+end
