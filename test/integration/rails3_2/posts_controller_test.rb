@@ -132,6 +132,10 @@ context "PostsController" do
       asserts("contains date partial with hour")  { topic['hour'] }.equals { @post1.created_at.hour }
       asserts("contains date partial with full")  { topic['full'] }.equals { @post1.created_at.iso8601 }
     end # date node
+
+    asserts("contains helper action") { topic["foo"] }.equals { "BAR!" }
+
+    asserts("contains post attributes via node") { topic["post"] }.equals { [@post1.title, @post1.body] }
   end # show action, json
 
   context "for index action rendering JSON within HTML" do
