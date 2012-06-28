@@ -1,0 +1,12 @@
+source :rubygems
+
+# Specify your gem's dependencies in rabl.gemspec
+gemspec
+
+gem "rake"
+gem "i18n", '~> 0.6'
+
+platforms :mri_18 do
+  gem 'SystemTimer'
+end
+
