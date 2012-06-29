@@ -84,6 +84,9 @@ context "Rabl::Partials" do
     asserts('detects file.json.rabl first') { topic }.equals do
       ["content2\n", (tmp_path + 'test.json.rabl').to_s]
     end
-    teardown { Object.send(:remove_const, :Sinatra) }
+    teardown do
+      Object.send(:remove_const, :Sinatra)
+      Rabl.configuration.view_paths = []
+    end
   end
 end
