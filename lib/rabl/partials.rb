@@ -71,7 +71,7 @@ module Rabl
           if ActionPack::VERSION::MAJOR == 3 && ActionPack::VERSION::MINOR < 2
             context_scope.lookup_context.find(file, [], partial)
           else # Rails 3.2 and higher
-            context_scope.lookup_context.find(file, [], partial, [], {:formats => [:json]})
+            context_scope.lookup_context.find(file, [], partial, [], {:formats => [source_format]})
           end }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)
         template.identifier if template
