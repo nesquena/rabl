@@ -71,6 +71,10 @@ module Rabl
           if ActionPack::VERSION::MAJOR == 3 && ActionPack::VERSION::MINOR < 2
             context_scope.lookup_context.find(file, [], partial)
           else # Rails 3.2 and higher
+            # pull format directly from rails unless it is html
+            rendered_format = context_scope.lookup_context.rendered_format
+            source_format = rendered_format unless rendered_format == :html
+
             context_scope.lookup_context.find(file, [], partial, [], {:formats => [source_format]})
           end }
         template = lookup_proc.call(false) rescue lookup_proc.call(true)

@@ -154,6 +154,15 @@ context "PostsController" do
     asserts(:body).includes { "<html>" }
   end # show action, html
 
+  context "mime_type" do
+    setup do
+      get "/posts/#{@post1.id}", format: :rabl_test_v1
+    end
+
+    asserts("contains post title") { json_output['post']['title_v1'] }.equals { @post1.title }
+    asserts("contains username") { json_output['post']['user']['username_v1'] }.equals { @post1.user.username }
+  end
+
   context "caching" do
     helper(:cache_hit) do |key|
       Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
