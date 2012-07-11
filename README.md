@@ -359,6 +359,8 @@ end
 
 Using partials and inheritance can significantly reduce code duplication in your templates.
 
+You can see more examples on the [Reusing Templates wiki page](https://github.com/nesquena/rabl/wiki/Reusing-templates).
+
 ### Template Scope ###
 
 In RABL, you have access to everything you need to build an API response. Each RABL template has full access to the controllers
