@@ -240,6 +240,12 @@ attributes :bar => :baz, :dog => :animal
 # => # { baz : <bar value>, animal : <dog value> }
 ```
 
+This currently does not work:
+
+```ruby
+attributes :foo, :bar => :baz # throws exception
+```
+
 ### Child Nodes ###
 
 Often a response requires including nested information from data associated with the parent model:
