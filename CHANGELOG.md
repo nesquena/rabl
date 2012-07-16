@@ -1,6 +1,13 @@
 # CHANGELOG
 
-## 0.6.15 (unreleased)
+## 0.7.1 (Unreleased)
+
+## 0.7.0
+
+  * Use source_format when looking up partials (Thanks @databyte)
+  * Add README note about render_views (Thanks @databyte)
+  * Add support for Rails 3.2+ sending custom mime types (Thanks @databyte)
+  * Add option to define his own cache_engine (Thanks @shingara)
 
 ## 0.6.14
 

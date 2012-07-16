@@ -107,6 +107,7 @@ Rabl.configure do |config|
   # Commented as these are defaults
   # config.cache_all_output = false
   # config.cache_sources = Rails.env != 'development' # Defaults to false
+  # config.cache_engine = Rabl::CacheEngine.new # Defaults to Rails cache
   # config.escape_all_output = false
   # config.json_engine = nil # Any multi\_json engines
   # config.msgpack_engine = nil # Defaults to ::MessagePack
@@ -130,6 +131,8 @@ output if the incoming request has a 'callback' parameter.
 
 If `include_child_root` is set to false then child objects in the response will not include
 a root node by default. This allows you to further fine-tune your desired response structure.
+
+If `cache_engine` is set, you should assign it to a class with a `fetch` method. See the [default engine](https://github.com/nesquena/rabl/blob/master/lib/rabl/cache_engine.rb) for an example.
 
 If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
 The cache can be reset manually by running `Rabl.reset_source_cache!` within your application.
@@ -529,6 +532,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Alli Witheford](https://github.com/alzeih) - Added Plist format support
 * [Ryan Bigg](https://github.com/radar) - Improved template resolution code
 * [Ivan Vanderbyl](https://github.com/ivanvanderbyl) - Added general purpose renderer
+* [Cyril Mougel](https://github.com/shingara) - Added cache_engine pluggable support
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
