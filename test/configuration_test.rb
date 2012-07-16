@@ -13,6 +13,7 @@ context 'Rabl::Configuration' do
     asserts(:enable_json_callbacks).equals false
     asserts(:view_paths).equals []
     asserts(:json_engine).equals { json_engine }
+    asserts(:cache_engine).is_a?(Rabl::CacheEngine)
   end
 
   context 'custom JSON engine' do
