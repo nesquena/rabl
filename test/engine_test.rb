@@ -263,6 +263,18 @@ context "Rabl::Engine" do
         template.render(scope).split('').sort
 
       end.equals "{\"user\":{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}}".split('').sort
+
+      asserts "that it passes the data object to the block" do
+        template = rabl %{
+          object @user
+          child(@user => :person) do |user|
+            attribute :name if user.name == 'leo'
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo')
+        template.render(scope)
+      end.equals "{\"user\":{\"person\":{\"name\":\"leo\"}}}"
     end
 
     context "#glue" do
@@ -475,7 +487,7 @@ context "Rabl::Engine" do
       Rabl.reset_configuration!
     end
   end
-  
+
   context "without child root" do
     setup do
       Rabl.configure do |config|
@@ -484,9 +496,9 @@ context "Rabl::Engine" do
         config.enable_json_callbacks = false
       end
     end
-    
+
     context "#child" do
-      
+
       asserts "that it can create a child node without child root" do
         template = rabl %{
           child @users

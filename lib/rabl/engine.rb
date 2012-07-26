@@ -31,7 +31,7 @@ module Rabl
       else # without source location
         instance_eval(@_source) if @_source.present?
       end
-      instance_eval(&block) if block_given?
+      instance_exec(data_object(@_data), &block) if block_given?
       cache_results { self.send("to_" + @_options[:format].to_s) }
     end
 
