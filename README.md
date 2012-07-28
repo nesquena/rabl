@@ -440,6 +440,19 @@ Rabl::Renderer.xml(@post, 'posts/show')
 
 These methods allow RABL to be used for arbitrary conversions of an object into a desired format.
 
+You can also pass in other instance variables to be used in your template as:
+
+```ruby
+Rabl::Renderer.new(@post, 'posts/show', :locals => { :custom_title => "Hello world!" })
+````
+
+Then, in your template, you can use `@custom_title` as:
+
+```
+attribute :content
+node(:title) { @custom_title }
+```
+
 ### Content Type Headers ###
 
 Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
