@@ -1,6 +1,11 @@
 # CHANGELOG
 
-## 0.7.1 (Unreleased)
+## 0.7.2 (unreleased)
+
+## 0.7.1
+
+  * Improved renderer interface (Thanks @siong1987)
+  * Pass current object into blocks (Thanks @braddunbar)
 
 ## 0.7.0
 
