@@ -61,13 +61,14 @@ context "Rabl::Renderer" do
     asserts 'passes :locals to render' do
       source = %q{
         attribute :name, :as => 'city'
+        node(:zipcode) { @zipcode }
       }
 
       user = User.new(:name => 'irvine')
 
-      renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :locals => {:object => user} })
+      renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :locals => {:object => user, :zipcode => "92602"} })
       renderer.render.split("").sort
-    end.equals "{\"user\":{\"city\":\"irvine\"}}".split("").sort
+    end.equals "{\"user\":{\"city\":\"irvine\",\"zipcode\":\"92602\"}}".split("").sort
 
     asserts 'loads source from file' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
