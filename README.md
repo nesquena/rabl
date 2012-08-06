@@ -243,7 +243,7 @@ attributes :bar => :baz, :dog => :animal
 # => # { baz : <bar value>, animal : <dog value> }
 ```
 
-This currently does not work:
+Named and aliased attributes can not be combined on the same line. This currently does not work:
 
 ```ruby
 attributes :foo, :bar => :baz # throws exception
