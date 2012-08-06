@@ -277,6 +277,15 @@ child :posts => :foobar do
 end
 ```
 
+You can also pass in the current object:
+
+```ruby
+object @user
+child :posts do |user|
+  attribute :title unless user.suspended?
+end
+```
+
 ### Gluing Attributes ###
 
 You can also append child attributes back to the root node:
@@ -289,6 +298,13 @@ end
 ```
 
 Use glue to add additional attributes to the parent object.
+
+You can also pass in the current object:
+
+```ruby
+object @user
+glue(@post) {|user| attribute :title if user.active? }
+```
 
 ### Custom Nodes ###
 
