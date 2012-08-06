@@ -289,6 +289,16 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
         template.render(scope).split('').sort
       end.equals "{\"user\":{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}}".split('').sort
+
+      asserts "that it passes the data object to the block" do
+        template = rabl %{
+          object @user
+          glue(@user) {|user| attribute :age if user.name == 'leo' }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
+        template.render(scope)
+      end.equals "{\"user\":{\"age\":12}}"
     end
 
     teardown do
