@@ -561,7 +561,9 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Alli Witheford](https://github.com/alzeih) - Added Plist format support
 * [Ryan Bigg](https://github.com/radar) - Improved template resolution code
 * [Ivan Vanderbyl](https://github.com/ivanvanderbyl) - Added general purpose renderer
-* [Cyril Mougel](https://github.com/shingara) - Added cache_engine pluggable support
+* [Cyril Mougel](https://github.com/shingara) - Added cache_engine pluggable support and renderer tweaks
+* [Teng Siong Ong](https://github.com/siong1987) - Improved renderer interface
+* [Brad Dunbar](https://github.com/braddunbar) - Pass current object into blocks
 
 and many more contributors listed in the [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md).
 
@@ -584,3 +586,4 @@ Thanks again for all of these great projects.
 ## Copyright ##
 
 Copyright © 2011-2012 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
+
