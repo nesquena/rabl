@@ -21,3 +21,5 @@ node(:foo) { helper_foo }
 node(:post) do |post|
   [post.title, post.body]
 end
+
+node(:created_at_in_words) {|p| time_ago_in_words(p.created_at) }
