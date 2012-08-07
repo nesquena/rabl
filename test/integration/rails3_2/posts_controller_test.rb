@@ -134,6 +134,7 @@ context "PostsController" do
     end # date node
 
     asserts("contains helper action") { topic["foo"] }.equals { "BAR!" }
+    denies("contains helper action") { topic["created_at_in_words"] }.nil
 
     asserts("contains post attributes via node") { topic["post"] }.equals { [@post1.title, @post1.body] }
   end # show action, json

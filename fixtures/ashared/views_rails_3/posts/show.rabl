@@ -16,10 +16,10 @@ code(:created_date) do |p|
   partial("posts/date", :object => p.created_at)
 end
 
-node(:foo) { helper_foo }
-
 node(:post) do |post|
   [post.title, post.body]
 end
+
+node(:foo) { helper_foo }
 
 node(:created_at_in_words) {|p| time_ago_in_words(p.created_at) }
