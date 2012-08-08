@@ -2,6 +2,8 @@
 
 ## 0.7.2 (unreleased)
 
+  * Set instance variables for locals in engine instead of renderer (Thanks @geehsien)
+
 ## 0.7.1
 
   * Improved renderer interface (Thanks @siong1987)
