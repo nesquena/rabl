@@ -32,12 +32,6 @@ module Rabl
       @options = options
       @object = object
 
-      if @options[:locals]
-        @options[:locals].delete(:object) if @object
-        @options[:locals].each do |k,v|
-          instance_variable_set(:"@#{k}", v)
-        end
-      end
       engine.source = self.process_source(source)
     end
 
