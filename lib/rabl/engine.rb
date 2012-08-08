@@ -23,6 +23,7 @@ module Rabl
       reset_options!
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       @_data = locals[:object] || self.default_object
