@@ -347,7 +347,7 @@ node :location do
 end
 ```
 
-or event access an object associated with the parent model:
+or even access an object associated with the parent model:
 
 ```ruby
 node :location do |m|
