@@ -1,5 +1,6 @@
 require 'tmpdir'
 require 'pathname'
+require 'json'
 require File.expand_path('../teststrap', __FILE__)
 require File.expand_path('../../lib/rabl', __FILE__)
 
@@ -29,8 +30,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source, user, { :format => 'json', :root => true, :view_path => '/path/to/views' })
-      renderer.render
-    end.equals "{\"user\":{\"city\":\"irvine\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"city\":\"irvine\"}}")
 
     asserts 'allows redirecting scope to another object' do
       source = %q{
@@ -42,8 +43,8 @@ context "Rabl::Renderer" do
       scope.instance_variable_set :@user, User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :scope => scope })
-      renderer.render
-    end.equals "{\"user\":{\"city\":\"irvine\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"city\":\"irvine\"}}")
 
     asserts 'accepts scope on render' do
       source = %q{
@@ -55,8 +56,8 @@ context "Rabl::Renderer" do
       scope.instance_variable_set :@user, User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source)
-      renderer.render(scope)
-    end.equals "{\"user\":{\"city\":\"irvine\"}}"
+      JSON.parse(renderer.render(scope))
+    end.equals JSON.parse("{\"user\":{\"city\":\"irvine\"}}")
 
     asserts 'passes :locals to render' do
       source = %q{
@@ -67,8 +68,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :locals => {:object => user, :zipcode => "92602"} })
-      renderer.render
-    end.equals "{\"user\":{\"city\":\"irvine\",\"zipcode\":\"92602\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"city\":\"irvine\",\"zipcode\":\"92602\"}}")
 
     asserts 'loads source from file' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -81,8 +82,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('test', user, :view_path => tmp_path)
-      renderer.render
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"irvine\"}}")
 
     asserts 'uses globally configured view paths' do
       Rabl.configure do |config|
@@ -98,8 +99,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('test', user)
-      renderer.render
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"irvine\"}}")
 
     asserts 'handles paths for extends' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -119,8 +120,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
-      renderer.render
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"irvine\"}}")
 
     # FIXME template is found and rendered but not included in final results
     # asserts 'handles paths for partial' do
@@ -141,8 +142,8 @@ context "Rabl::Renderer" do
     #   user = User.new(:name => 'irvine')
 
     #   renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
-    #   renderer.render
-    # end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+    #   JSON.parse(renderer.render)
+    # end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"irvine\"}}")
 
     asserts 'Rabl.render calls Renderer' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -154,8 +155,8 @@ context "Rabl::Renderer" do
 
       user = User.new(:name => 'irvine')
 
-      Rabl.render(user, 'test', :view_path => tmp_path)
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+      JSON.parse(Rabl.render(user, 'test', :view_path => tmp_path))
+    end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"irvine\"}}")
 
     asserts 'it renders collections' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -209,8 +210,8 @@ context "Rabl::Renderer" do
       stub(user).profile { stub!.gender { "male" } }
 
       renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
-      renderer.render
-    end.equals "{\"user\":{\"name\":\"irvine\",\"object\":{\"gender\":\"male\"},\"gender\":\"male\"}}"
+      JSON.parse(renderer.render)
+    end.equals JSON.parse("{\"user\":{\"name\":\"irvine\",\"object\":{\"gender\":\"male\"},\"gender\":\"male\"}}")
   end
 
   context '.json' do
@@ -223,8 +224,8 @@ context "Rabl::Renderer" do
       end
 
       user = User.new(:name => 'ivan')
-      Rabl::Renderer.json(user, 'test', :view_path => tmp_path)
-    end.equals "{\"user\":{\"age\":24,\"name\":\"ivan\"}}"
+      JSON.parse(Rabl::Renderer.json(user, 'test', :view_path => tmp_path))
+    end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"ivan\"}}")
   end
 
   context '.msgpack' do
