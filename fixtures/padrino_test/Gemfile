@@ -12,6 +12,6 @@ gem 'riot', :group => "test"
 gem 'rack-test', :require => "rack/test", :group => "test"
 
 # Padrino
-gem 'padrino', '0.10.2'
+gem 'padrino', '~> 0.10.7'
 gem 'json'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
