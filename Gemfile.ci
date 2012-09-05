@@ -10,3 +10,5 @@ platforms :mri_18 do
   gem 'SystemTimer'
 end
 
+gem 'activesupport', :require => 'active_support'
+gem 'builder'

@@ -10,12 +10,14 @@ platforms :mri_18 do
   gem 'SystemTimer'
 end
 
-# FIXTURES
 group :test do
-  gem 'rack-test', :require => 'rack/test'
-  gem 'activerecord', :require => 'active_record'
+  # RABL TEST
   gem 'activesupport', :require => 'active_support'
   gem 'builder'
+
+  # FIXTURES
+  gem 'rack-test', :require => 'rack/test'
+  gem 'activerecord', :require => 'active_record'
   gem 'sqlite3'
   gem 'sinatra', '>= 1.2.0'
 end
