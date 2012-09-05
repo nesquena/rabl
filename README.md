@@ -452,17 +452,20 @@ Rabl.render(object, template, :view_path => 'app/views', :format => :json) #=> "
 You can use convenience methods on `Rabl::Renderer` to render the objects as well:
 
 ```ruby
-Rabl::Renderer.new(@post, 'posts/show', :view_path => 'app/views')
 Rabl::Renderer.json(@post, 'posts/show')
 Rabl::Renderer.xml(@post, 'posts/show')
 ```
 
 These methods allow RABL to be used for arbitrary conversions of an object into a desired format.
 
+```ruby
+Rabl::Renderer.new('posts/show', @post, :view_path => 'app/views', :format => 'hash').render
+```
+
 You can also pass in other instance variables to be used in your template as:
 
 ```ruby
-Rabl::Renderer.new(@post, 'posts/show', :locals => { :custom_title => "Hello world!" })
+Rabl::Renderer.new('posts/show', @post, :locals => { :custom_title => "Hello world!" })
 ````
 
 Then, in your template, you can use `@custom_title` as:
