@@ -122,6 +122,28 @@ context "Rabl::Renderer" do
       renderer.render
     end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
 
+    # FIXME template is found and rendered but not included in final results
+    # asserts 'handles paths for partial' do
+    #   File.open(tmp_path + "test.json.rabl", "w") do |f|
+    #     f.puts %q{
+    #       attributes :age
+    #     }
+    #   end
+
+    #   File.open(tmp_path + "user.json.rabl", "w") do |f|
+    #     f.puts %(
+    #       object @user
+    #       attribute :name
+    #       partial 'test', :object => @user
+    #     )
+    #   end
+
+    #   user = User.new(:name => 'irvine')
+
+    #   renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
+    #   renderer.render
+    # end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
+
     asserts 'Rabl.render calls Renderer' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
         f.puts %q{
