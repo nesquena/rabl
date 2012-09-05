@@ -67,8 +67,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new(source, nil, { :format => 'json', :locals => {:object => user, :zipcode => "92602"} })
-      renderer.render.split("").sort
-    end.equals "{\"user\":{\"city\":\"irvine\",\"zipcode\":\"92602\"}}".split("").sort
+      renderer.render
+    end.equals "{\"user\":{\"city\":\"irvine\",\"zipcode\":\"92602\"}}"
 
     asserts 'loads source from file' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -81,8 +81,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('test', user, :view_path => tmp_path)
-      renderer.render.split("").sort
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
+      renderer.render
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
 
     asserts 'uses globally configured view paths' do
       Rabl.configure do |config|
@@ -98,9 +98,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('test', user)
-      renderer.render.split("").sort
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
-
+      renderer.render
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
 
     asserts 'handles paths for extends' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -120,8 +119,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'irvine')
 
       renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
-      renderer.render.split("").sort
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
+      renderer.render
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
 
     asserts 'Rabl.render calls Renderer' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -133,8 +132,8 @@ context "Rabl::Renderer" do
 
       user = User.new(:name => 'irvine')
 
-      Rabl.render(user, 'test', :view_path => tmp_path).split("").sort
-    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}".split("").sort
+      Rabl.render(user, 'test', :view_path => tmp_path)
+    end.equals "{\"user\":{\"age\":24,\"name\":\"irvine\"}}"
 
     asserts 'it renders collections' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -146,8 +145,8 @@ context "Rabl::Renderer" do
 
       scope = Object.new
       scope.instance_variable_set :@users, nil
-      Rabl.render([], 'test', :view_path => tmp_path, :scope => scope).split("").sort
-    end.equals "{\"users\":[]}".split("").sort
+      Rabl.render([], 'test', :view_path => tmp_path, :scope => scope)
+    end.equals "{\"users\":[]}"
 
     asserts 'it renders an array when given an empty collection' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
@@ -188,8 +187,8 @@ context "Rabl::Renderer" do
       stub(user).profile { stub!.gender { "male" } }
 
       renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
-      renderer.render.split("").sort
-    end.equals "{\"user\":{\"name\":\"irvine\",\"object\":{\"gender\":\"male\"},\"gender\":\"male\"}}".split("").sort
+      renderer.render
+    end.equals "{\"user\":{\"name\":\"irvine\",\"object\":{\"gender\":\"male\"},\"gender\":\"male\"}}"
   end
 
   context '.json' do
@@ -202,8 +201,8 @@ context "Rabl::Renderer" do
       end
 
       user = User.new(:name => 'ivan')
-      Rabl::Renderer.json(user, 'test', :view_path => tmp_path).split("").sort
-    end.equals "{\"user\":{\"age\":24,\"name\":\"ivan\"}}".split("").sort
+      Rabl::Renderer.json(user, 'test', :view_path => tmp_path)
+    end.equals "{\"user\":{\"age\":24,\"name\":\"ivan\"}}"
   end
 
   context '.msgpack' do
@@ -216,8 +215,8 @@ context "Rabl::Renderer" do
       end
 
       user = User.new(:name => 'ivan')
-      Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path).split("").sort
-    end.equals "\x81\xA4user\x82\xA3age\x18\xA4name\xA4ivan".split("").sort
+      Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path)
+    end.equals "\x81\xA4user\x82\xA3age\x18\xA4name\xA4ivan"
   end
 
   context '.plist' do
