@@ -45,4 +45,3 @@ Signal.trap 'INT' do
     run_all_tests
   end
 end
-
