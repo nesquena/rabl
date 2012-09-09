@@ -16,7 +16,7 @@ context 'Rabl::Configuration' do
     asserts(:cache_engine).is_a?(Rabl::CacheEngine)
   end
 
-  context 'custom JSON engine' do
+  context 'custom JSON engine configured as Symbol' do
     setup do
       Rabl.configure do |c|
         c.json_engine = :yajl
@@ -24,5 +24,15 @@ context 'Rabl::Configuration' do
     end
 
     asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /MultiJson.*::Yajl/ }
+  end
+
+  context 'custom JSON engine configured as Class' do
+    setup do
+      Rabl.configure do |c|
+        c.json_engine = ActiveSupport::JSON
+      end
+    end
+
+    asserts('uses a custom JSON engine') { topic.json_engine.to_s == 'ActiveSupport::JSON' }
   end
 end
