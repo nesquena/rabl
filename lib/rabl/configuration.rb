@@ -16,9 +16,6 @@ begin
 rescue LoadError
 end
 
-# Load MultiJSON
-require 'multi_json'
-
 module Rabl
   # Rabl.host
   class Configuration
@@ -65,19 +62,16 @@ module Rabl
       @cache_engine          = Rabl::CacheEngine.new
     end
 
-    # @param [Symbol, String, #encode] engine_name The name of a JSON engine,
+    # @param [Symbol, Class] engine_name The name of a JSON engine,
     #   or class that responds to `encode`, to use to encode Rabl templates
     #   into JSON. For more details, see the MultiJson gem.
     def json_engine=(engine_name_or_class)
-      @engine_name = engine_name_or_class
-      # multi_json compatibility TODO
-      MultiJson.respond_to?(:use) ? MultiJson.use(@engine_name) :
-        MultiJson.engine = @engine_name
+      JsonEngine.instance.set(engine_name_or_class)
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
     def json_engine
-      get_json_engine
+      JsonEngine.instance.current_engine
     end
 
     ##
@@ -108,17 +102,6 @@ module Rabl
     # Returns merged default and inputted xml options
     def default_xml_options
       @_default_xml_options ||= @xml_options.reverse_merge(DEFAULT_XML_OPTIONS)
-    end
-
-    private
-
-    def get_json_engine
-      if !defined?(@engine_name) && defined?(Rails)
-        ActiveSupport::JSON
-      else # use multi_json
-        # multi_json compatibility TODO
-        MultiJson.respond_to?(:adapter) ? MultiJson.adapter : MultiJson.engine
-      end
     end
   end
 end
