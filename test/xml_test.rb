@@ -1,11 +1,14 @@
 require 'active_support/core_ext/hash/conversions'
 require File.expand_path('../teststrap', __FILE__)
-require File.expand_path('../../lib/rabl', __FILE__)
-require File.expand_path('../../lib/rabl/template', __FILE__)
-require File.expand_path('../models/user', __FILE__)
+require 'rabl/template'
 
 context "Rabl::Engine" do
   helper(:rabl) { |t| RablTemplate.new("code", :format => 'xml') { t } }
+
+  # TODO fix annoying warnings in this file:
+  # gems/builder-3.0.3/lib/builder/xmlbase.rb:181: warning: method redefined; discarding old user
+  setup { @old_verbose, $VERBOSE = $VERBOSE, nil }
+  teardown { $VERBOSE = @old_verbose }
 
   context "with xml defaults" do
     setup do

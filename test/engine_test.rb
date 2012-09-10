@@ -1,8 +1,6 @@
 require 'json'
 require File.expand_path('../teststrap', __FILE__)
-require File.expand_path('../../lib/rabl', __FILE__)
-require File.expand_path('../../lib/rabl/template', __FILE__)
-require File.expand_path('../models/user', __FILE__)
+require 'rabl/template'
 require File.expand_path('../models/ormless', __FILE__)
 
 context "Rabl::Engine" do
@@ -273,7 +271,7 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new(:name => 'leo')
-	      template.render(scope)
+        template.render(scope)
       end.equals "{\"user\":{\"person\":{\"name\":\"leo\"}}}"
     end
 

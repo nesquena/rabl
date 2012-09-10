@@ -1,7 +1,6 @@
 require 'tmpdir'
 require 'pathname'
 require File.expand_path('../teststrap', __FILE__)
-require File.expand_path('../../lib/rabl', __FILE__)
 
 class TestHelperMethods
   include Rabl::Helpers

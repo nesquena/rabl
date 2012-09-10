@@ -1,7 +1,5 @@
 require File.expand_path('../teststrap', __FILE__)
-require File.expand_path('../../lib/rabl', __FILE__)
-require File.expand_path('../../lib/rabl/template', __FILE__)
-require File.expand_path('../models/user', __FILE__)
+require 'rabl/template'
 
 context "Rabl::Engine" do
   helper(:rabl) { |t| RablTemplate.new("code", :format => 'bson') { t } }

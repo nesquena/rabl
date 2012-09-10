@@ -1,5 +1,5 @@
 require File.expand_path('../teststrap',__FILE__)
-require File.expand_path('../../lib/rabl/template', __FILE__)
+require 'rabl/template'
 
 class Scope
 end
