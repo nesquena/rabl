@@ -1,5 +1,4 @@
 require File.expand_path('../teststrap', __FILE__)
-require File.expand_path('../../lib/rabl', __FILE__)
 
 context 'Rabl::Configuration' do
   context 'defaults' do
@@ -24,7 +23,7 @@ context 'Rabl::Configuration' do
     end
 
     asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /MultiJson.*::Yajl/ }
-  end
+  end # custom json, symbol
 
   context 'custom JSON engine configured as Class' do
     setup do
@@ -34,5 +33,13 @@ context 'Rabl::Configuration' do
     end
 
     asserts('uses a custom JSON engine') { topic.json_engine.to_s == 'ActiveSupport::JSON' }
-  end
+  end # custom JSON, class
+
+  context 'invalid JSON engine configured' do
+    asserts {
+      Rabl.configure do |c|
+        c.json_engine = Kernel
+      end
+    }.raises(RuntimeError)
+  end # invalid
 end
