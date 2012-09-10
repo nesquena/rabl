@@ -160,7 +160,10 @@ gem 'yajl-ruby', :require => "yajl"
 ```
 
 and RABL will automatically start using that engine for encoding your JSON responses!
-To use RABL with JSON engine not supported by `multi_json`, ensure that JSON engine supports `encode` method and set `json_engine` option to the engine's Class name:
+
+To use RABL with JSON engine not supported by `multi_json`, ensure that JSON engine
+supports `encode` method and set `json_engine` option to the engine's Class name:
+
 ```ruby
 config.json_engine = ActiveSupport::JSON
 ```

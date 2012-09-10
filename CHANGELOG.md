@@ -3,6 +3,7 @@
 ## 0.7.2 (unreleased)
 
   * Set instance variables for locals in engine instead of renderer (Thanks @geehsien)
+  * Changes default JSON engine for Rails, move logic to separate class (Thanks @shmeltex)
 
 ## 0.7.1
 
