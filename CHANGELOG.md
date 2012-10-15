@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 0.7.3 (unreleased)
+## 0.7.4 (unreleased)
+
+## 0.7.3
+
+  * Fix issue #342 with nil case for format checking in engine `request_params`
 
 ## 0.7.2
 

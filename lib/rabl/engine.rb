@@ -219,7 +219,7 @@ module Rabl
     # Returns the request parameters if available in the scope
     # request_params => { :foo => "bar" }
     def request_params
-      context_scope.respond_to?(:params) ? context_scope.params : {}
+      (context_scope.params if context_scope.respond_to?(:params)) || {}
     end
 
     # Returns data as json embraced with callback when detected
