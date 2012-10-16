@@ -14,8 +14,6 @@ module Rabl
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
       escape_output @_object.__send__(data)
-      hash = hash.as_json if hash and hash.respond_to?(:as_json) and !hash.is_a?(String) and !hash.is_a?(Fixnum) and !hash.is_a?(ActiveSupport::TimeWithZone) and !hash.is_a?(Array)
-      hash
     end
 
     # data_name(data) => "user"
