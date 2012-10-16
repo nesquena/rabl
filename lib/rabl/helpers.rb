@@ -86,6 +86,7 @@ module Rabl
     # Fetches a key from the cache and stores rabl template result otherwise
     # fetch_from_cache('some_key') { ...rabl template result... }
     def fetch_result_from_cache(cache_key, cache_options=nil, &block)
+      cache_key = cache_key.map{|value| value.class == ActiveRecord::Relation ? value.all : value }
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       Rabl.configuration.cache_engine.fetch(expanded_cache_key, cache_options, &block)
     end
