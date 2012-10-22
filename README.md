@@ -514,6 +514,7 @@ the [RABL Wiki](https://github.com/nesquena/rabl/wiki) for other usages.
 Tutorials can always be helpful when first getting started:
 
  * [Railscasts #322](http://railscasts.com/episodes/322-rabl)
+ * [Creating an API with RABL and Padrino](http://blog.crowdint.com/2012/10/22/rabl-with-padrino.html)
  * http://blog.joshsoftware.com/2011/12/23/designing-rails-api-using-rabl-and-devise/
  * http://engineering.gomiso.com/2011/06/27/building-a-platform-api-on-rails/
  * http://blog.lawrencenorton.com/better-json-requests-with-rabl
