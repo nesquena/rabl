@@ -110,7 +110,7 @@ module Rabl
     def extends(file, options={}, &block)
       options = @options.slice(:child_root).merge(:object => @_object).merge(options)
       result = self.partial(file, options, &block)
-      @_result.merge!(result) if result
+      @_result.merge!(result) if result && result.is_a?(Hash)
     end
 
     # resolve_condition(:if => true) => true
