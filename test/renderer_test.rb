@@ -122,6 +122,44 @@ context "Rabl::Renderer" do
       JSON.parse(renderer.render)
     end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"irvine\"}}")
 
+    asserts 'handles extends with custom node and object set false' do
+      File.open(tmp_path + "test.json.rabl", "w") do |f|
+        f.puts %q{
+          node(:foo) { 'baz' }
+        }
+      end
+
+      File.open(tmp_path + "user.json.rabl", "w") do |f|
+        f.puts %(
+          object false
+          node(:baz) { "bar" }
+          extends 'test'
+        )
+      end
+
+      renderer = Rabl::Renderer.new('user', false, :view_path => tmp_path)
+      JSON.parse(renderer.render)
+    end.equals(JSON.parse(%Q^{"foo":"baz", "baz":"bar" }^))
+
+    asserts 'handles extends with attributes and object set false' do
+      File.open(tmp_path + "test.json.rabl", "w") do |f|
+        f.puts %q{
+          attributes :foo, :bar, :baz
+          node(:test) { |bar| bar.demo if bar }
+        }
+      end
+
+      File.open(tmp_path + "user.json.rabl", "w") do |f|
+        f.puts %(
+          object false
+          extends 'test'
+        )
+      end
+
+      renderer = Rabl::Renderer.new('user', false, :view_path => tmp_path)
+      JSON.parse(renderer.render)
+    end.equals(JSON.parse(%Q^{"test": null}^))
+
     # FIXME template is found and rendered but not included in final results
     # asserts 'handles paths for partial' do
     #   File.open(tmp_path + "test.json.rabl", "w") do |f|
