@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 0.7.4 (unreleased)
+## 0.7.5 (unreleased)
+
+## 0.7.4
+
+  * Fix issue #347 with extends failing for custom object templates
 
 ## 0.7.3
 
