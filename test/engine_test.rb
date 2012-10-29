@@ -5,6 +5,13 @@ require File.expand_path('../models/ormless', __FILE__)
 
 context "Rabl::Engine" do
   helper(:rabl) { |t| RablTemplate.new { t } }
+  # context_scope 'users', [@user]
+  helper(:context_scope) { |name, value|
+    scope = Object.new
+    stub(scope).controller { stub(Object).controller_name { name } }
+    scope.instance_variable_set :"@#{name}", value
+    scope
+  }
 
   context "#initialize" do
     setup do
@@ -318,9 +325,7 @@ context "Rabl::Engine" do
         template = rabl %{
           attribute :name
         }
-        scope = Object.new
-        stub(scope).controller { stub(Object).controller_name { "a/b/c::d/user" } }
-        scope.instance_variable_set :@user, User.new
+        scope = context_scope('user', User.new)
         template.render(scope).split
       end.equals "{\"name\":\"rabl\"}".split
 

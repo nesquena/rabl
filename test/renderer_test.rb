@@ -5,6 +5,13 @@ require File.expand_path('../teststrap', __FILE__)
 
 context "Rabl::Renderer" do
   helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+  # context_scope 'users', [@user]
+  helper(:context_scope) { |name, value|
+    scope = Object.new
+    stub(scope).controller { stub(Object).controller_name { name } }
+    scope.instance_variable_set :"@#{name}", value
+    scope
+  }
 
   context "#render" do
     asserts 'renders empty array' do
@@ -137,7 +144,8 @@ context "Rabl::Renderer" do
         )
       end
 
-      renderer = Rabl::Renderer.new('user', false, :view_path => tmp_path)
+      scope = context_scope('users', [User.new, User.new, User.new])
+      renderer = Rabl::Renderer.new('user', false, :view_path => tmp_path, :scope => scope)
       JSON.parse(renderer.render)
     end.equals(JSON.parse(%Q^{"foo":"baz", "baz":"bar" }^))
 

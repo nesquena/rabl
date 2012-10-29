@@ -26,7 +26,7 @@ module Rabl
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
-      @_data = locals[:object] || self.default_object
+      @_data = locals[:object].nil? ? self.default_object : locals[:object]
       if @_options[:source_location]
         instance_eval(@_source, @_options[:source_location]) if @_source.present?
       else # without source location
