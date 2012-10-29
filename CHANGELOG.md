@@ -2,6 +2,8 @@
 
 ## 0.7.5 (unreleased)
 
+  * Avoid incorrectly setting implicit objects for 'object false' partials
+
 ## 0.7.4
 
   * Fix issue #347 with extends failing for custom object templates
