@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.7.5 (unreleased)
+## 0.7.6 (unreleased)
+
+## 0.7.5
 
   * Avoid incorrectly setting implicit objects for 'object false' partials
 
