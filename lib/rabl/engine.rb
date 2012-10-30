@@ -113,6 +113,7 @@ module Rabl
     # object @user => :person
     # object @users
     def object(data)
+      @_object_root_name = false if data == false && @_locals[:object]
       @_data = data unless @_locals[:object]
     end
 
