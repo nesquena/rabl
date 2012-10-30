@@ -229,6 +229,18 @@ context "Rabl::Renderer" do
       Rabl.render([], 'test', :view_path => tmp_path, :root => false, :scope => scope)
     end.equals "[]"
 
+    asserts 'should not render object root if set to false' do
+      File.open(tmp_path + "no_root.json.rabl", "w") do |f|
+        f.puts %q{
+          object false
+          node(:foo) { 'bar' }
+        }
+      end 
+      scope = Object.new
+      scope.instance_variable_set :@resource, nil
+      Rabl.render(scope, 'no_root', :view_path => tmp_path)
+    end.equals '{"foo":"bar"}'
+
     asserts 'handles view path for when it specified and config is empty' do
       Rabl.configuration.view_paths = []
 
