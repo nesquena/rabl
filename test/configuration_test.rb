@@ -22,7 +22,7 @@ context 'Rabl::Configuration' do
       end
     end
 
-    asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /MultiJson.*::Yajl/ }
+    asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /yajl/i }
   end # custom json, symbol
 
   context 'custom JSON engine configured as Class' do
