@@ -9,6 +9,7 @@ context "Rabl::Renderer" do
   helper(:context_scope) { |name, value|
     scope = Object.new
     stub(scope).controller { stub(Object).controller_name { name } }
+    scope.instance_variable_set :"@#{name.pluralize}", nil
     scope.instance_variable_set :"@#{name}", value
     scope
   }
@@ -257,7 +258,60 @@ context "Rabl::Renderer" do
       renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path)
       JSON.parse(renderer.render)
     end.equals JSON.parse("{\"user\":{\"name\":\"irvine\",\"object\":{\"gender\":\"male\"},\"gender\":\"male\"}}")
-  end
+
+
+    asserts "it renders for object false" do
+      File.open(tmp_path + "test2.rabl", "w") do |f|
+        f.puts %q{
+          object false
+          node(:foo) { 'bar' }
+        }
+      end
+
+      user = User.new(:name => 'ivan')
+      JSON.parse(Rabl.render(user, 'test2', :view_path => tmp_path))
+    end.equals JSON.parse("{\"foo\":\"bar\"}")
+
+    asserts "it renders for object key specified in template" do
+      File.open(tmp_path + "test3.rabl", "w") do |f|
+        f.puts %q{
+          object @user => :person
+          attributes :age, :name
+        }
+      end
+
+      user = User.new(:name => 'ivan')
+      JSON.parse(Rabl.render(user, 'test3', :view_path => tmp_path))
+    end.equals JSON.parse("{\"person\":{\"age\":24,\"name\":\"ivan\"} }")
+
+    asserts "it renders for overwriting object key specified in render" do
+      File.open(tmp_path + "test4.rabl", "w") do |f|
+        f.puts %q{
+          object @user => :person
+          attributes :age, :name
+        }
+      end
+
+      sc = Object.new
+      sc.instance_variable_set :@user, nil
+      user = User.new(:name => 'ivan')
+      JSON.parse(Rabl.render({ user => :human }, 'test4', :view_path => tmp_path, :scope => sc))
+    end.equals JSON.parse("{\"human\":{\"age\":24,\"name\":\"ivan\"} }")
+
+    asserts "it renders for specific object key passed to render" do
+      File.open(tmp_path + "test5.rabl", "w") do |f|
+        f.puts %q{
+          object @user
+          attributes :age, :name
+        }
+      end
+
+      sc = Object.new
+      sc.instance_variable_set :@user, nil
+      user = User.new(:name => 'ivan')
+      JSON.parse(Rabl.render({ user => :person }, 'test5', :view_path => tmp_path, :scope => sc))
+    end.equals JSON.parse("{\"person\":{\"age\":24,\"name\":\"ivan\"} }")
+  end # render
 
   context '.json' do
     asserts 'it renders json' do
@@ -271,7 +325,7 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'ivan')
       JSON.parse(Rabl::Renderer.json(user, 'test', :view_path => tmp_path))
     end.equals JSON.parse("{\"user\":{\"age\":24,\"name\":\"ivan\",\"float\":1234.56}}")
-  end
+  end # json
 
   context '.msgpack' do
     asserts 'it renders msgpack' do

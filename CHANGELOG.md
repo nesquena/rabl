@@ -2,6 +2,8 @@
 
 ## 0.7.6 (unreleased)
 
+  * Fix render behavior by separating data_object and data_name in engine
+
 ## 0.7.5
 
   * Avoid incorrectly setting implicit objects for 'object false' partials

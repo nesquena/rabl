@@ -26,13 +26,14 @@ module Rabl
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
-      @_data = locals[:object].nil? ? self.default_object : locals[:object]
+      data = locals[:object].nil? ? self.default_object : locals[:object]
+      @_data_object, @_data_name = data_object(data), data_name(data)
       if @_options[:source_location]
         instance_eval(@_source, @_options[:source_location]) if @_source.present?
       else # without source location
         instance_eval(@_source) if @_source.present?
       end
-      instance_exec(data_object(@_data), &block) if block_given?
+      instance_exec(@_data_object, &block) if block_given?
       cache_results { self.send("to_" + @_options[:format].to_s) }
     end
 
@@ -40,9 +41,9 @@ module Rabl
     # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
       options = @_options.merge(options)
-      data = data_object(@_data)
+      data = @_data_object
       builder = Rabl::Builder.new(options)
-      options[:root_name] = determine_object_root(@_data, options[:root])
+      options[:root_name] = determine_object_root(@_data_object, @_data_name, options[:root])
 
       if is_object?(data) || !data # object @user
         builder.build(data, options)
@@ -88,7 +89,7 @@ module Rabl
       include_root = Rabl.configuration.include_xml_root
       include_child_root = include_root && Rabl.configuration.include_child_root
       options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
-      xml_options = Rabl.configuration.default_xml_options.merge(:root => data_name(@_data))
+      xml_options = Rabl.configuration.default_xml_options.merge(:root => @_data_name)
       to_hash(options).to_xml(xml_options)
     end
 
@@ -100,8 +101,8 @@ module Rabl
       options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
       result = if collection_root_name
                  { collection_root_name => to_hash(options) }
-               elsif is_collection?(@_data) && @_data.is_a?(Array)
-                 { data_name(@_data) => to_hash(options) }
+               elsif is_collection?(@_data_object) && @_data_object.is_a?(Array)
+                 { @_data_name => to_hash(options) }
                else
                  to_hash(options)
                end
@@ -112,15 +113,17 @@ module Rabl
     # object(@user)
     # object @user => :person
     # object @users
-    def object(data)
-      @_data = data unless @_locals[:object]
+    def object(template_data)
+      current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
+      @_data_object = data_object(current_data)
+      @_data_name   = data_name(template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data)
     end
 
     # Returns the current object that is the topic of this template
     # Can be the collection or the object depending on topic assigned
     # root_object => @user
     def root_object
-      @_data
+      @_data_object
     end
 
     # Sets the object as a collection casted to a simple array
@@ -143,7 +146,7 @@ module Rabl
     # cache 'user', expires_in: 1.hour
     # options is passed through to the cache store
     def cache(key = nil, options = nil)
-      key ||= @_data # if called but missing, use object
+      key ||= @_data_object # if called but missing, use object
       @_cache = [key, options]
     end
 
