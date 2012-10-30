@@ -3,6 +3,7 @@
 ## 0.7.6 (unreleased)
 
   * Fix render behavior by separating data_object and data_name in engine
+  * Fix regression with 'child' behavior with nil on extends (with tests)
 
 ## 0.7.5
 

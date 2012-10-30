@@ -132,31 +132,36 @@ context "Rabl::Renderer" do
 
 
     asserts 'handles extends with child as nil' do
-      File.open(tmp_path + "test.json.rabl", "w") do |f|
+      File.open(tmp_path + "foo.json.rabl", "w") do |f|
         f.puts %q{
-          attributes :age
-          node(:foo) { |f| f.bar }
+          object @foo
+          node(:test) do |foo|
+            {
+              test: "#{foo.attribute}"
+            }
+          end
         }
       end
 
-      File.open(tmp_path + "user.json.rabl", "w") do |f|
+      File.open(tmp_path + "bar.json.rabl", "w") do |f|
         f.puts %q{
-          object @user
-          attributes :age
-          child @foo do
-            node(:bar) { |f| f.demo }
-            extends 'test'
+          object false
+          node do
+            {
+              test_attribute: 'test_value'
+            }
+          end
+          child(@foos => :foo_collection) do
+            extends 'foo'
           end
         }
       end
 
       sc = Object.new
-      sc.instance_variable_set :@user, nil
-      sc.instance_variable_set :@foo, nil
-      user = User.new(:name => 'irvine')
-      renderer = Rabl::Renderer.new('user', user, :view_path => tmp_path, :scope => sc)
+      sc.instance_variable_set :@foos, nil
+      renderer = Rabl::Renderer.new('bar', false, :view_path => tmp_path, :scope => sc)
       JSON.parse(renderer.render)
-    end.equals JSON.parse("{\"user\":{\"age\":24}}")
+    end.equals JSON.parse("{\"test_attribute\":\"test_value\", \"foo_collection\":null}")
 
     asserts 'handles extends with custom node and object set false' do
       File.open(tmp_path + "test.json.rabl", "w") do |f|
