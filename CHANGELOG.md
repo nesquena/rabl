@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.7.6 (unreleased)
+## 0.7.7 (unreleased)
+
+## 0.7.6
 
   * Fix render behavior by separating data_object and data_name in engine
   * Fix regression with 'child' behavior with nil on extends (with tests)
