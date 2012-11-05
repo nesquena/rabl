@@ -72,7 +72,7 @@ example, assuming you have a `Post` model filled with blog posts, you can render
 get "/posts", :provides => [:json, :xml] do
   @user = current_user
   @posts = Post.order("id DESC")
-  render "posts/index"
+  render(:rabl, "posts/index".to_sym)
 end
 ```
 
