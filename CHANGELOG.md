@@ -2,6 +2,8 @@
 
 ## 0.7.7 (unreleased)
 
+  * Fix #344 to avoid: "warning: default `to_a' will be obsolete"
+
 ## 0.7.6
 
   * Fix render behavior by separating data_object and data_name in engine
