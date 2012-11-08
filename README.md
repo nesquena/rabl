@@ -580,6 +580,7 @@ Check out the patches for [msgpack support](https://github.com/nesquena/rabl/pul
 [BSON support](https://github.com/nesquena/rabl/pull/163) for reference.
 
 Please fork and contribute, any help in making this project better is appreciated!
+This project is a member of the [OSS Manifesto](http://ossmanifesto.com).
 
 ## Inspirations ##
 
