@@ -2,6 +2,8 @@ require 'active_support/inflector' # for the sake of pluralizing
 
 module Rabl
   module Helpers
+    # Set of class names known to be objects, not collections
+    KNOWN_OBJECT_CLASSES = ['Struct']
 
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
@@ -55,12 +57,16 @@ module Rabl
     # is_object?([]) => false
     # is_object?({}) => false
     def is_object?(obj)
-      obj && (!data_object(obj).respond_to?(:map) || !data_object(obj).respond_to?(:each))
+      obj && (!data_object(obj).respond_to?(:map) || !data_object(obj).respond_to?(:each) ||
+       (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).any?)
     end
 
     # Returns true if the obj is a collection of items
+    # is_collection?(@user) => false
+    # is_collection?([]) => true
     def is_collection?(obj)
-      obj && data_object(obj).respond_to?(:map) && data_object(obj).respond_to?(:each)
+      obj && data_object(obj).respond_to?(:map) && data_object(obj).respond_to?(:each) &&
+        (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).empty?
     end
 
     # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc

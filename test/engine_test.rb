@@ -427,7 +427,20 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         template.render(scope)
       end.equals "{\"city\":\"irvine\"}"
-    end
+
+      asserts "that it handle structs correctly as child elements" do
+        template = rabl %{
+          object @user
+          child(:city) do
+            attributes :name
+          end
+        }
+        City = Struct.new(:name)
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:city => City.new('San Francisco'))
+        template.render(scope)
+      end.equals "{\"city\":{\"name\":\"San Francisco\"}}"
+    end # attribute
 
     context "#code" do
       asserts "that it can create an arbitraty code node" do
