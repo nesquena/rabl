@@ -440,6 +440,48 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:city => City.new('San Francisco'))
         template.render(scope)
       end.equals "{\"city\":{\"name\":\"San Francisco\"}}"
+
+      asserts "that it can be passed an if cond for single real attr" do
+        template = rabl %{
+          object @user
+          attribute :name
+          attributes :age, :first, :if => lambda { |i| i.name != 'irvine' }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine')
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"irvine\"}")
+
+      asserts "that it can be passed an if cond for aliased attrs" do
+        template = rabl %{
+          object @user
+          attributes :name => :title, :age => :year, :if => lambda { |i| i.name == 'irvine' }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine')
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"title\":\"irvine\",\"year\":24}")
+
+      asserts "that it can be passed an unless cond to hide attrs" do
+        template = rabl %{
+          object @user
+          attribute :name
+          attributes :age, :unless => lambda { |i| i.name == 'irvine' }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine')
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"irvine\"}")
+
+      asserts "that it can be passed an unless cond for aliased attrs" do
+        template = rabl %{
+          object @user
+          attributes :name => :title, :age => :year, :unless => lambda { |i| i.name == 'irvine' }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine')
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{}")
     end # attribute
 
     context "#code" do

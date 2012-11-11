@@ -152,13 +152,15 @@ module Rabl
 
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
-    # attribute :foo => :bar
+    # attribute :foo => :bar, :bar => :baz
+    # attribute :foo => :bar, :bar => :baz, :if => lambda { |r| r.foo }
     def attribute(*args)
       if args.first.is_a?(Hash) # :foo => :bar, :bar => :baz
-        args.first.each_pair { |k,v| self.attribute(k, :as => v) }
+        attr_aliases, conds = args.first.except(:if, :unless), args.first.slice(:if, :unless)
+        attr_aliases.each_pair { |k,v| self.attribute(k, conds.merge(:as => v)) }
       else # array of attributes i.e :foo, :bar, :baz
         options = args.extract_options!
-        args.each { |name| @_options[:attributes][name] = options[:as] || name }
+        args.each { |name| @_options[:attributes][name] = options }
       end
     end
     alias_method :attributes, :attribute

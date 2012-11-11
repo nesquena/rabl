@@ -34,8 +34,8 @@ module Rabl
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
       # Attributes
-      @options[:attributes].each_pair do |attribute, name|
-        attribute(attribute, :as => name)
+      @options[:attributes].each_pair do |attribute, options|
+        attribute(attribute, options)
       end if @options.has_key?(:attributes)
       # Node
       @options[:node].each do |settings|
@@ -63,13 +63,15 @@ module Rabl
 
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
+    # attribute :foo, :as => "bar", :if => lambda { |m| m.foo }
     def attribute(name, options={})
-      @_result[options[:as] || name] = data_object_attribute(name) if @_object && @_object.respond_to?(name)
+      if @_object && @_object.respond_to?(name) && resolve_condition(options)
+        @_result[options[:as] || name] = data_object_attribute(name)
+      end
     end
     alias_method :attributes, :attribute
 
     # Creates an arbitrary node that is included in the json output
-    # node(:foo) { "bar" }
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
     def node(name, options={}, &block)

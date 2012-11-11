@@ -4,6 +4,7 @@
 
   * Fix #344 to avoid: "warning: default `to_a' will be obsolete"
   * Fix #356 by adding 'known object classes' like struct to be recognized as objects.
+  * Fix #354 by adding 'if' and 'unless' to `attribute` (Thanks @andrewhubbs)
 
 ## 0.7.6
 
