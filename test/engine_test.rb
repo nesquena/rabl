@@ -169,6 +169,7 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@others, [Ormless.new, Ormless.new]
         template.render(scope)
       end.equals "[{\"ormless\":{}},{\"ormless\":{}}]"
+
     end
 
     context "#attribute" do
@@ -280,6 +281,19 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo')
         template.render(scope)
       end.equals "{\"user\":{\"person\":{\"name\":\"leo\"}}}"
+
+      asserts "that it handle structs correctly as child elements" do
+        template = rabl %{
+          object @user
+          child(:city) do
+            attributes :name
+          end
+        }
+        City = Struct.new(:name)
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:city => City.new('Samuel Struct'))
+        template.render(scope)
+      end.equals "{\"user\":{\"city\":{\"name\":\"Samuel Struct\""
     end
 
     context "#glue" do
