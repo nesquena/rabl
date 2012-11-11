@@ -64,7 +64,10 @@ module Rabl
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
     def attribute(name, options={})
-      @_result[options[:as] || name] = data_object_attribute(name) if @_object && @_object.respond_to?(name)
+      if @_object && @_object.respond_to?(name)
+        options = options[:as] if options[:as].is_a?(Hash)
+        @_result[options[:as] || name] = data_object_attribute(name) if resolve_condition(options)
+      end
     end
     alias_method :attributes, :attribute
 

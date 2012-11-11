@@ -253,6 +253,13 @@ attributes :bar => :baz, :dog => :animal
 # => # { baz : <bar value>, animal : <dog value> }
 ```
 
+or add attributes that exist only if a condition is true:
+
+```ruby
+# m is the object being rendered, also supports :unless
+attributes :foo, :bar, :if => lambda { |m| m.condition? }
+```
+
 Named and aliased attributes can not be combined on the same line. This currently does not work:
 
 ```ruby
