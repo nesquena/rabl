@@ -503,7 +503,8 @@ Rails and Padrino. I recommend a before_filter on that controller or directly sp
 ## Resources ##
 
 There are many resources available relating to RABL including the [RABL Wiki](https://github.com/nesquena/rabl/wiki),
-and many tutorials and guides detailed below.
+and many tutorials and guides detailed below. 
+You can check out the [RABL Site](http://nesquena.github.com/rabl) as well.
 
 ### Advanced Usage ###
 
