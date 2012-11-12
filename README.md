@@ -542,6 +542,8 @@ Let me know if there's any other useful resources not listed here.
 There are other libraries that can either complement or extend the functionality of RABL:
 
  * [gon](https://github.com/gazay/gon) - Exposes your Rails variables in JS with RABL support integrated.
+ * [rabl-rails](https://github.com/ccocchi/rabl-rails) - Reimplementation for RABL and Rails 
+   [focused on speed](https://github.com/ccocchi/rabl-benchmark/blob/master/BENCHMARK).
 
 Let me know if there's any other related libraries not listed here.
 
