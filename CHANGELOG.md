@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.7.7 (unreleased)
+## 0.7.8 (unreleased)
+
+## 0.7.7
 
   * Fix #344 to avoid: "warning: default `to_a' will be obsolete"
   * Fix #356 by adding 'known object classes' like struct to be recognized as objects.
