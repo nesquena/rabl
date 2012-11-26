@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## 0.7.8 (unreleased)
+## 0.7.9 (unreleased)
+
+## 0.7.8
+
+  * Additional fix for attribute conditional support
 
 ## 0.7.7
 
