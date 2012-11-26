@@ -159,8 +159,8 @@ module Rabl
         attr_aliases, conds = args.first.except(:if, :unless), args.first.slice(:if, :unless)
         attr_aliases.each_pair { |k,v| self.attribute(k, conds.merge(:as => v)) }
       else # array of attributes i.e :foo, :bar, :baz
-        options = args.extract_options!
-        args.each { |name| @_options[:attributes][name] = options }
+        attr_options = args.extract_options!
+        args.each { |name| @_options[:attributes][name] = attr_options }
       end
     end
     alias_method :attributes, :attribute
