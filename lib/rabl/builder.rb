@@ -34,8 +34,8 @@ module Rabl
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
       # Attributes
-      @options[:attributes].each_pair do |attribute, options|
-        attribute(attribute, options)
+      @options[:attributes].each_pair do |attribute, settings|
+        attribute(attribute, settings)
       end if @options.has_key?(:attributes)
       # Node
       @options[:node].each do |settings|
