@@ -510,12 +510,13 @@ You can check out the [RABL Site](http://nesquena.github.com/rabl) as well.
 
 Links to resources for advanced usage:
 
- * Production Speed Optimizations: https://github.com/nesquena/rabl/wiki/Rabl-In-Production
- * Grape Integration: https://github.com/nesquena/rabl/wiki/Using-Rabl-with-Grape
- * Rendering JSON for a tree structure using RABL: https://github.com/nesquena/rabl/issues/70
- * Layouts (erb, haml and rabl) in RABL: https://github.com/nesquena/rabl/wiki/Using-Layouts
- * Backbone or [Ember.js](http://www.emberjs.com) Integration: https://github.com/nesquena/rabl/wiki/Backbone-Integration
- * RABL with Rails Engines: https://github.com/nesquena/rabl/wiki/Setup-rabl-with-rails-engines
+ * [Managing Complexity](https://github.com/nesquena/rabl/wiki/Managing-complexity-with-presenters)
+ * [Production Optimizations](https://github.com/nesquena/rabl/wiki/Rabl-In-Production)
+ * [Grape Integration](https://github.com/nesquena/rabl/wiki/Using-Rabl-with-Grape)
+ * [Rendering JSON for a tree structure using RABL](https://github.com/nesquena/rabl/issues/70)
+ * [Layouts (erb, haml and rabl) in RABL](https://github.com/nesquena/rabl/wiki/Using-Layouts)
+ * [Backbone or Ember.js Integration](https://github.com/nesquena/rabl/wiki/Backbone-Integration)
+ * [RABL with Rails Engines](https://github.com/nesquena/rabl/wiki/Setup-rabl-with-rails-engines)
 
 Please add your own usages and let me know so we can add them here! Also be sure to check out
 the [RABL Wiki](https://github.com/nesquena/rabl/wiki) for other usages.
@@ -549,8 +550,8 @@ Let me know if there's any other related libraries not listed here.
 
 ### Troubleshooting ###
 
- * Redundant calls for a collection: https://github.com/nesquena/rabl/issues/142#issuecomment-2969107
- * Testing RABL Views: https://github.com/nesquena/rabl/issues/130#issuecomment-4179285
+ * [Redundant calls for a collection](https://github.com/nesquena/rabl/issues/142#issuecomment-2969107)
+ * [Testing RABL Views](https://github.com/nesquena/rabl/issues/130#issuecomment-4179285)
 
 ### Examples ###
 
