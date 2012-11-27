@@ -30,10 +30,41 @@ module Rabl
       if is_collection?(data) && data.respond_to?(:first) # data collection
         data_name(data.first).to_s.pluralize if data.first.present?
       elsif is_object?(data) # actual data object
-        object_name = object_root_name if object_root_name
-        object_name ||= collection_root_name.to_s.singularize if collection_root_name
-        object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
-        object_name
+        name_for_data_object(data)
+      end
+    end
+
+    def name_for_data_object(data)
+      object_name   = object_root_name if object_root_name
+      object_name ||= collection_root_name.to_s.singularize if collection_root_name
+      object_name ||= element_name_for_data_object_class(data.class)
+      object_name
+    end
+
+    def element_name_for_data_object_class(klass)
+      if klass.respond_to?(:model_name)
+        element_name_for_model_class(klass)
+      else
+        klass.to_s.downcase
+      end
+    end
+
+    # element_name_for_model_class
+    #
+    # fixes ActiveRecord 2.3.2 compatibility
+    # in 2.3.2, the  ActiveSupport::ModelName
+    # returned by data.class.model_name
+    # doesn't have the "element" attr_reader,
+    # so copy the way it's done in 2.3.8
+    # if it doesn't respond to the element
+    # reader
+    def element_name_for_model_class(klass)
+      model_name = klass.model_name
+
+      if model_name.respond_to?(:element)
+        model_name.element
+      else
+         ActiveSupport::Inflector.underscore(ActiveSupport::Inflector.demodulize(model_name)).freeze
       end
     end
 
