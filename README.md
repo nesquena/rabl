@@ -37,8 +37,8 @@ or add to your Gemfile:
 ```ruby
 # Gemfile
 gem 'rabl'
-# Also add either `json` or `yajl-ruby` as the JSON parser
-gem 'yajl-ruby'
+# Also add either `oj` or `yajl-ruby` as the JSON parser
+gem 'oj'
 ```
 
 and run `bundle install` to install the dependency.
@@ -152,12 +152,12 @@ If `view_paths` is set to a path, this view path will be checked for every rabl 
 Add to this path especially when including Rabl in an engine and using view paths within a another Rails app.
 
 Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
-defaults so that in most cases you **don't need to configure this** directly. For example, if you wish to use yajl as
+defaults so that in most cases you **don't need to configure this** directly. For example, if you wish to use [oj](https://github.com/ohler55/oj) as
 the primary JSON encoding engine simply add that to your Gemfile:
 
 ```ruby
 # Gemfile
-gem 'yajl-ruby', :require => "yajl"
+gem 'oj'
 ```
 
 and RABL will automatically start using that engine for encoding your JSON responses!
@@ -503,7 +503,7 @@ Rails and Padrino. I recommend a before_filter on that controller or directly sp
 ## Resources ##
 
 There are many resources available relating to RABL including the [RABL Wiki](https://github.com/nesquena/rabl/wiki),
-and many tutorials and guides detailed below. 
+and many tutorials and guides detailed below.
 You can check out the [RABL Site](http://nesquena.github.com/rabl) as well.
 
 ### Advanced Usage ###
@@ -542,7 +542,7 @@ Let me know if there's any other useful resources not listed here.
 There are other libraries that can either complement or extend the functionality of RABL:
 
  * [gon](https://github.com/gazay/gon) - Exposes your Rails variables in JS with RABL support integrated.
- * [rabl-rails](https://github.com/ccocchi/rabl-rails) - Reimplementation for RABL and Rails 
+ * [rabl-rails](https://github.com/ccocchi/rabl-rails) - Reimplementation for RABL and Rails
    [focused on speed](https://github.com/ccocchi/rabl-benchmark/blob/master/BENCHMARK).
 
 Let me know if there's any other related libraries not listed here.

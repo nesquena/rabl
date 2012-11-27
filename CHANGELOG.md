@@ -2,6 +2,8 @@
 
 ## 0.7.9 (unreleased)
 
+ * Replace yajl with oj in docs and tests
+
 ## 0.7.8
 
   * Additional fix for attribute conditional support

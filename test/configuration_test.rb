@@ -18,11 +18,11 @@ context 'Rabl::Configuration' do
   context 'custom JSON engine configured as Symbol' do
     setup do
       Rabl.configure do |c|
-        c.json_engine = :yajl
+        c.json_engine = :oj
       end
     end
 
-    asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /yajl/i }
+    asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /oj/i }
   end # custom json, symbol
 
   context 'custom JSON engine configured as Class' do
