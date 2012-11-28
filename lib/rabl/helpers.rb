@@ -10,7 +10,7 @@ module Rabl
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
       data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && @_object ? @_object.__send__(data) : data
+      data.is_a?(Symbol) && defined?(@_object) && @_object ? @_object.__send__(data) : data
     end
 
     # data_object_attribute(data) => @_object.send(data)
@@ -26,14 +26,24 @@ module Rabl
     def data_name(data)
       return nil unless data # nil or false
       return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.__send__(data) if data.is_a?(Symbol) && @_object # :address
-      if is_collection?(data) && data.respond_to?(:first) # data collection
-        data_name(data.first).to_s.pluralize if data.first.present?
-      elsif is_object?(data) # actual data object
-        object_name = object_root_name if object_root_name
-        object_name ||= collection_root_name.to_s.singularize if collection_root_name
-        object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
-        object_name
+
+      child_data = data.is_a?(Symbol) && defined?(@_object) && @_object ? @_object.__send__(data) : data
+
+      if is_collection?(child_data) && child_data.respond_to?(:first) # data collection
+        # Return the data_name of the first object in the array
+        # If the object does not exist, then "guess" and use the supplied symbol
+        data_name(child_data.first).to_s.pluralize.presence || data
+      elsif is_object?(child_data) # actual child_data object
+        # If this object is a symbol, then "guess" and use the supplied symbol as the object_name
+        if child_data.is_a?(Symbol)
+          object_name = child_data
+        else
+          object_name = object_root_name if object_root_name
+          object_name ||= collection_root_name.to_s.singularize if collection_root_name
+          object_name ||= child_data.class.respond_to?(:model_name) ? child_data.class.model_name.element : child_data.class.to_s.downcase
+        end
+
+        return object_name
       end
     end
 
