@@ -3,6 +3,7 @@
 ## 0.7.9 (unreleased)
 
  * Replace yajl with oj in docs and tests
+ * Fix handling of empty children arrays with tests (Thanks @sethvargo)
 
 ## 0.7.8
 

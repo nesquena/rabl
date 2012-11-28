@@ -10,7 +10,7 @@ module Rabl
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
       data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && @_object ? @_object.__send__(data) : data
+      data.is_a?(Symbol) && defined?(@_object) && @_object ? @_object.__send__(data) : data
     end
 
     # data_object_attribute(data) => @_object.send(data)
@@ -23,14 +23,17 @@ module Rabl
     # data_name(@users) => :user
     # data_name([@user]) => "users"
     # data_name([]) => "array"
-    def data_name(data)
-      return nil unless data # nil or false
-      return data.values.first if data.is_a?(Hash) # @user => :user
-      data = @_object.__send__(data) if data.is_a?(Symbol) && @_object # :address
-      if is_collection?(data) && data.respond_to?(:first) # data collection
-        data_name(data.first).to_s.pluralize if data.first.present?
-      elsif is_object?(data) # actual data object
+    def data_name(data_token)
+      return unless data_token # nil or false
+      return data_token.values.first if data_token.is_a?(Hash) # @user => :user
+      data = data_object(data_token)
+      if is_collection?(data) && data.respond_to?(:first) # data is a collection
+        object_name = data_name(data.first).to_s.pluralize if data.first.present?
+        object_name ||= data_token if data_token.is_a?(Symbol)
+        object_name
+      elsif is_object?(data) # data is an object
         object_name = object_root_name if object_root_name
+        object_name ||= data if data.is_a?(Symbol)
         object_name ||= collection_root_name.to_s.singularize if collection_root_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
         object_name
@@ -42,12 +45,12 @@ module Rabl
     # determine_object_root(@user, :user, true) => "user"
     # determine_object_root(@user, :person) => "person"
     # determine_object_root([@user, @user]) => "user"
-    def determine_object_root(data_object, data_name=nil, include_root=true)
+    def determine_object_root(data_token, data_name=nil, include_root=true)
       return if object_root_name == false
       root_name = data_name.to_s if include_root
-      if is_object?(data_object)
+      if is_object?(data_token)
         root_name
-      elsif is_collection?(data_object)
+      elsif is_collection?(data_token)
         object_root_name || (root_name.singularize if root_name)
       end
     end

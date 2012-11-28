@@ -17,6 +17,10 @@ context "Rabl::Helpers" do
       @helper_class.data_name(nil)
     end.equals(nil)
 
+    asserts "returns symbol if symbol with empty children" do
+      @helper_class.data_name(:user)
+    end.equals(:user)
+
     asserts "returns alias if hash with symbol is passed" do
       @helper_class.data_name(@user => :user)
     end.equals(:user)

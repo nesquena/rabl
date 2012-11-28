@@ -501,7 +501,7 @@ context "Rabl::Engine" do
     end
 
     context "#child" do
-      asserts "that it can create a child node" do
+      asserts "that it can create a singular child node" do
         template = rabl %{
           object @user
           attribute :name
@@ -512,7 +512,7 @@ context "Rabl::Engine" do
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}")
 
-      asserts "that it can create a child node with different key" do
+      asserts "that it can create a singular child node with different key" do
         template = rabl %{
           object @user
           attribute :name
@@ -522,6 +522,39 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"name\":\"leo\",\"person\":{\"city\":\"LA\"}}")
+
+      asserts "that it can create a many child node" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:hobbies) { attribute :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse(%q^{"name":"leo", "hobbies":[{"hobby":{"name":"Photography"}}]}^)
+
+      asserts "that it can create a many child node with different key" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:hobbies => :interests) { attribute :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse(%q^{"name":"leo", "interests":[{"interest":{"name":"Photography"}}]}^)
+
+      asserts "that it can create a many child node with no data" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(:hobbies) { attribute :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :hobbies => [])
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse(%q^{"name":"leo", "hobbies":[]}^)
 
       asserts "that it can be passed conditionals" do
         template = rabl %{
