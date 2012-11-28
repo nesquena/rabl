@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.7.9 (unreleased)
+## 0.7.10 (unreleased)
+
+## 0.7.9
 
  * Replace yajl with oj in docs and tests
  * Fix handling of empty children arrays with tests (Thanks @sethvargo)
