@@ -18,6 +18,9 @@ I wanted a simple and flexible system for generating my APIs. In particular, I w
 Anyone who has tried the 'to_json' method used in ActiveRecord for generating a JSON response has felt the pain of this restrictive approach.
 RABL is a general templating system created to solve these problems in an entirely new way.
 
+For a breakdown of common misconceptions about RABL, please check out our guide to 
+[understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project.
+
 ## Breaking Changes ##
 
  * v0.6.14 (released June 28, 2012) requires the use of render_views
