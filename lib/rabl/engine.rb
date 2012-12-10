@@ -152,16 +152,19 @@ module Rabl
 
     # Indicates an attribute or method should be included in the json output
     # attribute :foo, :as => "bar"
+    # attribute :foo, :bar => :baz
     # attribute :foo => :bar, :bar => :baz
     # attribute :foo => :bar, :bar => :baz, :if => lambda { |r| r.foo }
     def attribute(*args)
-      if args.first.is_a?(Hash) # :foo => :bar, :bar => :baz
-        attr_aliases, conds = args.first.except(:if, :unless), args.first.slice(:if, :unless)
-        attr_aliases.each_pair { |k,v| self.attribute(k, conds.merge(:as => v)) }
-      else # array of attributes i.e :foo, :bar, :baz
-        attr_options = args.extract_options!
-        args.each { |name| @_options[:attributes][name] = attr_options }
+      options = args.extract_options!
+      attr_aliases = options.slice!(:if, :unless, :as)
+      if options.has_key?(:as)
+        raise ArgumentError, "parameter :as can't be passed along with a hash" if attr_aliases.present?
+        raise ArgumentError, "parameter :as can't be passed along with multiple arguments" if args.size > 1
       end
+
+      args.each { |name| @_options[:attributes][name] = options }
+      attr_aliases.each_pair{ |k, v| self.attribute(k, options.merge(:as => v)) }
     end
     alias_method :attributes, :attribute
 

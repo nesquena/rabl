@@ -201,6 +201,56 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"user\":{\"city\":\"irvine\"}}")
+
+      asserts "that it can add an attribute through symbol or hash" do
+        template = rabl %{
+          object @user
+          attribute :age, :name => :city
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine', :age => "18")
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"user\":{\"city\":\"irvine\", \"age\":\"18\"}}")
+
+      asserts "that a conditional (true) can be passed" do
+        template = rabl %{
+          object @user
+          attribute :age, :name => :city, :if => lambda { |u| true }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine', :age => "18")
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"user\":{\"city\":\"irvine\", \"age\":\"18\"}}")
+
+      asserts "that a conditional (false) can be passed" do
+        template = rabl %{
+          object @user
+          attribute :age, :name => :city, :if => lambda { |u| false }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'irvine', :age => "18")
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"user\":{}}")
+
+      asserts "that it raise an ArgumentError when :as is passed along with a hash" do
+        template = rabl %{
+          object @user
+          attribute :age, :name => :city, :as => "foo"
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        JSON.parse(template.render(scope))
+      end.raises(ArgumentError)
+
+      asserts "that it raise an ArgumentError when :as is passed along with multiple attributes" do
+        template = rabl %{
+          object @user
+          attribute :age, :name, :as => "foo"
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        JSON.parse(template.render(scope))
+      end.raises(ArgumentError)
     end
 
     context "#code" do
