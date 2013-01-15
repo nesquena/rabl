@@ -133,7 +133,7 @@ module Rabl
       if @_object.respond_to?(name)
         return true
       elsif Rabl.configuration.raise_on_missing_attribute
-        raise
+        raise "Failed to render missing attribute #{name}"
       else
         return false
       end
