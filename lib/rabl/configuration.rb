@@ -37,6 +37,7 @@ module Rabl
     attr_accessor :escape_all_output
     attr_accessor :view_paths
     attr_accessor :cache_engine
+    attr_accessor :raise_on_missing_attribute
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 

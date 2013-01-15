@@ -42,4 +42,14 @@ context 'Rabl::Configuration' do
       end
     }.raises(RuntimeError)
   end # invalid
+
+  context 'raise on missing attributes' do
+    setup do
+      Rabl.configure do |c|
+        c.raise_on_missing_attribute = true
+      end
+    end
+
+    asserts(:raise_on_missing_attribute).equals true
+  end # raise on missing
 end
