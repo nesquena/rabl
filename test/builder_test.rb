@@ -49,9 +49,23 @@ context "Rabl::Builder" do
       build_hash @user, :attributes => { :name => {}, :city => { :as => :city } }
     end.equivalent_to({:name => 'rabl', :city => 'irvine'})
 
-    asserts "that with a non-existent attribute the node" do
-      build_hash @user, :attributes => { :fake => :fake }
-    end.equals({})
+    context "that with a non-existent attribute" do
+      context "when non-existent attributes are allowed by the configuration" do
+        setup { stub(Rabl.configuration).raise_on_missing_attribute { false } }
+
+        asserts "the node" do
+          build_hash @user, :attributes => { :fake => :fake }
+        end.equals({})
+      end
+
+      context "when non-existent attributes are forbidden by the configuration" do
+        setup { stub(Rabl.configuration).raise_on_missing_attribute { true } }
+
+        asserts "the node" do
+          build_hash @user, :attributes => { :fake => :fake }
+        end.raises(RuntimeError)
+      end
+    end
   end
 
   context "#node" do

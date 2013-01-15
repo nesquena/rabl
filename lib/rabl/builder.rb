@@ -65,7 +65,7 @@ module Rabl
     # attribute :foo, :as => "bar"
     # attribute :foo, :as => "bar", :if => lambda { |m| m.foo }
     def attribute(name, options={})
-      if @_object && @_object.respond_to?(name) && resolve_condition(options)
+      if @_object && attribute_present?(name) && resolve_condition(options)
         @_result[options[:as] || name] = data_object_attribute(name)
       end
     end
@@ -126,6 +126,18 @@ module Rabl
     end
 
     private
+
+    # Checks if an attribute is present. If not, check if the configuration specifies that this is an error
+    # attribute_present?(created_at) => true
+    def attribute_present?(name)
+      if @_object.respond_to?(name)
+        return true
+      elsif Rabl.configuration.raise_on_missing_attribute
+        raise "Failed to render missing attribute #{name}"
+      else
+        return false
+      end
+    end
 
     # Returns a guess at the format in this scope
     # request_format => "xml"

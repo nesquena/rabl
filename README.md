@@ -129,6 +129,7 @@ Rabl.configure do |config|
   # config.enable_json_callbacks = false
   # config.xml_options = { :dasherize  => true, :skip_types => false }
   # config.view_paths = []
+  # config.raise_on_missing_attribute = true # Defaults to false
 end
 ```
 
@@ -153,6 +154,8 @@ Custom nodes will not be escaped, use `ERB::Util.h(value)`.
 
 If `view_paths` is set to a path, this view path will be checked for every rabl template within your application.
 Add to this path especially when including Rabl in an engine and using view paths within a another Rails app.
+
+If `raise_on_missing_attribute` is set tot `true`, a RuntimeError will be raised whenever Rabl attempts to render an attribute that does not exist. Otherwise, the attribute will simply be omitted. Setting this to true during development may help increase the robustness of your code, but using `true` in production code is not recommended.
 
 Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
 defaults so that in most cases you **don't need to configure this** directly. For example, if you wish to use [oj](https://github.com/ohler55/oj) as
