@@ -2,6 +2,9 @@
 
 ## 0.7.10 (unreleased)
 
+ * Add early support for Rails 4 (Thanks @jopotts)
+ * Add configuration option for raising on missing attributes (Thanks @ReneB)
+
 ## 0.7.9
 
  * Replace yajl with oj in docs and tests
