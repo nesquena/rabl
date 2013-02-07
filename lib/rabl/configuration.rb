@@ -38,6 +38,7 @@ module Rabl
     attr_accessor :view_paths
     attr_accessor :cache_engine
     attr_accessor :raise_on_missing_attribute
+    attr_accessor :perform_caching
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -61,6 +62,7 @@ module Rabl
       @escape_all_output     = false
       @view_paths            = []
       @cache_engine          = Rabl::CacheEngine.new
+      @perform_caching       = false
     end
 
     # @param [Symbol, Class] engine_name The name of a JSON engine,
