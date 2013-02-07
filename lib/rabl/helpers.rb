@@ -101,7 +101,11 @@ module Rabl
 
     # Returns true if the cache has been enabled for the application
     def template_cache_configured?
-      defined?(Rails) && defined?(ActionController::Base) && ActionController::Base.perform_caching
+      if defined?(Rails)
+        defined?(ActionController::Base) && ActionController::Base.perform_caching
+      else
+        Rabl.configuration.perform_caching
+      end
     end
 
     # Escape output if configured and supported
