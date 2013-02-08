@@ -18,7 +18,7 @@ I wanted a simple and flexible system for generating my APIs. In particular, I w
 Anyone who has tried the 'to_json' method used in ActiveRecord for generating a JSON response has felt the pain of this restrictive approach.
 RABL is a general templating system created to solve these problems in an entirely new way.
 
-For a breakdown of common misconceptions about RABL, please check out our guide to 
+For a breakdown of common misconceptions about RABL, please check out our guide to
 [understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project.
 
 ## Breaking Changes ##
@@ -115,6 +115,7 @@ Rabl.configure do |config|
   # config.cache_all_output = false
   # config.cache_sources = Rails.env != 'development' # Defaults to false
   # config.cache_engine = Rabl::CacheEngine.new # Defaults to Rails cache
+  # config.perform_caching = false
   # config.escape_all_output = false
   # config.json_engine = nil # Any multi_json engines or a Class with #encode method
   # config.msgpack_engine = nil # Defaults to ::MessagePack
@@ -142,6 +143,10 @@ a root node by default. This allows you to further fine-tune your desired respon
 
 If `cache_engine` is set, you should assign it to a class with a `fetch` method. See the [default engine](https://github.com/nesquena/rabl/blob/master/lib/rabl/cache_engine.rb) for an example.
 
+If `perform_caching` is set to `true` then it will perform caching. You
+can ignore this option if you are using Rails, it's same to Rails
+`config.action_controller.perform_caching`
+
 If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
 The cache can be reset manually by running `Rabl.reset_source_cache!` within your application.
 
@@ -155,9 +160,9 @@ Custom nodes will not be escaped, use `ERB::Util.h(value)`.
 If `view_paths` is set to a path, this view path will be checked for every rabl template within your application.
 Add to this path especially when including Rabl in an engine and using view paths within a another Rails app.
 
-If `raise_on_missing_attribute` is set to `true`, a RuntimeError will be raised whenever Rabl 
-attempts to render an attribute that does not exist. Otherwise, the attribute will simply be omitted. 
-Setting this to true during development may help increase the robustness of your code, but using `true` in 
+If `raise_on_missing_attribute` is set to `true`, a RuntimeError will be raised whenever Rabl
+attempts to render an attribute that does not exist. Otherwise, the attribute will simply be omitted.
+Setting this to true during development may help increase the robustness of your code, but using `true` in
 production code is not recommended.
 
 Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
