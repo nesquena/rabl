@@ -88,4 +88,48 @@ context "Rabl::Partials" do
       Rabl.configuration.view_paths = []
     end
   end
+
+  context "fetch source with Rails" do
+    context "and :view_path" do
+      helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+
+      setup do
+        ::Rails = stub(Class.new)
+        ::ActionPack = Module.new
+        ::ActionPack::VERSION = Module.new
+        ::ActionPack::VERSION::MAJOR = 3
+        ::ActionPack::VERSION::MINOR = 2
+        @it = TestPartial.new
+
+        def @it.context_scope; @context_scope ||= Object.new; end
+        def @it.request_format; :json; end
+        context_scope = @it.context_scope
+
+        def context_scope.view_paths; []; end
+        def context_scope.lookup_context; @lookup_context ||= Object.new; end
+        lookup_context = context_scope.lookup_context
+
+        def lookup_context.rendered_format; :json; end
+        def lookup_context.find(*args)
+          raise RuntimeError, 'Something happen with Rails lookup'
+        end
+
+        File.open(tmp_path + "test.json.rabl", "w") { |f| f.puts "content" }
+
+        @it
+      end
+
+      asserts('rails lookups dont break manual') do
+        @it.fetch_source('test', :view_path => tmp_path.to_s)
+      end.equals do
+        ["content\n", (tmp_path + "test.json.rabl").to_s ]
+      end
+
+      teardown do
+        Object.send(:remove_const, :Rails)
+        Object.send(:remove_const, :ActionPack)
+        Rabl.configuration.view_paths = []
+      end
+    end
+  end
 end
