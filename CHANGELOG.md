@@ -1,9 +1,13 @@
 # CHANGELOG
 
-## 0.7.10 (unreleased)
+## 0.7.11
+
+## 0.7.10
 
  * Add early support for Rails 4 (Thanks @jopotts)
  * Add configuration option for raising on missing attributes (Thanks @ReneB)
+ * Allow caching outside the Rails environment (Thanks @flyerhzm)
+ * Fix template lookup on Rails (Thanks @vimutter)
 
 ## 0.7.9
 
