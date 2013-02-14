@@ -42,3 +42,11 @@ class SinatraTest < Sinatra::Application
     render :rabl, :"users/show.json", :format => "json"
   end
 end
+
+# Patch times to return as iso8601
+class Time
+  alias_method :old_to_s, :to_s
+  def to_s(format=nil)
+    format ? old_to_s(format) : iso8601
+  end
+end

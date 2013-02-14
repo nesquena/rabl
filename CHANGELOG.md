@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## 0.7.11
+## 0.8.0
+
+ * Remove multi_json dependency, simpler JSON handling
 
 ## 0.7.10
 

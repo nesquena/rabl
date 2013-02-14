@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency 'activesupport',        '>= 2.3.14'
-  s.add_dependency 'multi_json',           '~> 1.0'
 
   s.add_development_dependency 'riot',     '~> 0.12.3'
   s.add_development_dependency 'rr',       '~> 1.0.2'

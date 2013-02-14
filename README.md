@@ -23,6 +23,10 @@ For a breakdown of common misconceptions about RABL, please check out our guide 
 
 ## Breaking Changes ##
 
+ * v0.8.0 (released Feb 14, 2012) removes multi_json dependency and 
+   relies on Oj (or JSON) as the json parser. Simplifies code, removes a dependency
+   but you might want to remove any references to MultiJson.
+
  * v0.6.14 (released June 28, 2012) requires the use of render_views
    with RSpec to test templates. Otherwise, the controller will simply
    pass through the render command as it does with ERB templates.
@@ -117,7 +121,7 @@ Rabl.configure do |config|
   # config.cache_engine = Rabl::CacheEngine.new # Defaults to Rails cache
   # config.perform_caching = false
   # config.escape_all_output = false
-  # config.json_engine = nil # Any multi_json engines or a Class with #encode method
+  # config.json_engine = nil # Class with #dump class method (defaults JSON)
   # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.bson_engine = nil # Defaults to ::BSON
   # config.plist_engine = nil # Defaults to ::Plist::Emit
@@ -165,8 +169,7 @@ attempts to render an attribute that does not exist. Otherwise, the attribute wi
 Setting this to true during development may help increase the robustness of your code, but using `true` in
 production code is not recommended.
 
-Note that the `json_engine` option uses [multi_json](http://intridea.com/2010/6/14/multi-json-the-swappable-json-handler) engine
-defaults so that in most cases you **don't need to configure this** directly. For example, if you wish to use [oj](https://github.com/ohler55/oj) as
+If you wish to use [oj](https://github.com/ohler55/oj) as
 the primary JSON encoding engine simply add that to your Gemfile:
 
 ```ruby
@@ -174,10 +177,9 @@ the primary JSON encoding engine simply add that to your Gemfile:
 gem 'oj'
 ```
 
-and RABL will automatically start using that engine for encoding your JSON responses!
-
-To use RABL with JSON engine not supported by `multi_json`, ensure that JSON engine
-supports `encode` method and set `json_engine` option to the engine's Class name:
+and RABL will use that engine automatically for encoding your JSON responses. 
+Set your own custom json_engine which define a `dump` or `encode` 
+method for converting to JSON from ruby data:
 
 ```ruby
 config.json_engine = ActiveSupport::JSON
