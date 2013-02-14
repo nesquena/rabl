@@ -19,9 +19,9 @@ In particular, I want to easily:
 Anyone who has tried the 'to_json' method used in ActiveRecord for generating a JSON response has felt the pain of this restrictive approach.
 RABL is a general templating system created to solve these problems by approaching API response generation in an entirely new way.
 
+RABL at the core is all about adhering to MVC principles by deferring API data representations to the **view** layer of your application.
 For a breakdown of common misconceptions about RABL, please check out our guide to
 [understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project. 
-At the core, RABL is all about deferring API data representations to the **view** layer of your application to closely with MVC.
 
 ## Breaking Changes ##
 
