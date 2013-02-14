@@ -3,10 +3,11 @@
 [![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.png)](http://travis-ci.org/nesquena/rabl)
 [![Dependency Status](https://gemnasium.com/nesquena/rabl.png)](https://gemnasium.com/nesquena/rabl)
 
-RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON. When using the ActiveRecord 'to_json' method, I tend to quickly find myself wanting a more expressive and powerful solution for generating APIs.
-This is especially frustrating when the JSON representation is complex or doesn't match the exact schema defined in the database.
+RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON. 
+When using the ActiveRecord 'to_json' method, I find myself wanting a more expressive and powerful solution for generating APIs.
+This is especially true when the JSON representation is complex or doesn't match the exact schema defined within the database.
 
-I wanted a simple and flexible system for generating my APIs. In particular, I wanted to easily:
+In particular, I want to easily:
 
  * Create arbitrary nodes named based on combining data in an object
  * Pass arguments to methods and store the result as a child node
@@ -16,10 +17,11 @@ I wanted a simple and flexible system for generating my APIs. In particular, I w
  * Include nodes only if a certain condition has been met
 
 Anyone who has tried the 'to_json' method used in ActiveRecord for generating a JSON response has felt the pain of this restrictive approach.
-RABL is a general templating system created to solve these problems in an entirely new way.
+RABL is a general templating system created to solve these problems by approaching API response generation in an entirely new way.
 
 For a breakdown of common misconceptions about RABL, please check out our guide to
-[understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project.
+[understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project. 
+At the core, RABL is all about deferring API data representations to the **view** layer of your application to closely with MVC.
 
 ## Breaking Changes ##
 
