@@ -57,6 +57,13 @@ module Rabl
         @_root_name = nil
       end
 
+      # Replace nil values with empty strings if configured
+      if Rabl.configuration.replace_nil_values_with_empty_strings
+        @_result = @_result.each_with_object({}) do |(k, v), hash|
+          hash[k] = v.nil? ? '' : v
+        end
+      end
+
       # Return Results
       @_root_name ? { @_root_name => @_result } : @_result
     end
