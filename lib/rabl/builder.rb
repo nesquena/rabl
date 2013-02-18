@@ -59,8 +59,9 @@ module Rabl
 
       # Replace nil values with empty strings if configured
       if Rabl.configuration.replace_nil_values_with_empty_strings
-        @_result = @_result.each_with_object({}) do |(k, v), hash|
+        @_result = @_result.inject({}) do |hash, (k, v)|
           hash[k] = v.nil? ? '' : v
+          hash
         end
       end
 
