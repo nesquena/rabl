@@ -25,7 +25,7 @@ For a breakdown of common misconceptions about RABL, please check out our guide 
 
 ## Breaking Changes ##
 
- * v0.8.0 (released Feb 14, 2012) removes multi_json dependency and 
+ * v0.8.0 (released Feb 14, 2013) removes multi_json dependency and 
    relies on Oj (or JSON) as the json parser. Simplifies code, removes a dependency
    but you might want to remove any references to MultiJson.
 
