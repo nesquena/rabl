@@ -37,6 +37,23 @@ module Rabl
       cache_results { self.send("to_" + @_options[:format].to_s) }
     end
 
+    def apply_without_rendering(scope, locals, &block)
+      reset_options!
+      @_locals, @_scope = locals, scope
+      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      @_options[:scope] = @_scope
+      @_options[:format] ||= self.request_format
+      data = locals[:object].nil? ? self.default_object : locals[:object]
+      @_data_object, @_data_name = data_object(data), data_name(data)
+      if @_options[:source_location]
+        instance_eval(@_source, @_options[:source_location]) if @_source.present?
+      else # without source location
+        instance_eval(@_source) if @_source.present?
+      end
+      instance_exec(data_object(@_data), &block) if block_given?
+      self
+    end
+
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
@@ -48,7 +65,45 @@ module Rabl
       if is_object?(data) || !data # object @user
         builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        data.map { |object| builder.build(object, options) }
+        if options[:read_multi] && template_cache_configured?
+          fetch_results_from_cache(builder, data, options)
+        else
+          data.map { |object| builder.build(object, options) }
+        end
+      end
+    end
+
+    def fetch_results_from_cache(builder, data, options)
+      key_to_object = data.inject({}) do |hash, object|
+        cache_key = if options.has_key?(:extends)
+          settings = options[:extends].last
+          settings[:options] = options.slice(:child_root).merge(:object => object).merge(settings[:options])
+          engine = self.partial_without_rendering(settings[:file], settings[:options], &settings[:block])
+          cache_key, _ = *engine.instance_variable_get(:"@_cache")
+          Array(cache_key) + [options[:root_name], options[:format]]
+        else
+          [object, options[:root_name], options[:format]]
+        end
+        result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+        hash[result_cache_key] = object
+        hash
+      end
+
+      mutable_keys = key_to_object.keys.map { |k| k.dup }
+      result_hash = Rabl.configuration.cache_engine.read_multi(mutable_keys)
+
+      result_hash.each do |key ,value|
+        if value
+          key_to_object[key] = value
+        end
+      end
+
+      key_to_object.map do |key, object|
+        if object.is_a?(Hash)
+          object
+        else
+          builder.build(object, options)
+        end
       end
     end
 
@@ -192,6 +247,10 @@ module Rabl
       @_options[:extends].push({ :file => file, :options => extend_ops, :block => block })
     end
 
+    def read_multi(val)
+      @_options[:read_multi] = val
+    end
+
     # Includes a helper module with a RABL template
     # helper ExampleHelper
     def helper(*klazzes)
@@ -263,6 +322,7 @@ module Rabl
       @_options[:glue] = []
       @_options[:extends] = []
       @_options[:root_name]  = nil
+      @_options[:read_multi] = false
     end
 
     # Caches the results of the block based on object cache_key

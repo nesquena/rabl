@@ -14,6 +14,14 @@ module Rabl
       self.object_to_hash(object, engine_options, &block)
     end
 
+    def partial_without_rendering(file, options={}, &block)
+      raise ArgumentError, "Must provide an :object option to render a partial" unless options.has_key?(:object)
+      object, view_path = options.delete(:object), options[:view_path] || @_view_path
+      source, location = self.fetch_source(file, :view_path => view_path)
+      engine_options = options.merge(:source => source, :source_location => location)
+      self.object_to_engine(object, engine_options, &block)
+    end
+
     # Returns a hash based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
@@ -25,6 +33,13 @@ module Rabl
       return [] if is_collection?(object) && object.blank? # empty collection
       engine_options = options.reverse_merge(:format => "hash", :view_path => @_view_path, :root => (options[:root] || false))
       Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, &block)
+    end
+
+    def object_to_engine(object, options={}, &block)
+      return object unless is_object?(object) || is_collection?(object)
+      return [] if is_collection?(object) && object.blank? # empty collection
+      engine_options = options.reverse_merge(:format => "hash", :view_path => @_view_path, :root => (options[:root] || false))
+      Rabl::Engine.new(options[:source], engine_options).apply_without_rendering(@_scope, :object => object, &block)
     end
 
     # Returns source for a given relative file
