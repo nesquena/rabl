@@ -19,7 +19,7 @@ module Rabl
 
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
-    def render(scope, locals, &block)
+    def apply(scope, locals, &block)
       reset_options!
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
@@ -34,24 +34,18 @@ module Rabl
         instance_eval(@_source) if @_source.present?
       end
       instance_exec(@_data_object, &block) if block_given?
-      cache_results { self.send("to_" + @_options[:format].to_s) }
+
+      self
     end
 
-    def apply_without_rendering(scope, locals, &block)
-      reset_options!
-      @_locals, @_scope = locals, scope
-      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
-      @_options[:scope] = @_scope
-      @_options[:format] ||= self.request_format
-      data = locals[:object].nil? ? self.default_object : locals[:object]
-      @_data_object, @_data_name = data_object(data), data_name(data)
-      if @_options[:source_location]
-        instance_eval(@_source, @_options[:source_location]) if @_source.present?
-      else # without source location
-        instance_eval(@_source) if @_source.present?
-      end
-      instance_exec(data_object(@_data), &block) if block_given?
-      self
+    def cache_key
+      _cache = @_cache if defined?(@_cache)
+      cache_key, _ = *_cache || nil
+      cache_key
+    end
+
+    def render
+      cache_results { self.send("to_#{@_options[:format]}") }
     end
 
     # Returns a hash representation of the data object
@@ -65,45 +59,37 @@ module Rabl
       if is_object?(data) || !data # object @user
         builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        if options[:read_multi] && template_cache_configured?
-          fetch_results_from_cache(builder, data, options)
+        if template_cache_configured?
+          read_multi(data, builder, options)
         else
           data.map { |object| builder.build(object, options) }
         end
       end
     end
 
-    def fetch_results_from_cache(builder, data, options)
-      key_to_object = data.inject({}) do |hash, object|
-        cache_key = if options.has_key?(:extends)
-          settings = options[:extends].last
-          settings[:options] = options.slice(:child_root).merge(:object => object).merge(settings[:options])
-          engine = self.partial_without_rendering(settings[:file], settings[:options], &settings[:block])
-          cache_key, _ = *engine.instance_variable_get(:"@_cache")
-          Array(cache_key) + [options[:root_name], options[:format]]
-        else
-          [object, options[:root_name], options[:format]]
+    def read_multi(data, options = {})
+      keys_to_builder = {}
+      data.each do |object|
+        builder.build(object, options.merge(:keep_engines => true))
+        builder.engines.each do |engine|
+          if engine.cache_key
+            result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+            keys_to_builder[result_cache_key] = builder
+          end
         end
-        result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
-        hash[result_cache_key] = object
-        hash
       end
 
-      mutable_keys = key_to_object.keys.map { |k| k.dup }
+      mutable_keys = keys_to_engines.keys.map { |k| k.dup }
       result_hash = Rabl.configuration.cache_engine.read_multi(mutable_keys)
 
-      result_hash.each do |key ,value|
+      result_hash.each do |key, value|
         if value
-          key_to_object[key] = value
+          keys_to_builder[key].replace_engine(engine, value)
         end
       end
 
-      key_to_object.map do |key, object|
-        if object.is_a?(Hash)
-          object
-        else
-          builder.build(object, options)
-        end
+      keys_to_builder.values.map do |builder|
+        builder.compile_hash
       end
     end
 
@@ -304,7 +290,13 @@ module Rabl
 
     # Supports calling helpers defined for the template scope using method_missing hook
     def method_missing(name, *args, &block)
-      context_scope.respond_to?(name, true) ? context_scope.__send__(name, *args, &block) : super
+      if context_scope.respond_to?(name, true)
+        context_scope.__send__(name, *args, &block)
+      elsif {}.respond_to?(name, true)
+        self.to_hash.__send__(name, *args, &block)
+      else
+        super
+      end
     end
 
     def copy_instance_variables_from(object, exclude = []) #:nodoc:

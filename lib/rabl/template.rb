@@ -12,7 +12,7 @@ if defined?(Tilt)
     end
 
     def evaluate(scope, locals, &block)
-      @engine.render(scope, locals, &block)
+      @engine.apply(scope, locals, &block).render
     end
   end
 

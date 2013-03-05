@@ -16,27 +16,28 @@ module Rabl
     # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
     def build(object, options={})
       @_object = object
-
-      cache_results do
+      if options[:keep_engines]
+        compile_engines
+      else
         compile_hash(options)
       end
     end
 
+    def engines
+      @_engines ||= []
+    end
+
     protected
 
-    # Returns a hash representation of the data object
-    # compile_hash(:root_name => false)
-    # compile_hash(:root_name => "user")
-    def compile_hash(options={})
-      @_result = {}
+    # Returns the builder with all engine-producing options evaluated.
+    # (extends, node, children, glues)
+    def compile_engines
+      @_engines = []
+
       # Extends
       @options[:extends].each do |settings|
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
-      # Attributes
-      @options[:attributes].each_pair do |attribute, settings|
-        attribute(attribute, settings)
-      end if @options.has_key?(:attributes)
       # Node
       @options[:node].each do |settings|
         node(settings[:name], settings[:options], &settings[:block])
@@ -49,6 +50,40 @@ module Rabl
       @options[:glue].each do |settings|
         glue(settings[:data], &settings[:block])
       end if @options.has_key?(:glue)
+    end
+
+    # Returns a hash representation of the data object
+    # compile_hash(:root_name => false)
+    # compile_hash(:root_name => "user")
+    def compile_hash(options={})
+      @_result = {}
+
+      compile_engines if engines.empty?
+
+      # Attributes
+      @options[:attributes].each_pair do |attribute, settings|
+        attribute(attribute, settings)
+      end if @options.has_key?(:attributes)
+
+      # Turn engines into hashes
+      @_engines.each do |engine|
+        if engine.is_a?(Hash)
+          engine.each do |key, value|
+            if value.is_a?(Rabl::Engine)
+              value = value.render
+              if value
+                engine[key] = value
+              else
+                engine.delete(key)
+              end
+            end
+          end
+        elsif engine.is_a?(Rabl::Engine)
+          engine = engine.render
+        end
+
+        @_result.merge!(engine) if engine.is_a?(Hash)
+      end
 
       # Wrap result in root
       if options[:root_name].present?
@@ -59,6 +94,11 @@ module Rabl
 
       # Return Results
       @_root_name ? { @_root_name => @_result } : @_result
+    end
+
+    def replace_engine(engine, value)
+      @_engines.delete(engine)
+      @_result.merge!(value)
     end
 
     # Indicates an attribute or method should be included in the json output
@@ -95,7 +135,7 @@ module Rabl
       include_root = is_collection?(object) && @options[:child_root] # child @users
       engine_options = @options.slice(:child_root).merge(:root => include_root)
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
-      @_result[name] = self.object_to_hash(object, engine_options, &block)
+      @_engines << { name => self.object_to_engine(object, engine_options, &block) }
     end
 
     # Glues data from a child node to the json_output
@@ -103,16 +143,16 @@ module Rabl
     def glue(data, &block)
       return false unless data.present?
       object = data_object(data)
-      glued_attributes = self.object_to_hash(object, :root => false, &block)
-      @_result.merge!(glued_attributes) if glued_attributes
+      glued_attributes = self.object_to_engine(object, :root => false, &block)
+      @_engines << glued_attributes
     end
 
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
       options = @options.slice(:child_root).merge(:object => @_object).merge(options)
-      result = self.partial(file, options, &block)
-      @_result.merge!(result) if result.is_a?(Hash)
+      result = self.partial_as_engine(file, options, &block)
+      @_engines << result
     end
 
     # resolve_condition(:if => true) => true
