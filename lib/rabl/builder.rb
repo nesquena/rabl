@@ -19,7 +19,7 @@ module Rabl
       if options[:keep_engines]
         compile_engines
       else
-        compile_hash(options)
+        cache_results { compile_hash(options) }
       end
     end
 
@@ -33,7 +33,7 @@ module Rabl
 
     def to_hash(options={})
       compile_engines if engines.empty?
-      compile_hash(options)
+      cache_results { compile_hash(options) }
     end
 
     protected
@@ -148,16 +148,14 @@ module Rabl
     def glue(data, &block)
       return false unless data.present?
       object = data_object(data)
-      glued_attributes = self.object_to_engine(object, :root => false, &block)
-      @_engines << glued_attributes
+      @_engines << self.object_to_engine(object, :root => false, &block)
     end
 
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
       options = @options.slice(:child_root).merge(:object => @_object).merge(options)
-      result = self.partial_as_engine(file, options, &block)
-      @_engines << result
+      @_engines << self.partial_as_engine(file, options, &block)
     end
 
     # resolve_condition(:if => true) => true

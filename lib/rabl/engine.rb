@@ -38,18 +38,18 @@ module Rabl
       self
     end
 
-    # Returns the cache key of the engine
-    def cache_key
-      _cache = @_cache if defined?(@_cache)
-      cache_key, _ = *_cache || nil
-      Array(cache_key) + [@_options[:root_name], @_options[:format]]
-    end
-
     # Renders the representation based on a previous apply
     # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user }).render
     def render(scope = nil, locals = nil, &block)
       apply(scope, locals) if scope || locals
       cache_results { self.send("to_#{@_options[:format]}") }
+    end
+
+    # Returns the cache key of the engine
+    def cache_key
+      _cache = @_cache if defined?(@_cache)
+      cache_key, _ = *_cache || nil
+      Array(cache_key) + [@_options[:root_name], @_options[:format]]
     end
 
     # Returns a hash representation of the data object
