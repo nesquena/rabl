@@ -71,37 +71,6 @@ module Rabl
       end
     end
 
-    # Uses read_multi to render a collection of cache keys,
-    # falling back to a normal render in the event of a miss
-    def read_multi(data, options={})
-      key_to_engine = {}
-      engine_to_builder = {}
-
-      data.each do |object|
-        builder = Rabl::Builder.new(options)
-        builder.build(object, options.merge(:keep_engines => true))
-
-        builder.engines.each do |engine|
-          if cache_key = engine.cache_key
-            result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
-            key_to_engine[result_cache_key] = engine
-            engine_to_builder[engine] = builder
-          end
-        end
-      end
-
-      mutable_keys = key_to_engine.keys.map { |k| k.dup }
-      result_hash = Rabl.configuration.cache_engine.read_multi(mutable_keys)
-
-      result_hash.each do |key, value|
-        engine = key_to_engine[key]
-        builder = engine_to_builder[engine]
-        builder.replace_engine(engine, value) if value
-      end
-
-      engine_to_builder.values.map { |builder| builder.to_hash(options) }
-    end
-
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options={})
@@ -327,6 +296,13 @@ module Rabl
       else # skip caching
         yield
       end
+    end
+
+    # Uses read_multi to render a collection of cache keys,
+    # falling back to a normal render in the event of a miss.
+    def read_multi(data, options={})
+      builder = Rabl::MultiBuilder.new(data, options)
+      builder.to_a
     end
 
   end
