@@ -27,6 +27,15 @@ module Rabl
       @_engines ||= []
     end
 
+    def replace_engine(engine, value)
+      engines[engines.index(engine)] = value
+    end
+
+    def to_hash(options={})
+      compile_engines if engines.empty?
+      compile_hash(options)
+    end
+
     protected
 
     # Returns the builder with all engine-producing options evaluated.
@@ -94,11 +103,6 @@ module Rabl
 
       # Return Results
       @_root_name ? { @_root_name => @_result } : @_result
-    end
-
-    def replace_engine(engine, value)
-      @_engines.delete(engine)
-      @_result.merge!(value)
     end
 
     # Indicates an attribute or method should be included in the json output

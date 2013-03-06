@@ -47,6 +47,7 @@ module Rabl
     attr_accessor :cache_engine
     attr_accessor :raise_on_missing_attribute
     attr_accessor :perform_caching
+    attr_accessor :use_read_multi
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -71,6 +72,7 @@ module Rabl
       @view_paths            = []
       @cache_engine          = Rabl::CacheEngine.new
       @perform_caching       = false
+      @use_read_multi        = true
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
