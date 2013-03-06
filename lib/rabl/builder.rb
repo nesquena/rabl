@@ -76,6 +76,7 @@ module Rabl
 
       # Turn engines into hashes
       @_engines.each do |engine|
+        # engine was stored in the form { name => #<Rabl::Engine> }
         if engine.is_a?(Hash)
           engine.each do |key, value|
             if value.is_a?(Rabl::Engine)
