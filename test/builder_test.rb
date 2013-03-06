@@ -119,7 +119,7 @@ context "Rabl::Builder" do
       e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
       mock(e).render.returns('xyz')
-      mock(b).object_to_engine(@users, { :root => false, :child_root => false }).returns('xyz').subject
+      mock(b).object_to_engine(@users, { :root => false, :child_root => false }).returns(e).subject
       b.build(@user)
     end.equivalent_to({ :users => 'xyz'})
   end
