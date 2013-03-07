@@ -16,7 +16,7 @@ module Rabl
       result_hash = cache_results
       map_results_to_builders(result_hash)
 
-      @engine_to_builder.values.map { |builder| builder.to_hash(options) }
+      @engine_to_builder.values.map { |builder| builder.to_hash(@options) }
     end
 
     private
