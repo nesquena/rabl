@@ -15,7 +15,9 @@ module Rabl
 
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
-      escape_output @_object.__send__(data)
+      attribute = @_object.__send__(data)
+      attribute = attribute.as_json if is_collection?(attribute) && attribute.respond_to?(:as_json)
+      escape_output attribute
     end
 
     # data_name(data) => "user"
