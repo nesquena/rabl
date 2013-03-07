@@ -95,6 +95,8 @@ module Rabl
         @_result.merge!(engine) if engine.is_a?(Hash)
       end
 
+      @_engines = []
+
       # Wrap result in root
       if options[:root_name].present?
         @_root_name = options[:root_name]
