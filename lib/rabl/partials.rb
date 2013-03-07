@@ -7,7 +7,8 @@ module Rabl
     # options must have :object
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
-      self.partial_as_engine(file, options, &block).render
+      engine = self.partial_as_engine(file, options, &block)
+      engine.is_a?(Rabl::Engine) ? engine.render : engine
     end
 
     def partial_as_engine(file, options={}, &block)
