@@ -30,17 +30,17 @@ module Rabl
         builder.build(object, @options.merge(:keep_engines => true))
 
         builder.engines.each do |engine|
-          map_cache_key(engine)
+          map_cache_key(engine, builder)
         end
       end
     end
 
     # Maps an engine to a cache key and the engine to a builder
-    def map_cache_key(engine)
+    def map_cache_key(engine, builder)
       if cache_key = engine.cache_key
         result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
         @cache_key_to_engine[result_cache_key] = engine
-        @engine_to_builder[result_cache_key] = engine
+        @engine_to_builder[engine] = builder
       end
     end
 
