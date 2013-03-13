@@ -47,10 +47,6 @@ module Rabl
       @options[:extends].each do |settings|
         extends(settings[:file], settings[:options], &settings[:block])
       end if @options.has_key?(:extends)
-      # Node
-      @options[:node].each do |settings|
-        node(settings[:name], settings[:options], &settings[:block])
-      end if @options.has_key?(:node)
       # Children
       @options[:child].each do |settings|
         child(settings[:data], settings[:options], &settings[:block])
@@ -73,6 +69,10 @@ module Rabl
       @options[:attributes].each_pair do |attribute, settings|
         attribute(attribute, settings)
       end if @options.has_key?(:attributes)
+      # Node
+      @options[:node].each do |settings|
+        node(settings[:name], settings[:options], &settings[:block])
+      end if @options.has_key?(:node)
 
       # Turn engines into hashes
       @_engines.each do |engine|
