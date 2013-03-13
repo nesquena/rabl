@@ -6,6 +6,7 @@ module Rabl
     def initialize(data, options={})
       @data = data
       @options = options
+      @engineless_builders = []
       @engine_to_builder = {}
       @cache_key_to_engine = {}
     end
@@ -16,7 +17,7 @@ module Rabl
       result_hash = cache_results
       map_results_to_builders(result_hash)
 
-      @engine_to_builder.values.map { |builder| builder.to_hash(@options) }
+      @engine_to_builder.values.map { |builder| builder.to_hash(@options) }.concat(@engineless_builders)
     end
 
     private
@@ -29,8 +30,12 @@ module Rabl
         builder = Rabl::Builder.new(@options)
         builder.build(object, @options.merge(:keep_engines => true))
 
-        builder.engines.each do |engine|
-          map_cache_key(engine, builder)
+        if builder.engines.empty?
+          @engineless_builders << builder.to_hash(@options)
+        else
+          builder.engines.each do |engine|
+            map_cache_key(engine, builder)
+          end
         end
       end
     end
@@ -47,6 +52,7 @@ module Rabl
     # Returns the items that were found in the cache
     def cache_results
       mutable_keys = @cache_key_to_engine.keys.map { |k| k.dup }
+      return {} if mutable_keys.empty?
 
       Rabl.configuration.cache_engine.read_multi(mutable_keys)
     end
