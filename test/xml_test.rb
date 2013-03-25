@@ -50,12 +50,12 @@ context "Rabl::Engine" do
 
       asserts "that it sets root node for objects" do
         template = rabl %{
-          collection @users => :person
+          collection @users => :smors
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope)
-      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<people type=\"array\">\n  <person>\n  </person>\n  <person>\n  </person>\n</people>\n"
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<smors type=\"array\">\n  <smor>\n  </smor>\n  <smor>\n  </smor>\n</smors>\n"
     end
 
     context "#attribute" do
@@ -187,12 +187,22 @@ context "Rabl::Engine" do
 
       asserts "that it sets root node for objects" do
         template = rabl %{
-          collection @users => :person
+          collection @users => :people
         }
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<people type=\"array\">\n  <person>\n    <person>\n    </person>\n  </person>\n  <person>\n    <person>\n    </person>\n  </person>\n</people>\n"
+
+      asserts "that it sets root node for objects with :root parameter" do
+        template = rabl %{
+          collection @users, :root => :people, :object_root => :person
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new, User.new]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<people type=\"array\">\n  <person>\n    <person>\n    </person>\n  </person>\n  <person>\n    <person>\n    </person>\n  </person>\n</people>\n"
+
     end
 
     context "#attribute" do
