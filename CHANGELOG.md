@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.1
+
+ * Fix to respect @collection :root for xml output (Thanks @chinshr)
+
 ## 0.8.0
 
  * Remove multi_json dependency, simpler JSON handling
