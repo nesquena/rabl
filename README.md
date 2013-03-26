@@ -422,6 +422,31 @@ Using partials and inheritance can significantly reduce code duplication in your
 
 You can see more examples on the [Reusing Templates wiki page](https://github.com/nesquena/rabl/wiki/Reusing-templates).
 
+### Passing locals when rendering templates via partials or inheritance ###
+You may pass arbitrary set of locals when reusing your templates via partials or extending.
+For example, we want to show on `posts/:id.json` the information regarding particular post with its comments.
+But collection output of `posts.json` shouldn't contain any info about posts comments, and at the same time we want to
+reuse a `app/views/posts/show.json.rabl` template here, as it seems to be logical.
+
+Now we can use locals to do so as follows:
+
+```ruby
+# app/views/posts/index.json.rabl
+collection @posts
+
+extends('posts/show', :locals => {:hide_comments => true})
+# or using partial instead of extend
+# node(false) { |post| partial('posts/show', :object => :post, :locals => {:hide_comments => true})}
+```
+
+```ruby
+# app/views/posts/show.json.rabl
+object @post
+
+attributes :id, :title, :body, :created_at
+node(:comments) { |post| post.comments } unless locals[:hide_comments]
+```
+
 ### Template Scope ###
 
 In RABL, you have access to everything you need to build an API response. Each RABL template has full access to the controllers
