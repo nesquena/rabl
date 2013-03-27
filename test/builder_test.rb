@@ -144,7 +144,7 @@ context "Rabl::Builder" do
   context "#extend" do
     asserts "that it does not genereate if no data is present" do
       b = builder :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
-      mock(b).partial('users/show',{ :object => @user}).returns({}).subject
+      mock(b).partial('users/show',{ :object => @user }).returns({}).subject
       b.build(@user)
     end.equals({})
 

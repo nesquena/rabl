@@ -306,10 +306,29 @@ context "Rabl::Engine" do
       end.equals "{\"user\":{\"age\":12}}"
     end
 
+    context "#partial" do
+      asserts "that it creates object from partial and passes local" do
+        template = rabl %{
+         object false
+         node :foo do
+           partial("foo/bar", :object => @user, :locals => { :foo => "bar" })
+         end
+        }
+        scope = Object.new
+        @user = User.new(:name => 'leo', :city => 'LA', :age => 12)
+        scope.instance_variable_set :@user, @user
+        any_instance_of(Rabl::Engine) do |b|
+          mock(b).fetch_source("foo/bar", :view_path => nil).once
+          mock(b).object_to_hash(@user, :locals => { :foo => "bar" }, :source => nil, :source_location => nil).returns({ :name => 'leo', :city => 'LA', :age => 12 })
+        end
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{ \"foo\" : {\"name\":\"leo\",\"city\":\"LA\",\"age\":12} }")
+    end
+
     teardown do
       Rabl.reset_configuration!
     end
-  end
+  end # with json root
 
   context "without json root" do
     setup do
@@ -585,7 +604,7 @@ context "Rabl::Engine" do
     teardown do
       Rabl.reset_configuration!
     end
-  end
+  end # without json root
 
   context "without child root" do
     setup do

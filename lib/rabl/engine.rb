@@ -20,8 +20,8 @@ module Rabl
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
-      locals.merge! locals.delete(:locals) || {}
       reset_options!
+      locals.merge!(locals.delete(:locals) || {})
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
