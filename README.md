@@ -3,7 +3,7 @@
 [![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.png)](http://travis-ci.org/nesquena/rabl)
 [![Dependency Status](https://gemnasium.com/nesquena/rabl.png)](https://gemnasium.com/nesquena/rabl)
 
-RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON. 
+RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON.
 When using the ActiveRecord 'to_json' method, I find myself wanting a more expressive and powerful solution for generating APIs.
 This is especially true when the JSON representation is complex or doesn't match the exact schema defined within the database.
 
@@ -21,11 +21,11 @@ RABL is a general templating system created to solve these problems by approachi
 
 RABL at the core is all about adhering to MVC principles by deferring API data representations to the **view** layer of your application.
 For a breakdown of common misconceptions about RABL, please check out our guide to
-[understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project. 
+[understanding RABL](https://github.com/nesquena/rabl/wiki/Understanding-RABL) which can help clear up any confusion about this project.
 
 ## Breaking Changes ##
 
- * v0.8.0 (released Feb 14, 2013) removes multi_json dependency and 
+ * v0.8.0 (released Feb 14, 2013) removes multi_json dependency and
    relies on Oj (or JSON) as the json parser. Simplifies code, removes a dependency
    but you might want to remove any references to MultiJson.
 
@@ -179,8 +179,8 @@ the primary JSON encoding engine simply add that to your Gemfile:
 gem 'oj'
 ```
 
-and RABL will use that engine automatically for encoding your JSON responses. 
-Set your own custom json_engine which define a `dump` or `encode` 
+and RABL will use that engine automatically for encoding your JSON responses.
+Set your own custom json_engine which define a `dump` or `encode`
 method for converting to JSON from ruby data:
 
 ```ruby
@@ -422,22 +422,22 @@ Using partials and inheritance can significantly reduce code duplication in your
 
 You can see more examples on the [Reusing Templates wiki page](https://github.com/nesquena/rabl/wiki/Reusing-templates).
 
-### Passing locals when rendering templates via partials or inheritance ###
-You may pass arbitrary set of locals when reusing your templates via partials or extending.
-For example, we want to show on `posts/:id.json` the information regarding particular post with its comments.
-But collection output of `posts.json` shouldn't contain any info about posts comments, and at the same time we want to
-reuse a `app/views/posts/show.json.rabl` template here, as it seems to be logical.
+### Passing Locals in Partials ###
 
-Now we can use locals to do so as follows:
+You can pass an arbitrary set of locals when rendering partials or extending templates.
+For example, if we want to show on `posts/:id.json` any information regarding particular post and associated comments
+but in other cases we want to hide those comments. We can use locals to do this:
 
 ```ruby
 # app/views/posts/index.json.rabl
 collection @posts
 
-extends('posts/show', :locals => {:hide_comments => true})
-# or using partial instead of extend
-# node(false) { |post| partial('posts/show', :object => :post, :locals => {:hide_comments => true})}
+extends('posts/show', :locals => { :hide_comments => true })
+# or using partial instead of extends
+# node(false) { |post| partial('posts/show', :object => :post, :locals => { :hide_comments => true })}
 ```
+
+and then access locals in the sub-template:
 
 ```ruby
 # app/views/posts/show.json.rabl
@@ -446,6 +446,8 @@ object @post
 attributes :id, :title, :body, :created_at
 node(:comments) { |post| post.comments } unless locals[:hide_comments]
 ```
+
+This can be useful as an advanced tool when extending or rendering partials.
 
 ### Template Scope ###
 
