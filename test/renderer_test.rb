@@ -1,3 +1,4 @@
+# coding: US-ASCII
 require 'tmpdir'
 require 'pathname'
 require 'json'
