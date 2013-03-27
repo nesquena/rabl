@@ -131,5 +131,5 @@ context "Rabl::Partials" do
         Rabl.configuration.view_paths = []
       end
     end
-  end
-end
+  end # Rails
+end # Rabl::Partials
