@@ -1,5 +1,6 @@
-source :gemcutter
-gem "rails", "~> 2.3.14"
+source 'https://rubygems.org'
+
+gem "rails", "~> 2.3.18"
 gem "sqlite3", :require => "sqlite3"
 gem 'json'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
