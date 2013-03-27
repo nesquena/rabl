@@ -48,8 +48,8 @@ context "UsersController" do
     end.equals { @users.map { |u| u.phone_numbers.map(&:formatted) } }
 
     # Node (renders collection partial)
-    asserts("contains reverted node numbers") do
-      json_output.map { |u| u["user"]["node_numbers"].map { |n| n["reverted"] } }
+    asserts("contains reversed node numbers") do
+      json_output.map { |u| u["user"]["node_numbers"].map { |n| n["reversed"] } }
     end.equals { @users.map { |u| u.phone_numbers.map(&:formatted).map(&:reverse) } }
   end # index
 
