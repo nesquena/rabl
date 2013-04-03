@@ -278,7 +278,7 @@ module Rabl
     end
 
     def cache_read_on_render
-      @_cache_read_on_render = @_cache_read_on_render.nil? ? true : @cache_read_on_render
+      @_cache_read_on_render = @_cache_read_on_render.nil? ? true : @_cache_read_on_render
     end
 
     private
