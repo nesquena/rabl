@@ -34,6 +34,7 @@ module Rabl
           @engineless_builders << builder.to_hash(@options)
         else
           builder.engines.each do |engine|
+            next unless engine.is_a?(Rabl::Engine)
             map_cache_key(engine, builder)
             engine.cache_read_on_render = false
           end
