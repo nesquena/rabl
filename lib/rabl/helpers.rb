@@ -101,6 +101,12 @@ module Rabl
       Rabl.configuration.cache_engine.fetch(expanded_cache_key, cache_options, &block)
     end
 
+    def write_result_to_cache(cache_key, cache_options=nil, &block)
+      expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+      result = yield
+      Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)
+    end
+
     # Returns true if the cache has been enabled for the application
     def template_cache_configured?
       if defined?(Rails)

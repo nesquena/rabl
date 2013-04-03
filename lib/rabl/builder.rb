@@ -81,6 +81,7 @@ module Rabl
           engine.each do |key, value|
             if value.is_a?(Rabl::Engine)
               value = value.render
+
               if value
                 engine[key] = value
               else

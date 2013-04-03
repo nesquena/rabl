@@ -35,6 +35,7 @@ module Rabl
         else
           builder.engines.each do |engine|
             map_cache_key(engine, builder)
+            engine.cache_read_on_render = false
           end
         end
       end

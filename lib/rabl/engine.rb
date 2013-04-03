@@ -218,6 +218,11 @@ module Rabl
     end
     alias_method :helpers, :helper
 
+    # Disables reading (but not writing) from the cache when rendering.
+    def cache_read_on_render=(c)
+      @_cache_read_on_render = c
+    end
+
     protected
 
     # Returns a guess at the default object for this template
@@ -272,6 +277,10 @@ module Rabl
       vars.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
     end
 
+    def cache_read_on_render
+      @_cache_read_on_render = @_cache_read_on_render.nil? ? true : @cache_read_on_render
+    end
+
     private
 
     # Resets the options parsed from a rabl template.
@@ -292,7 +301,11 @@ module Rabl
       cache_key, cache_options = *_cache || nil
       if template_cache_configured? && cache_key
         result_cache_key = Array(cache_key) + [@_options[:root_name], @_options[:format]]
-        fetch_result_from_cache(result_cache_key, cache_options, &block)
+        if self.cache_read_on_render
+          fetch_result_from_cache(result_cache_key, cache_options, &block)
+        else
+          write_result_to_cache(result_cache_key, cache_options, &block)
+        end
       else # skip caching
         yield
       end
