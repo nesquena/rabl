@@ -12,5 +12,5 @@ child :phone_numbers => :pnumbers do
 end
 
 node :node_numbers do |u|
-  partial("users/phone_number", :object => u.phone_numbers)
+  partial("users/phone_number", :object => u.phone_numbers, :locals => { :reversed => locals[:reversed].presence })
 end

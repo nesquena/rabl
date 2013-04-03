@@ -1,3 +1,3 @@
 collection @users
 
-extends "users/show"
+extends "users/show", :locals => { :reversed => true }

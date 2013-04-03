@@ -29,7 +29,7 @@ module Rabl
       return object unless !object.nil?
       return [] if is_collection?(object) && object.blank? # empty collection
       engine_options = options.reverse_merge(:format => "hash", :view_path => @_view_path, :root => (options[:root] || false))
-      Rabl::Engine.new(options[:source], engine_options).apply(@_scope, :object => object, &block)
+      Rabl::Engine.new(options[:source], engine_options).apply(@_scope, :object => object, :locals => options[:locals], &block)
     end
 
     # Returns source for a given relative file

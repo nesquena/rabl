@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 
 # Specify your gem's dependencies in rabl.gemspec
 gemspec
@@ -23,5 +23,5 @@ group :test do
 end
 
 group :development, :test do
-  gem 'debugger'
+  # gem 'debugger'
 end

@@ -21,6 +21,7 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user })
     def apply(scope, locals, &block)
       reset_options!
+      locals.merge!(locals.delete(:locals) || {})
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
@@ -108,8 +109,9 @@ module Rabl
       include_root = Rabl.configuration.include_xml_root
       include_child_root = include_root && Rabl.configuration.include_child_root
       options = options.reverse_merge(:root => include_root, :child_root => include_child_root)
-      xml_options = Rabl.configuration.default_xml_options.merge(:root => @_data_name)
-      to_hash(options).to_xml(xml_options)
+      xml_options = Rabl.configuration.default_xml_options.merge(:root => collection_root_name || @_data_name)
+      result = to_hash(options)
+      result.to_xml(xml_options)
     end
 
     # Returns a bson representation of the data object
