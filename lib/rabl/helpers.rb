@@ -15,7 +15,9 @@ module Rabl
 
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
-      escape_output @_object.__send__(data)
+      attribute = @_object.__send__(data)
+      attribute = attribute.as_json if is_collection?(attribute) && attribute.respond_to?(:as_json)
+      escape_output attribute
     end
 
     # data_name(data) => "user"
@@ -97,6 +99,13 @@ module Rabl
     def fetch_result_from_cache(cache_key, cache_options=nil, &block)
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       Rabl.configuration.cache_engine.fetch(expanded_cache_key, cache_options, &block)
+    end
+
+    def write_result_to_cache(cache_key, cache_options=nil, &block)
+      expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+      result = yield
+      Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)
+      result
     end
 
     # Returns true if the cache has been enabled for the application

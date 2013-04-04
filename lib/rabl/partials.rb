@@ -2,29 +2,34 @@ module Rabl
   module Partials
     include Rabl::Helpers
 
-    # Renders a partial hash based on another rabl template
+    # Returns a hash representing the partial
     # partial("users/show", :object => @user)
     # options must have :object
     # options can have :view_path, :child_root, :root
     def partial(file, options={}, &block)
+      engine = self.partial_as_engine(file, options, &block)
+      engine.is_a?(Rabl::Engine) ? engine.render : engine
+    end
+
+    def partial_as_engine(file, options={}, &block)
       raise ArgumentError, "Must provide an :object option to render a partial" unless options.has_key?(:object)
       object, view_path = options.delete(:object), options[:view_path] || @_view_path
       source, location = self.fetch_source(file, :view_path => view_path)
       engine_options = options.merge(:source => source, :source_location => location)
-      self.object_to_hash(object, engine_options, &block)
+      self.object_to_engine(object, engine_options, &block)
     end
 
-    # Returns a hash based representation of any data object given ejs template block
+    # Returns an Engine based representation of any data object given ejs template block
     # object_to_hash(@user) { attribute :full_name } => { ... }
     # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
     # object_to_hash([@user], :source => "...") { attribute :full_name } => { ... }
     # options must have :source (rabl file contents)
     # options can have :source_location (source filename)
-    def object_to_hash(object, options={}, &block)
-      return object if object.nil?
+    def object_to_engine(object, options={}, &block)
+      return object unless !object.nil?
       return [] if is_collection?(object) && object.blank? # empty collection
       engine_options = options.reverse_merge(:format => "hash", :view_path => @_view_path, :root => (options[:root] || false))
-      Rabl::Engine.new(options[:source], engine_options).render(@_scope, :object => object, :locals => options[:locals], &block)
+      Rabl::Engine.new(options[:source], engine_options).apply(@_scope, :object => object, :locals => options[:locals], &block)
     end
 
     # Returns source for a given relative file

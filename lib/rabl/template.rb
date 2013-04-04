@@ -12,7 +12,7 @@ if defined?(Tilt)
     end
 
     def evaluate(scope, locals, &block)
-      @engine.render(scope, locals, &block)
+      @engine.apply(scope, locals, &block).render
     end
   end
 
@@ -52,7 +52,8 @@ if defined?(ActionView) && defined?(Rails) && Rails.version.to_s =~ /^[34]/
           source = template.source
 
           %{ ::Rabl::Engine.new(#{source.inspect}).
-              render(self, assigns.merge(local_assigns)) }
+              apply(self, assigns.merge(local_assigns)).
+              render }
         end # call
       end # rabl class
     end # handlers

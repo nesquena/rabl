@@ -317,9 +317,12 @@ context "Rabl::Engine" do
         scope = Object.new
         @user = User.new(:name => 'leo', :city => 'LA', :age => 12)
         scope.instance_variable_set :@user, @user
+        e = Rabl::Engine.new(nil)
+        mock(e).render.returns({ :name => 'leo', :city => 'LA', :age => 12 })
+
         any_instance_of(Rabl::Engine) do |b|
           mock(b).fetch_source("foo/bar", :view_path => nil).once
-          mock(b).object_to_hash(@user, :locals => { :foo => "bar" }, :source => nil, :source_location => nil).returns({ :name => 'leo', :city => 'LA', :age => 12 })
+          mock(b).object_to_engine(@user, :locals => { :foo => "bar" }, :source => nil, :source_location => nil).returns(e)
         end
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{ \"foo\" : {\"name\":\"leo\",\"city\":\"LA\",\"age\":12} }")

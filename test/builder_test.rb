@@ -98,22 +98,28 @@ context "Rabl::Builder" do
 
     asserts "that it generates with an object" do
       b = builder :child => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name } }]
+      e = Rabl::Engine.new('')
       mock(b).data_name(@user) { :user }
-      mock(b).object_to_hash(@user, { :root => false }).returns('xyz').subject
+      mock(e).render.returns('xyz')
+      mock(b).object_to_engine(@user, { :root => false }).returns(e).subject
       b.build(@user)
     end.equivalent_to({ :user => 'xyz'})
 
     asserts "that it generates with an collection and child_root" do
       b = builder :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }], :child_root => true
+      e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
-      mock(b).object_to_hash(@users, { :root => true, :child_root => true }).returns('xyz').subject
+      mock(e).render.returns('xyz')
+      mock(b).object_to_engine(@users, { :root => true, :child_root => true }).returns(e).subject
       b.build(@user)
     end.equivalent_to({ :users => 'xyz'})
 
     asserts "that it generates with an collection and no child root" do
       b = builder :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }], :child_root => false
+      e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
-      mock(b).object_to_hash(@users, { :root => false, :child_root => false }).returns('xyz').subject
+      mock(e).render.returns('xyz')
+      mock(b).object_to_engine(@users, { :root => false, :child_root => false }).returns(e).subject
       b.build(@user)
     end.equivalent_to({ :users => 'xyz'})
   end
@@ -125,7 +131,9 @@ context "Rabl::Builder" do
 
     asserts "that it generates the glue attributes" do
       b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name }}]
-      mock(b).object_to_hash(@user, { :root => false }).returns({:user => 'xyz'}).subject
+      e = Rabl::Engine.new('')
+      mock(e).render.returns({:user => 'xyz'})
+      mock(b).object_to_engine(@user, { :root => false }).returns(e).subject
       b.build(@user)
     end.equivalent_to({ :user => 'xyz' })
 
@@ -136,27 +144,35 @@ context "Rabl::Builder" do
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
       b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name }}]
-      mock(b).object_to_hash(@user,{ :root => false }).returns({}).subject
+      e = Rabl::Engine.new('')
+      mock(e).render.returns({})
+      mock(b).object_to_engine(@user,{ :root => false }).returns(e).subject
       b.build(@user)
     end.equals({})
   end
 
-  context "#extend" do
-    asserts "that it does not genereate if no data is present" do
+  context "#extends" do
+    asserts "that it does not generate if no data is present" do
       b = builder :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
-      mock(b).partial('users/show',{ :object => @user }).returns({}).subject
+      e = Rabl::Engine.new('users/show')
+      mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
+      mock(e).render.returns({}).subject
       b.build(@user)
     end.equals({})
 
     asserts "that it generates if data is present" do
       b = builder :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
-      mock(b).partial('users/show', { :object => @user }).returns({:user => 'xyz'}).subject
+      e = Rabl::Engine.new('users/show')
+      mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
+      mock(e).render.returns({:user => 'xyz'}).subject
       b.build(@user)
     end.equivalent_to({:user => 'xyz'})
 
     asserts "that it generates if local data is present but object is false" do
       b = builder :extends => [{ :file => 'users/show', :options => { :object => @user }, :block => lambda { |u| attribute :name  }}]
-      mock(b).partial('users/show', { :object => @user }).returns({:user => 'xyz'}).subject
+      e = Rabl::Engine.new('users/show')
+      mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
+      mock(e).render.returns({:user => 'xyz'}).subject
       b.build(false)
     end.equivalent_to({:user => 'xyz'})
   end

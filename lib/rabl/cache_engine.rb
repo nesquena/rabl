@@ -21,5 +21,18 @@ module Rabl
       end
     end
 
+    def write(key, value, options={})
+      if defined?(Rails)
+        Rails.cache.write(key, value, options)
+      end
+    end
+
+    def read_multi(keys, cache_options = {})
+      if defined?(Rails)
+        Rails.cache.read_multi(keys, cache_options)
+      else
+        keys.inject({}) { |hash, key| hash[key] = nil; hash }
+      end
+    end
   end
 end
