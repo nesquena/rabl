@@ -23,9 +23,9 @@ module Rabl
     # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
     def build(object, options={})
       @_object = object
-      if options[:keep_engines]
-        compile_engines
-      else
+      compile_engines
+
+      unless options[:keep_engines]
         cache_results { compile_hash(options) }
       end
     end
@@ -39,7 +39,6 @@ module Rabl
     end
 
     def to_hash(options={})
-      compile_engines if engines.empty?
       cache_results { compile_hash(options) }
     end
 
@@ -60,8 +59,6 @@ module Rabl
     # compile_hash(:root_name => "user")
     def compile_hash(options={})
       @_result = {}
-
-      compile_engines if engines.empty?
 
       update_attributes
       update_settings(:node)
