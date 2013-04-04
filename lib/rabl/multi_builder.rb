@@ -30,24 +30,37 @@ module Rabl
         builder = Rabl::Builder.new(@options)
         builder.build(object, @options.merge(:keep_engines => true))
 
-        if builder.engines.empty?
-          @engineless_builders << builder.to_hash(@options)
-        else
-          builder.engines.each do |engine|
-            next unless engine.is_a?(Rabl::Engine)
-            map_cache_key(engine, builder)
-            engine.cache_read_on_render = false
-          end
+        builder.engines.each do |engine|
+          map_cache_key(engine, builder)
         end
+
+        @engineless_builders << builder.to_hash(@options) unless builder.engines.any?
       end
     end
 
     # Maps an engine to a cache key and the engine to a builder
     def map_cache_key(engine, builder)
-      if cache_key = engine.cache_key
+      if cache_key = cache_key_for(engine)
         result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
         @cache_key_to_engine[result_cache_key] = engine
         @engine_to_builder[engine] = builder
+        disable_cache_read_on_render(engine)
+      end
+    end
+
+    def disable_cache_read_on_render(engine)
+      if engine.is_a?(Hash)
+        disable_cache_read_on_render(engine.values.first)
+      else
+        engine.cache_read_on_render = false
+      end
+    end
+
+    def cache_key_for(engine)
+      if engine.is_a?(Hash)
+        cache_key_for(engine.values.first)
+      else
+        engine.cache_key
       end
     end
 

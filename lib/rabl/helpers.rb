@@ -105,6 +105,7 @@ module Rabl
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       result = yield
       Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)
+      result
     end
 
     # Returns true if the cache has been enabled for the application

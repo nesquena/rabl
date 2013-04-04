@@ -50,6 +50,7 @@ module Rabl
     def cache_key
       _cache = @_cache if defined?(@_cache)
       cache_key, _ = *_cache || nil
+      return nil if cache_key.nil?
       Array(cache_key) + [@_options[:root_name], @_options[:format]]
     end
 
