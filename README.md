@@ -137,6 +137,7 @@ Rabl.configure do |config|
   # config.xml_options = { :dasherize  => true, :skip_types => false }
   # config.view_paths = []
   # config.raise_on_missing_attribute = true # Defaults to false
+  # config.replace_nil_values_with_empty_strings = true # Defaults to false
 end
 ```
 
@@ -170,6 +171,8 @@ If `raise_on_missing_attribute` is set to `true`, a RuntimeError will be raised 
 attempts to render an attribute that does not exist. Otherwise, the attribute will simply be omitted.
 Setting this to true during development may help increase the robustness of your code, but using `true` in
 production code is not recommended.
+
+If `replace_nil_values_with_empty_strings` is set to `true`, all values that are `nil` and would normally be displayed as `null` in the response are converted to empty strings.
 
 If you wish to use [oj](https://github.com/ohler55/oj) as
 the primary JSON encoding engine simply add that to your Gemfile:
