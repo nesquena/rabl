@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.4
+
+ * NEW #411 Add "replace nil values with empty strings" option (Thanks @manuelmeurer)
+
 ## 0.8.3
 
  * Closes #421 bug with locals in engine
