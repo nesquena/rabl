@@ -10,12 +10,10 @@ unless defined?(User)
     DEFAULT_HOBBIES  = ['Photography']
 
     def initialize(attributes={})
-      self.age     = attributes[:age]     || DEFAULT_AGE
-      self.city    = attributes[:city]    || DEFAULT_CITY
-      self.name    = attributes[:name]    || DEFAULT_NAME
-      self.first   = attributes[:first]   || DEFAULT_FIRST
-      self.float   = attributes[:float]   || DEFAULT_FLOAT
-      self.hobbies = (attributes[:hobbies] || DEFAULT_HOBBIES).map { |h| Hobby.new(h) }
+      %w(age city name first float hobbies).each do |attr|
+        self.send "#{attr}=", (attributes.has_key?(attr.to_sym) ? attributes[attr.to_sym] : self.class.const_get("DEFAULT_#{attr.upcase}"))
+      end
+      self.hobbies = self.hobbies.map { |h| Hobby.new(h) }
     end
   end
 
