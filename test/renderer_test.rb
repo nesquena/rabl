@@ -361,6 +361,10 @@ context "Rabl::Renderer" do
   end # json
 
   context '.msgpack' do
+    expect = "\x81\xA4user\x83\xA3age\x18\xA4name\xA4ivan\xA5float\xCB@\x93J=p\xA3\xD7\n"
+    if RUBY_VERSION >= '1.9'
+      expect.force_encoding(::Encoding::ASCII_8BIT)
+    end
     asserts 'it renders msgpack' do
       File.open(tmp_path + "test.rabl", "w") do |f|
         f.puts %q{
@@ -371,7 +375,7 @@ context "Rabl::Renderer" do
 
       user = User.new(:name => 'ivan')
       Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path)
-    end.equals "\x81\xA4user\x83\xA3age\x18\xA4name\xA4ivan\xA5float\xCB@\x93J=p\xA3\xD7\n"
+    end.equals expect
   end
 
   context '.plist' do
