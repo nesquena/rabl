@@ -5,15 +5,15 @@ module Rabl
     EXTENDS_DEPENDENCY = /
       extends\s*              # extends, followed by optional whitespace
       \(?                     # start an optional parenthesis for the extends call
-      \s*["']([a-z_\/\.]+)    # the template name itself -- 2nd capture
+      \s*["']([a-z_\/\.]+)    # the template name itself
     /x
 
     # Matches:
     #   partial "categories/show"
     PARTIAL_DEPENDENCY = /
-      partial\s*              # extends, followed by optional whitespace
-      \(?                     # start an optional parenthesis for the extends call
-      \s*["']([a-z_\/\.]+)    # the template name itself -- 2nd capture
+      partial\s*              # partial, followed by optional whitespace
+      \(?                     # start an optional parenthesis for the partial call
+      \s*["']([a-z_\/\.]+)    # the template name itself
     /x
 
     def self.call(name, template)
