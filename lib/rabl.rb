@@ -13,7 +13,13 @@ require 'rabl/builder'
 require 'rabl/configuration'
 require 'rabl/renderer'
 require 'rabl/cache_engine'
-require 'rabl/railtie' if defined?(Rails) && Rails.version =~ /^[34]/
+
+if defined?(Rails)
+  require 'rabl/tracker' if Rails.version =~ /^[4]/
+  require 'rabl/digestor' if Rails.version =~ /^[4]/
+
+  require 'rabl/railtie' if Rails.version =~ /^[34]/
+end
 
 # Rabl.register!
 module Rabl
