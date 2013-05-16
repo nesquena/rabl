@@ -128,8 +128,23 @@ module Rabl
     # resolve_condition(:unless => lambda { |m| true }) => true
     def resolve_condition(options)
       return true if options[:if].nil? && options[:unless].nil?
-      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
-      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
+      result = nil
+      if options.has_key?(:if)
+        result = options[:if] == true ||
+          (options[:if].respond_to?(:call) &&
+           options[:if].call(@_object)) ||
+          (options[:if].is_a?(Symbol) &&
+           @_object.respond_to?(options[:if]) &&
+           @_object.send(options[:if]))
+      end
+      if options.has_key?(:unless)
+        result = options[:unless] == false ||
+          (options[:unless].respond_to?(:call) &&
+           !options[:unless].call(@_object)) ||
+          (options[:unless].is_a?(Symbol) &&
+           @_object.respond_to?(options[:unless]) &&
+           !@_object.send(options[:unless]))
+      end
       result
     end
 
