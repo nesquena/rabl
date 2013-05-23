@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.5
+
+ * FIX #386 Support disabling root on child calls (Thanks @digger69)
+
 ## 0.8.4
 
  * NEW #411 Add "replace nil values with empty strings" option (Thanks @manuelmeurer)
