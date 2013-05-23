@@ -280,6 +280,31 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo')
         template.render(scope)
       end.equals "{\"user\":{\"person\":{\"name\":\"leo\"}}}"
+
+      asserts "it sets root node for child collection" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@users) { attribute :city }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\",\"users\":[{\"user\":{\"city\":\"UNO\"}},{\"user\":{\"city\":\"DOS\"}}]}}"
+
+      asserts "it allows suppression of root node for child collection" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@users, :object_root => false) { attribute :city }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\",\"users\":[{\"city\":\"UNO\"},{\"city\":\"DOS\"}]}}"
+
     end
 
     context "#glue" do
