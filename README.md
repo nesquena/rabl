@@ -298,6 +298,13 @@ child :address do
 end
 ```
 
+You can also disable object root for child node:
+```ruby
+child :posts, :object_root => false do
+  attributes :id, :title
+end
+```
+
 You can also add child nodes from an arbitrary data source:
 
 ```ruby
