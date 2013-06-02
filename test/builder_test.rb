@@ -137,18 +137,18 @@ context "Rabl::Builder" do
     end.equals({})
 
     asserts "that it generates the glue attributes" do
-      b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name }}]
+      b = builder :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
       mock(b).object_to_hash(@user, { :root => false }).returns({:user => 'xyz'}).subject
       b.build(@user)
     end.equivalent_to({ :user => 'xyz' })
 
     asserts "that it appends the glue attributes to result" do
-      b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name => :user_name }}]
+      b = builder :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name => :user_name }}]
       b.build(@user)
     end.equivalent_to({ :user_name => 'rabl' })
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
-      b = builder :glue => [{ :data => @user, :block => lambda { |u| attribute :name }}]
+      b = builder :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
       mock(b).object_to_hash(@user,{ :root => false }).returns({}).subject
       b.build(@user)
     end.equals({})
