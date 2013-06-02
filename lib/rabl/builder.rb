@@ -47,7 +47,7 @@ module Rabl
       end if @options.has_key?(:child)
       # Glues
       @options[:glue].each do |settings|
-        glue(settings[:data], &settings[:block])
+        glue(settings[:data], settings[:options], &settings[:block])
       end if @options.has_key?(:glue)
 
       # Wrap result in root
@@ -108,8 +108,8 @@ module Rabl
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
-    def glue(data, &block)
-      return false unless data.present?
+    def glue(data, options={}, &block)
+      return false unless data.present? && resolve_condition(options)
       object = data_object(data)
       glued_attributes = self.object_to_hash(object, :root => false, &block)
       @_result.merge!(glued_attributes) if glued_attributes
