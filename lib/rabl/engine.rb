@@ -183,8 +183,8 @@ module Rabl
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
-    def glue(data, &block)
-      @_options[:glue].push({ :data => data, :block => block })
+    def glue(data, options={}, &block)
+      @_options[:glue].push({ :data => data, :options => options, :block => block })
     end
 
     # Extends an existing rabl template with additional attributes in the block
