@@ -1,3 +1,4 @@
+#coding: US-ASCII
 require File.expand_path('../teststrap', __FILE__)
 require 'rabl/template'
 
