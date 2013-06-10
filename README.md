@@ -548,7 +548,7 @@ node(:title) { @custom_title }
 ### Content Type Headers ###
 
 Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
-to work for any Rack-based framework and as agostic to format as possible.
+to work for any Rack-based framework and as agnostic to format as possible.
 Check [this issue](https://github.com/nesquena/rabl/issues/185#issuecomment-4501232) for more
 details, and if you have any ideas or patches please let me know.
 
