@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.6 (Unreleased)
+
+ * FIX #142 #467 Do not use a collection as the default object. (Thanks @mrbrdo)
+
 ## 0.8.5
 
  * FIX #386 Support disabling root on child calls (Thanks @digger69)
