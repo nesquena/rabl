@@ -209,7 +209,8 @@ module Rabl
       if context_scope.respond_to?(:controller)
         controller_name = context_scope.controller.controller_name
         stripped_name = controller_name.split(%r{::|\/}).last
-        instance_variable_get("@#{stripped_name}")
+        object = instance_variable_get("@#{stripped_name}")
+        is_object?(object) ? object : nil
       end
     end
 
