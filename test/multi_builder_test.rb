@@ -48,7 +48,7 @@ context "Rabl::MultiBuilder" do
     end
 
     asserts "uses read_multi to find all of the cached values with keys" do
-      mock(Rabl.configuration.cache_engine).read_multi(['cache_key']).returns({})
+      mock(Rabl.configuration.cache_engine).read_multi('cache_key').returns({})
       topic.send(:cache_results)
     end
   end

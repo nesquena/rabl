@@ -69,7 +69,7 @@ module Rabl
       mutable_keys = @cache_key_to_engine.keys.map { |k| k.dup }
       return {} if mutable_keys.empty?
 
-      Rabl.configuration.cache_engine.read_multi(mutable_keys)
+      Rabl.configuration.cache_engine.read_multi(*mutable_keys)
     end
 
     # Maps the results from the cache back to the builders
