@@ -55,7 +55,7 @@ module Rabl
         result = builder.build(data, options)
       elsif is_collection?(data) # collection @users
         result = if template_cache_configured? && Rabl.configuration.use_read_multi
-          read_multi(data, options)
+          read_multi(*data, options)
         else
           data.map { |object| builder.build(object, options) }
         end
@@ -330,7 +330,8 @@ module Rabl
 
     # Uses read_multi to render a collection of cache keys,
     # falling back to a normal render in the event of a miss.
-    def read_multi(data, options={})
+    def read_multi(*data)
+      options = data.extract_options!
       builder = Rabl::MultiBuilder.new(data, options)
       builder.to_a
     end
