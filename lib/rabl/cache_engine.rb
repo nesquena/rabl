@@ -30,7 +30,7 @@ module Rabl
     def read_multi(*keys)
       options = keys.extract_options!
       if defined?(Rails)
-        Rails.cache.read_multi(*keys, cache_options)
+        Rails.cache.read_multi(*keys, options)
       else
         keys.inject({}) { |hash, key| hash[key] = nil; hash }
       end
