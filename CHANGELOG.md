@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## 0.8.6 (Unreleased)
+## 0.8.6
 
  * FIX #142 #467 Do not use a collection as the default object. (Thanks @mrbrdo)
+ * NEW Options hash for glue function added (Thanks @sassysolutions)
+ * FIX #470 Better template lookups when Padrino is defined (Thanks @LTe)
 
 ## 0.8.5
 
