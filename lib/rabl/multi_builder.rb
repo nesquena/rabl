@@ -40,10 +40,11 @@ module Rabl
 
     # Maps an engine to a cache key and the engine to a builder
     def map_cache_key(engine, builder)
+      @engine_to_builder[engine] = builder
+      
       if cache_key = cache_key_for(engine)
         result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
         @cache_key_to_engine[result_cache_key] = engine
-        @engine_to_builder[engine] = builder
         disable_cache_read_on_render(engine)
       end
     end
