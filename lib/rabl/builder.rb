@@ -62,15 +62,6 @@ module Rabl
     def compile_hash(options={})
       @_result = {}
 
-      # Attributes
-      @options[:attributes].each_pair do |attribute, settings|
-        attribute(attribute, settings)
-      end if @options.has_key?(:attributes)
-      # Node
-      @options[:node].each do |settings|
-        node(settings[:name], settings[:options], &settings[:block])
-      end if @options.has_key?(:node)
-
       # Turn engines into hashes
       @_engines.each do |engine|
         # engine was stored in the form { name => #<Rabl::Engine> }
@@ -94,6 +85,15 @@ module Rabl
       end
 
       @_engines = []
+
+      # Attributes
+      @options[:attributes].each_pair do |attribute, settings|
+        attribute(attribute, settings)
+      end if @options.has_key?(:attributes)
+      # Node
+      @options[:node].each do |settings|
+        node(settings[:name], settings[:options], &settings[:block])
+      end if @options.has_key?(:node)
 
       # Wrap result in root
       if options[:root_name].present?
