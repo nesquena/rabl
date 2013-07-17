@@ -282,10 +282,10 @@ or show attributes only if a condition is true:
 attributes :foo, :bar, :if => lambda { |m| m.condition? }
 ```
 
-Named and aliased attributes can not be combined on the same line. This currently does not work:
+##### PLEASE NOTE: Named and aliased attributes can not be combined on the same line. This currently does not work: #####
 
 ```ruby
-attributes :foo, :bar => :baz # throws exception
+attributes :foo, :bar => :baz
 ```
 
 ### Child Nodes ###
