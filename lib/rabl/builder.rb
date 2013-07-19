@@ -158,7 +158,7 @@ module Rabl
     # cache_results { compile_hash(options) }
     def cache_results(&block)
       if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
-        result_cache_key = [@_object, @options[:root_name], @options[:format]]
+        result_cache_key = [@_object, controller_name, @options[:root_name], @options[:format]]
         fetch_result_from_cache(result_cache_key, &block)
       else # skip cache
         yield

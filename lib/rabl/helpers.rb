@@ -85,6 +85,12 @@ module Rabl
       defined?(@_object_root_name) ? @_object_root_name : nil
     end
 
+    # Returns a class name of controller as a string
+    # => "Users", or "Manage::Users"
+    def controller_name
+      context_scope.controller.class.name if context_scope.respond_to?(:controller) && context_scope.controller
+    end
+
     # Returns the root for the collection
     # Sets the name of the collection i.e "people"
     #  => { "people" : [] }
