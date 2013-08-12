@@ -2,6 +2,7 @@
 
 [![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.png)](http://travis-ci.org/nesquena/rabl)
 [![Dependency Status](https://gemnasium.com/nesquena/rabl.png)](https://gemnasium.com/nesquena/rabl)
+[![Code Climate](https://codeclimate.com/github/nesquena/rabl.png)](https://codeclimate.com/github/nesquena/rabl)
 
 RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON.
 When using the ActiveRecord 'to_json' method, I find myself wanting a more expressive and powerful solution for generating APIs.
