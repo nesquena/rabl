@@ -10,13 +10,13 @@ module Rabl
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
       data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && defined?(@_object) && @_object ? @_object.__send__(data) : data
+      data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data) ? @_object.__send__(data) : data
     end
 
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
       attribute = @_object.__send__(data)
-      attribute = attribute.as_json if is_collection?(attribute) && attribute.respond_to?(:as_json)
+      attribute = attribute.as_json if is_collection?(attribute, false) && attribute.respond_to?(:as_json)
       escape_output attribute
     end
 
@@ -61,16 +61,16 @@ module Rabl
     # is_object?(@user) => true
     # is_object?([]) => false
     # is_object?({}) => false
-    def is_object?(obj)
-      obj && (!data_object(obj).respond_to?(:map) || !data_object(obj).respond_to?(:each) ||
-       (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).any?)
+    def is_object?(obj, follow_symbols = true)
+      obj && !is_collection?(obj, follow_symbols)
     end
 
     # Returns true if the obj is a collection of items
     # is_collection?(@user) => false
     # is_collection?([]) => true
-    def is_collection?(obj)
-      obj && data_object(obj).respond_to?(:map) && data_object(obj).respond_to?(:each) &&
+    def is_collection?(obj, follow_symbols = true)
+      data_obj = follow_symbols ? data_object(obj) : obj
+      data_obj && data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
         (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).empty?
     end
 
