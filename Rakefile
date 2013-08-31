@@ -17,7 +17,7 @@ end
 # rake test:setup
 # rake test:full
 
-fixture_list = "{padrino_test,sinatra_test,rails2,rails3,rails3_2}"
+fixture_list = "{padrino_test,sinatra_test,rails2,rails3,rails3_2,rails4}"
 
 desc "Clean up the fixtures being tested by cleaning and installing dependencies"
 task "test:clean" do

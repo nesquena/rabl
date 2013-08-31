@@ -1,0 +1,1 @@
+../../../../test/integration/rails4/users_controller_test.rb

@@ -40,7 +40,7 @@ if defined?(ActionView) && defined?(Rails) && Rails.version.to_s =~ /^2/
   ActionView::Template.register_template_handler :rabl, ActionView::TemplateHandlers::RablHandler
 end
 
-# Rails 3.X Template
+# Rails 3.X / 4.X Template
 if defined?(ActionView) && defined?(Rails) && Rails.version.to_s =~ /^[34]/
   module ActionView
     module Template::Handlers
