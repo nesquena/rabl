@@ -11,5 +11,4 @@ platforms :mri_18 do
   gem 'json'
 end
 
-gem 'activesupport', :require => 'active_support'
 gem 'builder'

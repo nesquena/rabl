@@ -12,13 +12,7 @@ platforms :mri_18 do
 end
 
 group :test do
-  # RABL TEST
-  if RUBY_VERSION < "1.9"
-    spec.add_dependency "activesupport", "~> 3"
-  else
-    spec.add_dependency "activesupport", "~> 4"
-  end
-  
+  # RABL TEST  
   gem 'builder'
 
   # FIXTURES
