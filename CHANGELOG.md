@@ -1,11 +1,12 @@
 # CHANGELOG
 
-## 0.9.0.pre (Sept 02 2013)
+## 0.9.0.pre2 (Sept 02 2013)
 
  * FIX #142 Better resource resolution for AR Scopes
  * Adds Rails 4 test fixture   (Thanks @siong1987)
  * Adds Rails 4 cache digestor (Thanks @siong1987)
  * Child now supports `object_root` and `root` arguments like 'collection'
+ * FIX #486 Prioritize to_hash options to allow setting root
 
 ## 0.8.6
 
