@@ -276,10 +276,9 @@ module Rabl
       if template_cache_configured? && cache_key
         if Rails.version =~ /^[4]/
           result_cache_key = cache_key_with_digest(cache_key)
-        else
-          result_cache_key = Array(cache_key) + [@_options[:root_name], @_options[:format]]
+        else # fallback for Rails 3
+          result_cache_key = cache_key_simple(cache_key)
         end
-
         fetch_result_from_cache(result_cache_key, cache_options, &block)
       else # skip caching
         yield
@@ -293,6 +292,11 @@ module Rabl
         Digestor.digest(@virtual_path, :rabl, lookup_context, dependencies: view_cache_dependencies)
       ]
     end
+    
+    def cache_key_simple(key)
+      Array(key) + [@_options[:root_name], @_options[:format]]
+    end
+    
 
   end
 end

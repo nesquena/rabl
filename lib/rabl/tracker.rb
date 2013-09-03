@@ -1,4 +1,5 @@
 module Rabl
+  # DependencyTracker for ActionView to support cache digest
   class Tracker
     # Matches:
     #   extends "categories/show"
