@@ -102,8 +102,8 @@ module Rabl
       name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
       object = data_object(data)
       include_root = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
-      object_root_name = options[:object_root] if is_name_value?(options[:object_root])
-      engine_options = @options.slice(:child_root).merge(:root => include_root, :object_root_name => object_root_name)
+      engine_options = @options.slice(:child_root).merge(:root => include_root)
+      engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
       @_result[name] = self.object_to_hash(object, engine_options, &block)
     end
