@@ -274,7 +274,7 @@ module Rabl
       _cache = @_cache if defined?(@_cache)
       cache_key, cache_options = *_cache || nil
       if template_cache_configured? && cache_key
-        result_cache_key = Array(cache_key) + [@_options[:root_name], @_options[:format]]
+        result_cache_key = Array(cache_key) + [controller_name, @_options[:root_name], @_options[:format]]
         fetch_result_from_cache(result_cache_key, cache_options, &block)
       else # skip caching
         yield
