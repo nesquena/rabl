@@ -305,6 +305,29 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"users\":[{\"city\":\"UNO\"},{\"city\":\"DOS\"}]}}"
 
+      asserts "it allows modification of object root node for child collection" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@users, :object_root => 'person') { attribute :city }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\",\"users\":[{\"person\":{\"city\":\"UNO\"}},{\"person\":{\"city\":\"DOS\"}}]}}"
+
+      asserts "it allows modification of both root labels for child collection" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@users, :root => "people", :object_root => 'item') { attribute :city }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\",\"people\":[{\"item\":{\"city\":\"UNO\"}},{\"item\":{\"city\":\"DOS\"}}]}}"
     end
 
     context "#glue" do
