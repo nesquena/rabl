@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/nesquena/rabl"
   s.summary     = %q{General ruby templating with json, bson, xml and msgpack support}
   s.description = %q{General ruby templating with json, bson, xml and msgpack support}
+  s.license     = 'MIT'
 
   s.rubyforge_project = "rabl"
 
