@@ -139,6 +139,18 @@ context "PostsController" do
     asserts("contains post attributes via node") { topic["post"] }.equals { [@post1.title, @post1.body] }
   end # show action, json
 
+  context "renderer" do
+    setup do
+      mock(ActionController::Base).perform_caching.any_number_of_times { true }
+      get "/posts/#{@post1.id}/renderer"
+      json_output['post']
+    end
+
+    # Attributes (regular)
+    asserts("contains post title") { topic['title'] }.equals { @post1.title }
+    asserts("contains post body")  { topic['body'] }.equals { @post1.body }
+  end # renderer action, json
+
   context "for index action rendering JSON within HTML" do
     setup do
       get "/posts", format: :html
