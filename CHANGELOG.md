@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.9.0.pre3 (Sept 22 2013)
+
+ * FIX #495 Digest cache when rendering from controller (Thanks @siong1987)
+
 ## 0.9.0.pre2 (Sept 02 2013)
 
  * FIX #142 Better resource resolution for AR Scopes
