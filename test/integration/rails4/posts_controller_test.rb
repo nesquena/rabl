@@ -203,7 +203,7 @@ context "PostsController" do
 
       asserts("contains cache hits per object (posts by title)") do
         json_output['articles'].map { |o| o['article']['title'] }
-      end.equals { @posts.map{ |p| cache_hit([p, nil, 'hash', 'e83f65eee5ffb454c418a59105f222c4'])[:title] } }
+      end.equals { @posts.map { |p| cache_hit([p, nil, 'hash', 'e373525f49a3b3b044af05255e84839d'])[:title] } }
     end # index action, caching, json
 
     context "for index action with caching in xml" do
