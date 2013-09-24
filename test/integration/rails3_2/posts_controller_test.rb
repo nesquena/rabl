@@ -149,6 +149,10 @@ context "PostsController" do
     # Attributes (regular)
     asserts("contains post title") { topic['title'] }.equals { @post1.title }
     asserts("contains post body")  { topic['body'] }.equals { @post1.body }
+
+    # Attributes (partial)
+    asserts("contains post partial title") { topic['partial']['title'] }.equals { @post1.title }
+    asserts("contains post partial body")  { topic['partial']['body'] }.equals { @post1.body }
   end # renderer action, json
 
   context "for index action rendering JSON within HTML" do
