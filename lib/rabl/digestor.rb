@@ -12,7 +12,7 @@ module Rabl
     private
       def dependency_digest
         template_digests = dependencies.collect do |template_name|
-          Digestor.digest(template_name, format, finder, partial: true)
+          Digestor.digest(template_name, format, finder)
         end
 
         (template_digests + injected_dependencies).join("-")
