@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.9.0.pre4 (Sept 24 2013)
+## 0.9.0 (October 14 2013)
 
 * FIX #497 Renderer should support partial caching and a digestor bug fixed (Thanks @siong1987)
 
