@@ -680,6 +680,42 @@ context "Rabl::Engine" do
       end.equals JSON.parse("{\"name\":\"leo\"}")
     end
 
+    context "#extends" do
+      helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+      setup do
+        Rabl.configure do |config|
+          config.view_paths = tmp_path
+        end
+        File.open(tmp_path + "test.json.rabl", "w") do |f|
+          f.puts %q{
+            attributes :age
+          }
+        end
+      end
+
+      asserts "that it extends the template with attributes from the file" do
+        template = rabl %{
+          object @user
+          attribute :name
+          extends 'test'
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"leo\",\"age\":12}")
+
+      asserts "that it can be passed conditionals" do
+        template = rabl %{
+          object @user
+          attribute :name
+          extends('test', {:if => lambda { |i| false }})
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"leo\"}")
+    end
+
     teardown do
       Rabl.reset_configuration!
     end

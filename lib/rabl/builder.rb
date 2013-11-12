@@ -120,6 +120,7 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
+      return unless resolve_condition(options)
       options = @options.slice(:child_root).merge(:object => @_object).merge(options)
       result = self.partial(file, options, &block)
       @_result.merge!(result) if result.is_a?(Hash)
