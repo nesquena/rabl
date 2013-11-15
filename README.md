@@ -697,5 +697,5 @@ Thanks again for all of these great projects.
 
 ## Copyright ##
 
-Copyright © 2011-2012 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
+Copyright © 2011-2013 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
 
