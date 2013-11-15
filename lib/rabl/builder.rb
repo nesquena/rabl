@@ -126,13 +126,29 @@ module Rabl
       @_result.merge!(result) if result.is_a?(Hash)
     end
 
+    def call_condition_proc(condition, object, &blk)
+      blk = lambda { |v| v } unless block_given?
+      if condition.respond_to?(:call)
+        blk.call(condition.call(object))
+      elsif condition.is_a?(Symbol) && object.respond_to?(condition)
+        blk.call(object.send(condition))
+      else
+        false
+      end
+    end
+
     # resolve_condition(:if => true) => true
     # resolve_condition(:if => lambda { |m| false }) => false
     # resolve_condition(:unless => lambda { |m| true }) => true
     def resolve_condition(options)
       return true if options[:if].nil? && options[:unless].nil?
-      result = options[:if] == true || (options[:if].respond_to?(:call) && options[:if].call(@_object)) if options.has_key?(:if)
-      result = options[:unless] == false || (options[:unless].respond_to?(:call) && !options[:unless].call(@_object)) if options.has_key?(:unless)
+      result = nil
+      if options.has_key?(:if)
+        result = options[:if] == true || call_condition_proc(options[:if], @_object)
+      end
+      if options.has_key?(:unless)
+        result = options[:unless] == false || call_condition_proc(options[:unless], @_object, &:!)
+      end
       result
     end
 
