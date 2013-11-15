@@ -206,7 +206,7 @@ module Rabl
     # Returns a guess at the default object for this template
     # default_object => @user
     def default_object
-      if context_scope.respond_to?(:controller)
+      if context_scope.respond_to?(:controller) && context_scope.controller
         controller_name = context_scope.controller.controller_name
         stripped_name = controller_name.split(%r{::|\/}).last
         ivar_object = instance_variable_get("@#{stripped_name}")
