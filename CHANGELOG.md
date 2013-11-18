@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.9.1 (November 17 2013)
+
+* NEW #507 Resolve conditionals for extends (Thanks @micahcraig)
+* NEW #453 Support for symbol conditionals (Thanks @leoc)
+
 ## 0.9.0 (October 14 2013)
 
 * FIX #497 Renderer should support partial caching and a digestor bug fixed (Thanks @siong1987)
