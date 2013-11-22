@@ -126,11 +126,14 @@ module Rabl
       @_result.merge!(result) if result.is_a?(Hash)
     end
 
+    # Evaluate conditions given a symbol to evaluate
     def call_condition_proc(condition, object, &blk)
       blk = lambda { |v| v } unless block_given?
       if condition.respond_to?(:call)
+        # condition is a block to pass to the block
         blk.call(condition.call(object))
       elsif condition.is_a?(Symbol) && object.respond_to?(condition)
+        # condition is a property of the object
         blk.call(object.send(condition))
       else
         false
@@ -147,7 +150,8 @@ module Rabl
         result = options[:if] == true || call_condition_proc(options[:if], @_object)
       end
       if options.has_key?(:unless)
-        result = options[:unless] == false || call_condition_proc(options[:unless], @_object, &:!)
+        inverse_proc = lambda { |r| !r }
+        result = options[:unless] == false || call_condition_proc(options[:unless], @_object, &inverse_proc)
       end
       result
     end
