@@ -36,7 +36,7 @@ module Rabl
         instance_eval(@_source) if @_source.present?
       end
       instance_exec(@_data_object, &block) if block_given?
-      cache_results { self.send("to_" + @_options[:format].to_s) }
+      cache_results { self.send("to_" + @_options[:format].to_s, @_options) }
     end
 
     # Returns a hash representation of the data object
