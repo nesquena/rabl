@@ -2,6 +2,13 @@ module Rabl
   class Builder
     include Rabl::Partials
 
+    SETTING_TYPES = {
+      :extends => :file,
+      :node    => :name,
+      :child   => :data,
+      :glue    => :data
+    } unless const_defined? :SETTING_TYPES
+
     # Constructs a new rabl hash based on given object and options
     # options = { :format => "json", :root => true, :child_root => true,
     #   :attributes, :node, :child, :glue, :extends }
@@ -29,44 +36,46 @@ module Rabl
     # compile_hash(:root_name => "user")
     def compile_hash(options={})
       @_result = {}
-      # Extends
-      @options[:extends].each do |settings|
-        extends(settings[:file], settings[:options], &settings[:block])
-      end if @options.has_key?(:extends)
-      # Attributes
-      @options[:attributes].each_pair do |attribute, settings|
-        attribute(attribute, settings)
-      end if @options.has_key?(:attributes)
-      # Node
-      @options[:node].each do |settings|
-        node(settings[:name], settings[:options], &settings[:block])
-      end if @options.has_key?(:node)
-      # Children
-      @options[:child].each do |settings|
-        child(settings[:data], settings[:options], &settings[:block])
-      end if @options.has_key?(:child)
-      # Glues
-      @options[:glue].each do |settings|
-        glue(settings[:data], settings[:options], &settings[:block])
-      end if @options.has_key?(:glue)
+      update_settings(:extends)
+      update_attributes
+      update_settings(:node)
+      update_settings(:child)
+      update_settings(:glue)
 
-      # Wrap result in root
-      if options[:root_name].present?
-        @_root_name = options[:root_name]
-      else # no root
-        @_root_name = nil
-      end
+      wrap_result(options[:root_name])
 
-      # Replace nil values with empty strings if configured
-      if Rabl.configuration.replace_nil_values_with_empty_strings
-        @_result = @_result.inject({}) do |hash, (k, v)|
-          hash[k] = v.nil? ? '' : v
-          hash
-        end
-      end
+      replace_nil_values if Rabl.configuration.replace_nil_values_with_empty_strings
 
       # Return Results
       @_root_name ? { @_root_name => @_result } : @_result
+    end
+
+    def replace_nil_values
+      @_result = @_result.inject({}) do |hash, (k, v)|
+        hash[k] = v.nil? ? '' : v
+        hash
+      end
+    end
+
+    def wrap_result(root_name)
+      if root_name.present?
+        @_root_name = root_name
+      else # no root
+        @_root_name = nil
+      end
+    end
+
+    def update_settings(type)
+      settings_type = SETTING_TYPES[type]
+      @options[type].each do |settings|
+        send(type, settings[settings_type], settings[:options], &settings[:block])
+      end if @options.has_key?(type)
+    end
+
+    def update_attributes
+      @options[:attributes].each_pair do |attribute, settings|
+        attribute(attribute, settings)
+      end if @options.has_key?(:attributes)
     end
 
     # Indicates an attribute or method should be included in the json output
