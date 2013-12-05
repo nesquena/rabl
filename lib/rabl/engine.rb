@@ -293,7 +293,10 @@ module Rabl
         @_options[:format],
         Digestor.digest(template, :rabl, lookup_context)
       ]
-    end
+    rescue NameError => e # Handle case where lookup_context doesn't exist
+      raise e unless e.message =~ /lookup_context/
+      cache_key_simple(cache_key)
+    end # cache_key_with_digest
 
     def cache_key_simple(key)
       Array(key) + [@_options[:root_name], @_options[:format]]
