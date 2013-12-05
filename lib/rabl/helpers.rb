@@ -49,7 +49,7 @@ module Rabl
     def determine_object_root(data_token, data_name=nil, include_root=true)
       return if object_root_name == false
       root_name = data_name.to_s if include_root
-      if is_object?(data_token)
+      if is_object?(data_token) || data_token.nil?
         root_name
       elsif is_collection?(data_token)
         object_root_name || (root_name.singularize if root_name)

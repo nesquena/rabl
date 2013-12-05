@@ -12,6 +12,28 @@ context "Rabl::Helpers" do
     @user = User.new
   end
 
+  # determine_object_root(@user, :user, true) => "user"
+  # determine_object_root(@user, :person) => "person"
+  # determine_object_root([@user, @user]) => "user"
+  # def determine_object_root(data_token, data_name=nil, include_root=true)
+  context "for determine_object_root method" do
+    asserts "returns nil if include_root is false" do
+      @helper_class.determine_object_root(@user, :user, false)
+    end.equals(nil)
+
+    asserts "returns user root name if include_root is true" do
+      @helper_class.determine_object_root(@user, :user, true)
+    end.equals("user")
+
+    asserts "returns explicit alias if specified" do
+      @helper_class.determine_object_root(@user, :person)
+    end.equals("person")
+
+    asserts "returns explicit alias if object is nil" do
+      @helper_class.determine_object_root(nil, :person)
+    end.equals("person")
+  end
+
   context "for data_name method" do
     asserts "returns nil if no data" do
       @helper_class.data_name(nil)
