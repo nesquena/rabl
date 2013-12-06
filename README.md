@@ -26,6 +26,10 @@ For a breakdown of common misconceptions about RABL, please check out our guide 
 
 ## Breaking Changes ##
 
+ * v0.9.0 (released Oct 14, 2013) changes the [default node name for certain associations](https://github.com/nesquena/rabl/issues/505)
+   especially around STI models. You might want to verify for any breakages as a result and
+   be more explicit by specifying an alias i.e `@users => :users`
+
  * v0.8.0 (released Feb 14, 2013) removes multi_json dependency and
    relies on Oj (or JSON) as the json parser. Simplifies code, removes a dependency
    but you might want to remove any references to MultiJson.
