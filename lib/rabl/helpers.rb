@@ -31,7 +31,7 @@ module Rabl
       data = data_object(data_token)
       if is_collection?(data) # data is a collection
         object_name = data.table_name if data.respond_to?(:table_name)
-        if !object_name && data.respond_to?(:first)
+        if object_name.nil? && data.respond_to?(:first)
           first = data.first
           object_name = data_name(first).to_s.pluralize if first.present?
         end
