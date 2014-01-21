@@ -143,6 +143,7 @@ Rabl.configure do |config|
   # config.view_paths = []
   # config.raise_on_missing_attribute = true # Defaults to false
   # config.replace_nil_values_with_empty_strings = true # Defaults to false
+  # config.replace_empty_string_values_with_nil = true # Defaults to false
   # config.exclude_nil_values = true # Defaults to false
 end
 ```
