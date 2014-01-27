@@ -61,7 +61,7 @@ module Rabl
 
     def replace_empty_string_values
       @_result = @_result.inject({}) do |hash, (k, v)|
-        hash[k] = v.empty? ? nil : v
+        hash[k] = v.try(:empty?) ? nil : v
         hash
       end
     end
