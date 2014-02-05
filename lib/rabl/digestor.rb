@@ -5,6 +5,8 @@ module Rabl
     def self.digest(name, format, finder, options = {})
       cache_key = [name, format] + Array.wrap(options[:dependencies])
       @@cache[cache_key.join('.')] ||= begin
+        # Prevent re-entry (and infinite loop) when digesting a recursive template.
+        @@cache[cache_key.join('.')] = ''
         Digestor.new(name, format, finder, options).digest
       end
     end
