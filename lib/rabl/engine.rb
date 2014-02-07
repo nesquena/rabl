@@ -50,7 +50,9 @@ module Rabl
       if is_object?(data) || !data # object @user
         builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        data.map { |object| builder.build(object, options) }
+        result = data.map { |object| builder.build(object, options) }
+        result = result.map(&:presence).compact if Rabl.configuration.exclude_empty_values_in_collections
+        result
       end
     end
 
