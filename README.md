@@ -144,10 +144,11 @@ Rabl.configure do |config|
   # config.raise_on_missing_attribute = true # Defaults to false
   # config.replace_nil_values_with_empty_strings = true # Defaults to false
   # config.exclude_nil_values = true # Defaults to false
+  # config.exclude_empty_values_in_collections = true # Defaults to false
 end
 ```
 
-Each option specifies behavior related to RABL's output. 
+Each option specifies behavior related to RABL's output.
 
 If `include_json_root` is disabled that removes the root node for each root object in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
 output if the incoming request has a 'callback' parameter.
@@ -182,6 +183,8 @@ production code is not recommended.
 If `replace_nil_values_with_empty_strings` is set to `true`, all values that are `nil` and would normally be displayed as `null` in the response are converted to empty strings.
 
 If `exclude_nil_values` is set to `true`, all values that are `nil` and would normally be displayed as `null` in the response are not included in the response.
+
+if `exclude_empty_values_in_collections` is set to `true`, all vaules in a collection that are `{}` and would normally be displayed as `{}` in the response are not included in the response.
 
 If you wish to use [oj](https://github.com/ohler55/oj) as
 the primary JSON encoding engine simply add that to your Gemfile:
