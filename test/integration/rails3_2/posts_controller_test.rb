@@ -81,6 +81,10 @@ context "PostsController" do
       asserts("contains post title") do
         json_output['articles'].first['article']
       end.includes("title_v1")
+
+      asserts("contains post user child username") do
+        json_output['articles'].first['article']["user"]
+      end.includes("username_v1")
     end
   end
 
