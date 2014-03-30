@@ -288,10 +288,17 @@ module Rabl
 
     def cache_key_with_digest(cache_key)
       template = @_options[:template] || @virtual_path
+
+      if Rails.version.to_s >= '4.1'
+        digested =  Digestor.digest(name: template, finder: lookup_context)
+      else
+        digested = Digestor.digest(template, :rabl, lookup_context)
+      end
+
       Array(cache_key) + [
         @_options[:root_name],
         @_options[:format],
-        Digestor.digest(template, :rabl, lookup_context)
+        digested
       ]
     rescue NameError => e # Handle case where lookup_context doesn't exist
       raise e unless e.message =~ /lookup_context/
