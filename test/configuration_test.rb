@@ -16,6 +16,7 @@ context 'Rabl::Configuration' do
     asserts(:replace_nil_values_with_empty_strings).equals false
     asserts(:replace_empty_string_values_with_nil_values).equals false
     asserts(:exclude_nil_values).equals false
+    asserts(:exclude_empty_values_in_collections).equals false
   end
 
   context 'custom JSON engine configured as Symbol' do
@@ -77,4 +78,14 @@ context 'Rabl::Configuration' do
 
     asserts(:exclude_nil_values).equals true
   end # exclude nil values
+
+  context 'exclude empty values in collections' do
+    setup do
+      Rabl.configure do |c|
+        c.exclude_empty_values_in_collections = true
+      end
+    end
+
+    asserts(:exclude_empty_values_in_collections).equals true
+  end # exclude empty values in collections
 end
