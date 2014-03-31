@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.9.4.pre1 (March 30th)
+
+* NEW #527 Add configuration excluding empty values in collections (@addbrick)
+* FIX #516 Set default root_object lazily (@DouweM)
+* FIX #540 Fix cache digest in Rails 4.1 (@huoxito)
+* FIX #534 Bug with management of empty string values (@nickkov89)
+* FIX #519 JSON in README (@shirish4you)
+* NEW #514 Add configuration to exclude nil values (@oharsta)
+
 ## 0.9.3 (December 5th)
 
 * FIX Send engine options through from render call (Thanks @bhicks)
