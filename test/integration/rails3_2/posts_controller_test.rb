@@ -72,7 +72,22 @@ context "PostsController" do
     denies("contains no created_by_admin node for non-admins") do
       json_output['articles'].first['article']
     end.includes(:created_by_admin)
-  end # index action, json
+
+    context "mime types" do
+      setup do
+        get "/posts", format: :rabl_test_v1
+      end
+
+      asserts("contains post title") do
+        json_output['articles'].first['article']
+      end.includes("title_v1")
+
+      asserts("contains post user child username") do
+        json_output['articles'].first['article']["user"]
+      end.includes("username_v1")
+    end
+  end
+
 
   context "escaping output in index action" do
     context "for first post" do
