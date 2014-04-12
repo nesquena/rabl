@@ -21,17 +21,7 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
       reset_options!
-      @_locals, @_scope = locals, scope
-      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
-      locals.merge!(locals.delete(:locals) || {})
-      locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
-      @_options[:scope] = @_scope
-      @_options[:format] ||= self.request_format
-      if @_options[:source_location]
-        instance_eval(@_source, @_options[:source_location]) if @_source.present?
-      else # without source location
-        instance_eval(@_source) if @_source.present?
-      end
+      set_instance_variables!(scope, locals, &block)
       instance_exec(root_object, &block) if block_given?
       cache_results { self.send("to_" + @_options[:format].to_s, @_options) }
     end
@@ -318,6 +308,21 @@ module Rabl
 
     def cache_key_simple(key)
       Array(key) + [@_options[:root_name], @_options[:format]]
+    end
+
+    def set_instance_variables!(scope, locals, &block)
+      @_locals, @_scope = locals, scope
+      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      @_options[:scope] = @_scope
+      @_options[:format] ||= self.request_format
+
+      locals.merge!(locals.delete(:locals) || {})
+      locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
+      if @_options[:source_location]
+        instance_eval(@_source, @_options[:source_location]) if @_source.present?
+      else # without source location
+        instance_eval(@_source) if @_source.present?
+      end
     end
   end
 end
