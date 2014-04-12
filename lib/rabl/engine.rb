@@ -315,9 +315,16 @@ module Rabl
     def set_instance_variables!(scope, locals, &block)
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      set_locals(locals)
+      set_source(&block)
+    end
 
+    def set_locals(locals)
       locals.merge!(locals.delete(:locals) || {})
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
+    end
+
+    def set_source(&block)
       if @_options[:source_location]
         instance_eval(@_source, @_options[:source_location]) if @_source.present?
       else # without source location
