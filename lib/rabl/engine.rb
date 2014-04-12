@@ -20,7 +20,7 @@ module Rabl
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
-      reset_options!
+      reset_options!(scope)
       set_instance_variables!(scope, locals, &block)
       instance_exec(root_object, &block) if block_given?
       cache_results { self.send("to_" + @_options[:format].to_s, @_options) }
@@ -261,13 +261,15 @@ module Rabl
     private
 
     # Resets the options parsed from a rabl template.
-    def reset_options!
+    def reset_options!(scope)
       @_options[:attributes] = {}
       @_options[:node] = []
       @_options[:child] = []
       @_options[:glue] = []
       @_options[:extends] = []
       @_options[:root_name]  = nil
+      @_options[:scope] = scope
+      @_options[:format] ||= self.request_format
     end
 
     # Caches the results of the block based on object cache_key
@@ -313,8 +315,6 @@ module Rabl
     def set_instance_variables!(scope, locals, &block)
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
-      @_options[:scope] = @_scope
-      @_options[:format] ||= self.request_format
 
       locals.merge!(locals.delete(:locals) || {})
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
