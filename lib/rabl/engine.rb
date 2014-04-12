@@ -325,10 +325,12 @@ module Rabl
     end
 
     def set_source(&block)
+      return unless @_source.present?
+
       if @_options[:source_location]
-        instance_eval(@_source, @_options[:source_location]) if @_source.present?
+        instance_eval(@_source, @_options[:source_location])
       else # without source location
-        instance_eval(@_source) if @_source.present?
+        instance_eval(@_source)
       end
     end
   end
