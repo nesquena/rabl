@@ -20,18 +20,8 @@ module Rabl
     # Renders the representation based on source, object, scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
     def render(scope, locals, &block)
-      reset_options!
-      @_locals, @_scope = locals, scope
-      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
-      locals.merge!(locals.delete(:locals) || {})
-      locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
-      @_options[:scope] = @_scope
-      @_options[:format] ||= self.request_format
-      if @_options[:source_location]
-        instance_eval(@_source, @_options[:source_location]) if @_source.present?
-      else # without source location
-        instance_eval(@_source) if @_source.present?
-      end
+      reset_options!(scope)
+      set_instance_variables!(scope, locals, &block)
       instance_exec(root_object, &block) if block_given?
       cache_results { self.send("to_" + @_options[:format].to_s, @_options) }
     end
@@ -271,13 +261,15 @@ module Rabl
     private
 
     # Resets the options parsed from a rabl template.
-    def reset_options!
+    def reset_options!(scope)
       @_options[:attributes] = {}
       @_options[:node] = []
       @_options[:child] = []
       @_options[:glue] = []
       @_options[:extends] = []
       @_options[:root_name]  = nil
+      @_options[:scope] = scope
+      @_options[:format] ||= self.request_format
     end
 
     # Caches the results of the block based on object cache_key
@@ -318,6 +310,28 @@ module Rabl
 
     def cache_key_simple(key)
       Array(key) + [@_options[:root_name], @_options[:format]]
+    end
+
+    def set_instance_variables!(scope, locals, &block)
+      @_locals, @_scope = locals, scope
+      self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      set_locals(locals)
+      set_source(&block)
+    end
+
+    def set_locals(locals)
+      locals.merge!(locals.delete(:locals) || {})
+      locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
+    end
+
+    def set_source(&block)
+      return unless @_source.present?
+
+      if @_options[:source_location]
+        instance_eval(@_source, @_options[:source_location])
+      else # without source location
+        instance_eval(@_source)
+      end
     end
   end
 end
