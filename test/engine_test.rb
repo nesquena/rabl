@@ -708,6 +708,7 @@ context "Rabl::Engine" do
         File.open(tmp_path + "test.json.rabl", "w") do |f|
           f.puts %q{
             attributes :age
+            node(:city) { "Gotham" } if locals[:show_city]
           }
         end
       end
@@ -722,6 +723,17 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"name\":\"leo\",\"age\":12}")
+
+      asserts "that it can be passed locals" do
+        template = rabl %{
+          object @user
+          attribute :name
+          extends 'test', :locals => { :show_city => true }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"leo\",\"age\":12,\"city\":\"Gotham\"}")
 
       asserts "that it can be passed conditionals" do
         template = rabl %{
