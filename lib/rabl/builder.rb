@@ -99,7 +99,9 @@ module Rabl
     # attribute :foo, :as => "bar", :if => lambda { |m| m.foo }
     def attribute(name, options={})
       if @_object && attribute_present?(name) && resolve_condition(options)
-        @_result[options[:as] || name] = data_object_attribute(name)
+        attribute = data_object_attribute(name)
+        name = (options[:as] || name).to_sym
+        @_result[name] = attribute
       end
     end
     alias_method :attributes, :attribute
@@ -111,7 +113,7 @@ module Rabl
       return unless resolve_condition(options)
       result = block.call(@_object)
       if name.present?
-        @_result[name] = result
+        @_result[name.to_sym] = result
       elsif result.respond_to?(:each_pair) # merge hash into root hash
         @_result.merge!(result)
       end
@@ -130,7 +132,7 @@ module Rabl
       engine_options = @options.slice(:child_root).merge(:root => include_root)
       engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
-      @_result[name] = self.object_to_hash(object, engine_options, &block)
+      @_result[name.to_sym] = self.object_to_hash(object, engine_options, &block)
     end
 
     # Glues data from a child node to the json_output
