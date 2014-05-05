@@ -302,7 +302,7 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"users\":[{\"user\":{\"city\":\"UNO\"}},{\"user\":{\"city\":\"DOS\"}}]}}"
 
-      asserts "child chooses name based on symbol if no elements" do
+      asserts "that it chooses a name based on symbol if no elements" do
         template = rabl %{
           object @bar => :bar
           child(:foos) { attribute :city }
@@ -313,6 +313,18 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@bar, bar
         template.render(scope)
       end.equals "{\"bar\":{\"foos\":[]}}"
+
+      asserts "that it chooses a name based on symbol if nil" do
+        template = rabl %{
+          object @bar => :bar
+          child(:foos) { attribute :city }
+        }
+        scope = Object.new
+        bar = Object.new
+        stub(bar).foos { nil }
+        scope.instance_variable_set :@bar, bar
+        template.render(scope)
+      end.equals "{\"bar\":{\"foos\":null}}"
 
       asserts "it allows suppression of root node for child collection" do
         template = rabl %{
