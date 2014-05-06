@@ -46,11 +46,17 @@ context "Rabl::Builder" do
     context "when nil values are replaced with empty strings" do
       setup do
         Rabl.configuration.replace_nil_values_with_empty_strings = true
-        builder({ :attributes => { :name => {} }, :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => nil } } }] })
+        builder({ :attributes => { :name => {} }, :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => u.twitter } } }] })
       end
+
       asserts "that an empty string is returned as the value" do
-        topic.build(User.new(:name => nil))
+        topic.build(User.new(:name => nil, :twitter => nil))
       end.equivalent_to({ :name => '', :extra => { :twitter => '' } })
+
+      asserts "that it handles existing non nil values correctly" do
+        topic.build(User.new(:name => 10, :twitter => 'twitter'))
+      end.equivalent_to({ :name => 10, :extra => { :twitter => 'twitter' } })
+
       teardown do
         Rabl.configuration.replace_nil_values_with_empty_strings = false
       end
@@ -59,20 +65,20 @@ context "Rabl::Builder" do
     context "when empty string values are replaced with nil values" do
       setup do
         Rabl.configuration.replace_empty_string_values_with_nil_values = true
-        builder({ :attributes => { :name => {} } })
+        builder({ :attributes => { :name => {} }, :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => u.twitter } } }] })
       end
 
       asserts "that nil is returned as the value" do
-        topic.build(User.new(:name => ""))
-      end.equivalent_to({ :name => nil })
+        topic.build(User.new(:name => "", :twitter => ''))
+      end.equivalent_to({ :name => nil, :extra => { :twitter => nil } })
 
       asserts "that it handles existing nil values correctly" do
-        topic.build(User.new(:name => nil))
-      end.equivalent_to({ :name => nil })
+        topic.build(User.new(:name => nil, :twitter => nil))
+      end.equivalent_to({ :name => nil, :extra => { :twitter => nil } })
 
       asserts "that it handles existing non nil values correctly" do
-        topic.build(User.new(:name => 10))
-      end.equivalent_to({ :name => 10 })
+        topic.build(User.new(:name => 10, :twitter => 'twitter'))
+      end.equivalent_to({ :name => 10, :extra => { :twitter => 'twitter' } })
 
       teardown do
         Rabl.configuration.replace_empty_string_values_with_nil_values = false
