@@ -53,9 +53,17 @@ module Rabl
     end
 
     def replace_nil_values
-      @_result = @_result.inject({}) do |hash, (k, v)|
-        hash[k] = v.nil? ? '' : v
-        hash
+      @_result = deep_replace_nil_values(@_result)
+    end
+
+    def deep_replace_nil_values(hash)
+      hash.inject({}) do |hsh, (k, v)|
+        hsh[k] = if v.is_a?(Hash)
+          deep_replace_nil_values(v)
+        else
+          v.nil? ? '' : v
+        end
+        hsh
       end
     end
 

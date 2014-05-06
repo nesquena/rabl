@@ -46,11 +46,11 @@ context "Rabl::Builder" do
     context "when nil values are replaced with empty strings" do
       setup do
         Rabl.configuration.replace_nil_values_with_empty_strings = true
-        builder({ :attributes => { :name => {} } })
+        builder({ :attributes => { :name => {} }, :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => nil } } }] })
       end
       asserts "that an empty string is returned as the value" do
         topic.build(User.new(:name => nil))
-      end.equivalent_to({ :name => "" })
+      end.equivalent_to({ :name => '', :extra => { :twitter => '' } })
       teardown do
         Rabl.configuration.replace_nil_values_with_empty_strings = false
       end
