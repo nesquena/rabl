@@ -108,6 +108,26 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":{}}"
 
+      asserts "that it can set false root node" do
+        template = rabl %q{
+          object @user => false
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        template.render(scope)
+      end.equals "{}"
+
+      asserts "that it can set false root node and correctly render object without root node" do
+        template = rabl %q{
+          object @user => false
+          attribute :name
+        }
+        user = User.new(:name => "John Doe")
+        scope = Object.new
+        scope.instance_variable_set :@user, user
+        template.render(scope)
+      end.equals "{\"name\":\"John Doe\"}"
+
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
           object @other
