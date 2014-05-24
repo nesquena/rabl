@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.10.0 (May 24th)
+
+* Fix typo in readme about new options (@PikachuEXE)
+* Use the request format for source lookup (@omgitsads)
+* Simplify rendering methods with refactor (@bhicks)
+* Reset format and scope options for each request (@bhicks)
+* Convert keys to ensure uniqueness (@swalkinshaw)
+* Add fallback for child name if its nil (@swalkinshaw)
+* Apply replace_xxx_values recursively within nested values (@igas)
+
 ## 0.9.4.pre1 (March 30th)
 
 * NEW #527 Add configuration excluding empty values in collections (@addbrick)
