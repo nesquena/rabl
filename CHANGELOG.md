@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.10.1 (May 28th)
+
+* Fix nasty formatting bug that broke XML (@bhicks)
+
 ## 0.10.0 (May 24th)
 
 * Fix typo in readme about new options (@PikachuEXE)
