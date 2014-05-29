@@ -221,19 +221,18 @@ context "PostsController" do
       end.equals { @posts.map{ |p| cache_hit([p, nil, 'hash'])[:title] } }
     end # index action, caching, json
 
-    # TODO make this work again
-    # context "for index action with caching in xml" do
-    #   setup do
-    #     get "/posts", format: :xml
-    #   end
+    context "for index action with caching in xml" do
+      setup do
+        get "/posts", format: :xml
+      end
 
-    #   asserts("contains post titles") do
-    #     doc = REXML::Document.new topic.body
-    #     doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
-    #   end.equals { @posts.map(&:title) }
+      asserts("contains post titles") do
+        doc = REXML::Document.new topic.body
+        doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
+      end.equals { @posts.map(&:title) }
 
-    #   asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'xml'] }
-    # end # index action, caching, xml
+      asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'xml'] }
+    end # index action, caching, xml
 
     context "for show action with caching" do
       setup do
