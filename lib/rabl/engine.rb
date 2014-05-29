@@ -269,7 +269,6 @@ module Rabl
       @_options[:extends] = []
       @_options[:root_name]  = nil
       @_options[:scope] = scope
-      @_options[:format] ||= self.request_format
     end
 
     # Caches the results of the block based on object cache_key
@@ -315,6 +314,7 @@ module Rabl
     def set_instance_variables!(scope, locals, &block)
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      @_options[:format] ||= self.request_format
       set_locals(locals)
       set_source(locals, &block)
     end

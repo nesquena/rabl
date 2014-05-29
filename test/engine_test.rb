@@ -23,6 +23,30 @@ context "Rabl::Engine" do
     asserts_topic.assigns :_view_path
   end
 
+  context "#request_format" do
+    context "is json by default" do
+      setup do
+        template = RablTemplate.new("code") { "" }
+        template.render(Object.new)
+        engine = template.instance_eval('@engine')
+        engine.instance_eval('@_options')[:format]
+      end
+
+      asserts_topic.equals('json')
+    end
+
+    context "with a specified format" do
+      setup do
+        template = RablTemplate.new("code", format: 'xml') { "" }
+        template.render(Object.new)
+        engine = template.instance_eval('@engine')
+        engine.instance_eval('@_options')[:format]
+      end
+
+      asserts_topic.equals('xml')
+    end
+  end
+
   context "#cache" do
     context "with cache" do
       setup do
