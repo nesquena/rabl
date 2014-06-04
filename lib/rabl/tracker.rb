@@ -6,7 +6,7 @@ module Rabl
     EXTENDS_DEPENDENCY = /
       extends\s*              # extends, followed by optional whitespace
       \(?                     # start an optional parenthesis for the extends call
-      \s*["']([a-z_\/\.]+)    # the template name itself
+      \s*["']([0-9a-z_\/\.]+) # the template name itself
     /x
 
     # Matches:
@@ -14,7 +14,7 @@ module Rabl
     PARTIAL_DEPENDENCY = /
       partial\s*              # partial, followed by optional whitespace
       \(?                     # start an optional parenthesis for the partial call
-      \s*["']([a-z_\/\.]+)    # the template name itself
+      \s*["']([0-9a-z_\/\.]+) # the template name itself
     /x
 
     def self.call(name, template)
