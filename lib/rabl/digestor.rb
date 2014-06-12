@@ -20,7 +20,7 @@ module Rabl
 
     private
       def dependency_digest
-        template_digests = dependencies.collect do |template_name|
+        template_digests = (dependencies - [template.virtual_path]).collect do |template_name|
           if Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
             Digestor.digest(:name => template_name, :finder => finder)
           else
