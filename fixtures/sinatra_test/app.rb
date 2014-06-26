@@ -16,6 +16,9 @@ Dir[File.dirname(__FILE__) + "/models/*.rb"].each do |file|
 end
 
 # Register RABL
+Rabl.configure do |config|
+  config.perform_caching = true
+end
 Rabl.register!
 
 class SinatraTest < Sinatra::Application
