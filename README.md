@@ -171,7 +171,6 @@ Additionally, anything within child, glue and partial will also be cached separa
 To cache just a single template, see the section titled 'Caching' below.
 
 If `escape_all_output` is set to `true` and ActiveSupport is available, attribute output will be escaped using [ERB::Util.html_escape](http://corelib.rubyonrails.org/classes/ERB/Util.html).
-Custom nodes will not be escaped, use `ERB::Util.h(value)`.
 
 If `view_paths` is set to a path, this view path will be checked for every rabl template within your application.
 Add to this path especially when including Rabl in an engine and using view paths within a another Rails app.
