@@ -1,6 +1,7 @@
 module Rabl
   class Engine
     include Rabl::Partials
+    include Rabl::Helpers::Escaper
 
     # List of supported rendering formats
     FORMATS = [:json, :xml, :plist, :bson, :msgpack]
@@ -35,12 +36,12 @@ module Rabl
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
       if is_object?(data) || !data # object @user
-        builder.build(data, options)
+        result = builder.build(data, options)
       elsif is_collection?(data) # collection @users
         result = data.map { |object| builder.build(object, options) }
         result = result.map(&:presence).compact if Rabl.configuration.exclude_empty_values_in_collections
-        result
       end
+      Rabl.configuration.escape_all_output ? escape_output(result) : result
     end
 
     # Returns a json representation of the data object
