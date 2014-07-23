@@ -85,6 +85,11 @@ context "Rabl::Helpers" do
       @helper_class.is_object?(obj.new('foo'))
     end.equals(true)
 
+    asserts "returns true for a Hashie::Mash" do
+      obj = Hashie::Mash.new({:name => 'hello'})
+      @helper_class.is_object?(obj)
+    end.equals(true)
+
     asserts "returns false for an array" do
       @helper_class.is_object?([@user])
     end.equals(false)
@@ -116,5 +121,10 @@ context "Rabl::Helpers" do
     asserts "returns true for an array" do
       @helper_class.is_collection?([@user])
     end.equals(true)
+
+    asserts "returns true for an array" do
+      obj = Hashie::Mash.new({:name => 'hello'})
+      @helper_class.is_collection?(obj)
+    end.equals(false)
   end # is_collection method
 end

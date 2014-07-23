@@ -18,6 +18,7 @@ silence_warnings do
   require 'riot/rr'
   require 'tilt'
   require 'rabl'
+  require 'hashie'
   require File.expand_path('../models/user', __FILE__)
 end
 
