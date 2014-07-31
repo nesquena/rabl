@@ -110,6 +110,10 @@ module Rabl
       current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
       @_data_object = data_object(current_data)
       @_data_name   = data_name(template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data)
+      if @_data_name == false
+        @_object_root_name = false
+        @_collection_name = false
+      end
     end
 
     # Returns the current object that is the topic of this template
