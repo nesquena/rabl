@@ -3,7 +3,7 @@ require 'active_support/inflector' # for the sake of pluralizing
 module Rabl
   module Helpers
     # Set of class names known to be objects, not collections
-    KNOWN_OBJECT_CLASSES = ['Struct']
+    KNOWN_OBJECT_CLASSES = ['Struct', 'Hashie::Mash']
 
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
