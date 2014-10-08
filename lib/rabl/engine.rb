@@ -332,7 +332,7 @@ module Rabl
     def cache_key_with_digest(cache_key)
       template = @_options[:template] || @virtual_path
 
-      if Rails.version.to_s >= '4.1'
+      if Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
         digested =  Digestor.digest(:name => template, :finder => lookup_context)
       else
         digested = Digestor.digest(template, :rabl, lookup_context)
