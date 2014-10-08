@@ -115,6 +115,20 @@ context "Rabl::Builder" do
         end.raises(RuntimeError)
       end
     end
+
+    context "that with a string key" do
+      setup { builder({ :attributes => { "name" => {} } }) }
+      asserts "the node name is converted to a symbol" do
+        topic.build(User.new, :name => "user")
+      end.equivalent_to({ :name => "rabl" })
+    end
+
+    context "that with the same node names as strings and symbols" do
+      setup { builder({ :attributes => { "name" => {}, :name => {} } }) }
+      asserts "the nodes aren't duplicated" do
+        topic.build(User.new, :name => "user")
+      end.equivalent_to({ :name => "rabl" })
+    end
   end
 
   context "#node" do
@@ -128,6 +142,17 @@ context "Rabl::Builder" do
         { :name => :baz, :options => {}, :block => lambda { |u| u.city } }
       ]
     end.equivalent_to({:foo => 'bar', :baz => 'irvine'})
+
+    asserts "that it converts the node name to a symbol" do
+      build_hash @user, :node => [{ :name => "foo", :options => {}, :block => lambda { |u| "bar" } }]
+    end.equivalent_to({:foo => 'bar'})
+
+    asserts "that the same node names as a string and symbol aren't duplicated" do
+      build_hash @user, :node => [
+        { :name => "foo", :options => {}, :block => lambda { |u| "bar" } },
+        { :name => :foo, :options => {}, :block => lambda { |u| "bar" } }
+      ]
+    end.equivalent_to({:foo => 'bar'})
   end
 
   context "#child" do
@@ -178,6 +203,19 @@ context "Rabl::Builder" do
       mock(b).object_to_hash(@users, { :root => "person", :object_root_name => "person", :child_root => true }).returns('xyz').subject
       b.build(@user)
     end.equivalent_to({ :people => 'xyz'})
+
+    asserts "that it converts the child name to a symbol" do
+      b = builder(:child => [ { :data => { @user => "user" }, :options => { }, :block => lambda { |u| attribute :name } } ])
+      b.build(@user)
+    end.equivalent_to({ :user => { :name => "rabl" } })
+
+    asserts "that it does't duplicate childs with the same name as a string and symbol" do
+      b = builder(:child => [
+        { :data => { @user => "user" }, :options => { }, :block => lambda { |u| attribute :name } },
+        { :data => { @user => :user }, :options => { }, :block => lambda { |u| attribute :name } }
+      ])
+      b.build(@user)
+    end.equivalent_to({ :user => { :name => "rabl" } })
   end
 
   context "#glue" do
