@@ -13,6 +13,7 @@ context 'Rabl::Configuration' do
     asserts(:view_paths).equals []
     asserts(:json_engine).equals { json_engine }
     asserts(:cache_engine).is_a?(Rabl::CacheEngine)
+    asserts(:replace_nil_values_with_empty_strings).equals false
   end
 
   context 'custom JSON engine configured as Symbol' do
@@ -44,4 +45,14 @@ context 'Rabl::Configuration' do
 
     asserts(:raise_on_missing_attribute).equals true
   end # raise on missing
+
+  context 'replace nil values with empty strings' do
+    setup do
+      Rabl.configure do |c|
+        c.replace_nil_values_with_empty_strings = true
+      end
+    end
+
+    asserts(:replace_nil_values_with_empty_strings).equals true
+  end # replace nil values with empty strings
 end
