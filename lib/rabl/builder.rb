@@ -53,7 +53,7 @@ module Rabl
       end if @options.has_key?(:child)
       # Glues
       @options[:glue].each do |settings|
-        glue(settings[:data], &settings[:block])
+        glue(settings[:data], settings[:options], &settings[:block])
       end if @options.has_key?(:glue)
     end
 
@@ -156,8 +156,8 @@ module Rabl
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
-    def glue(data, &block)
-      return false unless data.present?
+    def glue(data, options={}, &block)
+      return false unless data.present? && resolve_condition(options)
       object = data_object(data)
       @_engines << self.object_to_engine(object, :root => false, &block)
     end

@@ -627,6 +627,17 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"name\":\"leo\",\"city\":\"LA\",\"age\":12}")
+
+      asserts "that it can be passed conditionals" do
+        template = rabl %{
+          object @user
+          attribute :name
+          glue(@user, {:if => lambda { |i| false }}) { attribute :age  }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"leo\"}")
     end
 
     teardown do
