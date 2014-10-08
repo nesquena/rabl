@@ -29,9 +29,12 @@ module Rabl
       return unless data_token # nil or false
       return data_token.values.first if data_token.is_a?(Hash) # @user => :user
       data = data_object(data_token)
-      if is_collection?(data) && data.respond_to?(:first) # data is a collection
+      if is_collection?(data) # data is a collection
         object_name = data.table_name if data.respond_to?(:table_name)
-        object_name ||= data_name(data.first).to_s.pluralize if data.first.present?
+        if !object_name && data.respond_to?(:first)
+          first = data.first
+          object_name = data_name(first).to_s.pluralize if first.present?
+        end
         object_name ||= data_token if data_token.is_a?(Symbol)
         object_name
       elsif is_object?(data) # data is an object
