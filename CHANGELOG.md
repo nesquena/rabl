@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.9.3.pre1 (December 5th)
+
+* FIX Send engine options through from render call (Thanks @bhicks)
+* FIX Cleanup compile_hash method through refactoring complexity (Thanks @bhicks)
+* FIX #503 handling render case with no lookup_context in Rails 4
+* FIX #502 fix regression in render when object is nil with explicit root name
+
 ## 0.9.2 (November 21 2013)
 
 * FIX #508 by avoiding new proc syntax breaking 1.8.7
