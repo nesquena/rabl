@@ -135,6 +135,13 @@ context "Rabl::Builder" do
       mock(b).object_to_engine(@users, { :root => false, :child_root => false }).returns(e).subject
       b.build(@user)
     end.equivalent_to({ :users => 'xyz'})
+
+    asserts "that it generates with an collection and a specified object_root_name and root" do
+      ops = { :object_root => "person", :root => :people }
+      b = builder :child => [{ :data => @users, :options => ops, :block => lambda { |u| attribute :name } }], :child_root => true
+      mock(b).object_to_hash(@users, { :root => "person", :object_root_name => "person", :child_root => true }).returns('xyz').subject
+      b.build(@user)
+    end.equivalent_to({ :people => 'xyz'})
   end
 
   context "#glue" do

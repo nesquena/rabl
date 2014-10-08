@@ -329,7 +329,7 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"users\":[{\"person\":{\"city\":\"UNO\"}},{\"person\":{\"city\":\"DOS\"}}]}}"
 
-      asserts "it allows modification of both root labels for child collection" do
+      asserts "it allows modification of both labels for a child collection" do
         template = rabl %{
           object @user
           attribute :name
