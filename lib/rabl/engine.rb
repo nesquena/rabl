@@ -44,7 +44,7 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user }).render
     def render(scope = nil, locals = nil, &block)
       apply(scope, locals) if scope || locals
-      cache_results { self.send("to_#{@_options[:format]}") }
+      cache_results { self.send("to_#{@_options[:format]}", @_options) }
     end
 
     # Returns the cache key of the engine
