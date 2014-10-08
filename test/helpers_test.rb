@@ -32,6 +32,12 @@ context "Rabl::Helpers" do
     asserts "returns name of an object" do
       @helper_class.data_name(@user)
     end.equals('user')
+
+    asserts "returns table_name of collection if responds" do
+      @coll = [@user, @user]
+      mock(@coll).table_name { "people" }
+      @helper_class.data_name(@coll)
+    end.equals('people')
   end # data_name method
 
   context "for is_object method" do

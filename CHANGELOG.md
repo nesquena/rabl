@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.7 (Unreleased)
+
+ * FIX #142 Better resource resolution for AR Scopes
+
 ## 0.8.6
 
  * FIX #142 #467 Do not use a collection as the default object. (Thanks @mrbrdo)
