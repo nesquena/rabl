@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.9.0 (Unreleased)
+## 0.9.0.pre (Sept 02 2013)
 
  * FIX #142 Better resource resolution for AR Scopes
  * Adds Rails 4 test fixture   (Thanks @siong1987)
