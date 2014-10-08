@@ -167,6 +167,7 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show") { attribute :full_name }
     def extends(file, options={}, &block)
+      return unless resolve_condition(options)
       options = @options.slice(:child_root).merge(:object => @_object).merge(options)
       @_engines << self.partial_as_engine(file, options, &block)
     end
