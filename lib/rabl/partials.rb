@@ -37,7 +37,7 @@ module Rabl
     def fetch_source(file, options={})
       view_paths = Array(options[:view_path]) + Array(Rabl.configuration.view_paths)
       Rabl.source_cache(file, view_paths) do
-        file_path = if defined?(Padrino) && context_scope.respond_to?(:settings)
+        file_path = if defined?(Padrino) && context_scope.respond_to?(:settings) && context_scope.respond_to?(:resolve_template)
           fetch_padrino_source(file, options)
         elsif defined?(Rails) && context_scope.respond_to?(:view_paths)
           _view_paths = view_paths + Array(context_scope.view_paths.to_a)
