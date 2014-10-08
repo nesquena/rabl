@@ -303,7 +303,12 @@ module Rabl
       _cache = @_cache if defined?(@_cache)
       cache_key, cache_options = *_cache || nil
       if template_cache_configured? && cache_key
-        result_cache_key = Array(cache_key) + [@_options[:root_name], @_options[:format]]
+        if Rails.version =~ /^[4]/
+          result_cache_key = cache_key_with_digest(cache_key)
+        else
+          result_cache_key = Array(cache_key) + [@_options[:root_name], @_options[:format]]
+        end
+
         if self.cache_read_on_render
           fetch_result_from_cache(result_cache_key, cache_options, &block)
         else
@@ -321,5 +326,12 @@ module Rabl
       builder.to_a
     end
 
+    def cache_key_with_digest(cache_key)
+      Array(cache_key) + [
+        @_options[:root_name],
+        @_options[:format],
+        Digestor.digest(@virtual_path, :rabl, lookup_context, dependencies: view_cache_dependencies)
+      ]
+    end
   end
 end
