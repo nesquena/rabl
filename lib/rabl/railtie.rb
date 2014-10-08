@@ -4,6 +4,12 @@ module Rabl
     initializer "rabl.initialize" do |app|
       ActiveSupport.on_load(:action_view) do
         Rabl.register!
+
+        # Inject dependency tracker for :rabl
+        if Rails.version =~ /^[4]/
+          require 'action_view/dependency_tracker'
+          ActionView::DependencyTracker.register_tracker :rabl, Rabl::Tracker
+        end
       end
     end
 
