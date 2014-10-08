@@ -370,8 +370,8 @@ context "Rabl::Renderer" do
       end
 
       user = User.new(:name => 'ivan')
-      Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path)
-    end.equals "\x81\xA4user\x83\xA3age\x18\xA4name\xA4ivan\xA5float\xCB@\x93J=p\xA3\xD7\n"
+      char_split Rabl::Renderer.msgpack(user, 'test', :view_path => tmp_path)
+    end.equals char_split("\x81\xA4user\x83\xA3age\x18\xA4name\xA4ivan\xA5float\xCB@\x93J=p\xA3\xD7\n")
   end
 
   context '.plist' do

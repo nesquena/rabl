@@ -24,9 +24,13 @@ end
 Riot.pretty_dots
 
 class Riot::Situation
-  # Custom situation code here
+  def char_split(str)
+    str.force_encoding("iso-8859-1").split("").sort
+  end
 end
 
 class Riot::Context
-  # Custom context code here
+  def char_split(str)
+    str.force_encoding("iso-8859-1").split("").sort
+  end
 end
