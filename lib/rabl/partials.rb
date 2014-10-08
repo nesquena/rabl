@@ -48,6 +48,11 @@ module Rabl
           fetch_manual_template(view_paths, file)
         end
 
+        # being used by cache digestor
+        if defined?(Rails) && Rails.version =~ /^[4]/
+          @_virtual_path = file_path.gsub('app/views/', '').gsub('.rabl', '')
+        end
+
         unless File.exist?(file_path.to_s)
           raise "Cannot find rabl template '#{file}' within registered (#{view_paths.map(&:to_s).inspect}) view paths!"
         end
