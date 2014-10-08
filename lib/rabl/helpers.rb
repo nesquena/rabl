@@ -17,7 +17,7 @@ module Rabl
     def data_object_attribute(data)
       attribute = @_object.__send__(data)
       attribute = attribute.as_json if is_collection?(attribute) && attribute.respond_to?(:as_json)
-      escape_output attribute
+      attribute
     end
 
     # data_name(data) => "user"
@@ -127,10 +127,28 @@ module Rabl
       end
     end
 
-    # Escape output if configured and supported
-    def escape_output(data)
-      (data && defined?(ERB::Util.h) && Rabl.configuration.escape_all_output) ? ERB::Util.h(data) : data
-    end
+    module Escaper
+      def escape_output(response)
+        case response
+        when Hash
+          response.each{|k,v| response[k] = escape_value(v) }
+        when Array
+          response.map!{|v| escape_value(v) }
+        else
+          response
+        end
+      end
 
+      def escape_value(value)
+        case value
+        when String
+          ERB::Util.h(value)
+        when Array, Hash
+          escape_output(value)
+        else
+          value
+        end
+      end
+    end
   end
 end
