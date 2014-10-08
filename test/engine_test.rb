@@ -376,6 +376,14 @@ context "Rabl::Engine" do
         template.render(scope).split
       end.equals "{\"name\":\"rabl\"}".split
 
+      asserts "that it does not set a collection as default object" do
+        template = rabl %{
+          attribute :name
+        }
+        scope = context_scope('user', [])
+        template.render(scope).split
+      end.equals "{}".split
+
       asserts "that it sets data source" do
         template = rabl %q{
           object @user
