@@ -13,7 +13,12 @@ end
 
 group :test do
   # RABL TEST
-  gem 'activesupport', :require => 'active_support'
+  if RUBY_VERSION < "1.9"
+    spec.add_dependency "activesupport", "~> 3"
+  else
+    spec.add_dependency "activesupport", "~> 4"
+  end
+  
   gem 'builder'
 
   # FIXTURES
