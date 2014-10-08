@@ -43,6 +43,8 @@ module Rabl
         object_name ||= collection_root_name.to_s.singularize if collection_root_name
         object_name ||= data.class.respond_to?(:model_name) ? data.class.model_name.element : data.class.to_s.downcase
         object_name
+      else
+        data_token
       end
     end
 
