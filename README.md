@@ -453,7 +453,7 @@ This can be useful as an advanced tool when extending or rendering partials.
 
 ### Conditions ###
 
-You can give conditions to all kinds of nodes, attributes etc. which would include a given element only if a certain condition is true.
+You can provide conditions to all kinds of nodes, attributes, extends, etc. which includes a given element only if the specified condition is true.
 
 ```ruby
 collection @posts
@@ -463,7 +463,7 @@ node(:coolness, :if => lambda { |m| m.coolness > 5 }) do |m|
 end
 ```
 
-Because attributes take conditional options aswell, we can simplyfy the example:
+Because attributes take conditional options as well, we could simplify the example with:
 
 ```ruby
 collection @posts
@@ -471,22 +471,24 @@ collection @posts
 attribute(:coolness, :if => lambda { |m| m.coolness > 5 })
 ```
 
-The value for the `:if` and `:unless` options may be a simple `Boolean`, `Proc` or a `Symbol`. If it is a `Symbol` and the specific `@object` responds to its, the method will be called.
-Thus the example above can be rewritten as:
+The value for the `:if` and `:unless` options may be a simple `Boolean`, `Proc` or a `Symbol`. If it is a `Symbol` and the specific `@object` responds to its, the method will be called. Thus the example above can be rewritten as:
 
 ```ruby
 class Post
   def cool?
-    coolness > 5
+    coolness > 5
   end
 end
 ```
+
+and then:
 
 ```ruby
 collection @posts
 attribute :coolness, if: :cool?
 ```
 
+Using conditions allows for easy control over when certain elements render.
 
 ### Template Scope ###
 
