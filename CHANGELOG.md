@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.11.0 (August 16th)
+
+* Restore ruby 1.8 compatibility (@s01ipsist, @patrickdavey)
+* Fix Rabl::Tracker to match paths with numbers (@szimek)
+* Fix caching of a recursive template (@bonobos)
+* Fix cache for non-rails apps (@t-k)
+* Escape output all at once to properly escape content (@bholzer)
+* Add hashie mash to known object list (@nguyenmighty)
+* Remove root object when set to false value (@mrThe)
+
 ## 0.10.1 (May 28th)
 
 * Fix nasty formatting bug that broke XML (@bhicks)
