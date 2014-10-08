@@ -99,6 +99,15 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":{}}"
 
+      asserts "that it can set root node with a nil object and explicit name" do
+        template = rabl %q{
+          object @user => :person
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, nil
+        template.render(scope)
+      end.equals "{\"person\":{}}"
+
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
           object @other
@@ -434,6 +443,16 @@ context "Rabl::Engine" do
         }
         scope = Object.new
         scope.instance_variable_set :@user, User.new
+        template.render(scope)
+      end.equals "{}"
+
+      asserts "that it can set root node with a nil object and explicit name" do
+        template = rabl %q{
+          object @user => :person
+          attributes :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, nil
         template.render(scope)
       end.equals "{}"
     end
