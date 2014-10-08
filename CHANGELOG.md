@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.9.2 (November 21 2013)
+
+* FIX #508 by avoiding new proc syntax breaking 1.8.7
+
 ## 0.9.1 (November 17 2013)
 
 * NEW #507 Resolve conditionals for extends (Thanks @micahcraig)
