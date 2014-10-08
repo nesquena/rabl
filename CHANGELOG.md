@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.9.3.pre1 (December 5th)
+## 0.9.3 (December 5th)
 
 * FIX Send engine options through from render call (Thanks @bhicks)
 * FIX Cleanup compile_hash method through refactoring complexity (Thanks @bhicks)
