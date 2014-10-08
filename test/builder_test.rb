@@ -196,4 +196,40 @@ context "Rabl::Builder" do
       b.build(false)
     end.equivalent_to({:user => 'xyz'})
   end
+
+  context "#resolve_conditionals" do
+    class ArbObj
+      def cool?
+        false
+      end
+
+      def smooth?
+        true
+      end
+    end
+
+    asserts "that it can use symbols on if condition and return false if method returns false" do
+      scope = Rabl::Builder.new
+      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope.send(:resolve_condition, { :if => :cool? })
+    end.equals(false)
+
+    asserts "that it can use symbols on if condition and return true if method returns true" do
+      scope = Rabl::Builder.new
+      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope.send :resolve_condition, { :if => :smooth? }
+    end.equals(true)
+
+    asserts "that it can use symbols as unless condition and return true if method returns false" do
+      scope = Rabl::Builder.new
+      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope.send :resolve_condition, { :unless => :cool? }
+    end.equals(true)
+
+    asserts "that it can use symbols as unmless condition and return false if method returns true" do
+      scope = Rabl::Builder.new
+      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope.send :resolve_condition, { :unless => :smooth? }
+    end.equals(false)
+  end
 end
