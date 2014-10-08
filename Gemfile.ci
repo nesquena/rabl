@@ -9,11 +9,6 @@ gem "i18n", '~> 0.6'
 platforms :mri_18 do
   gem 'SystemTimer'
   gem 'json'
-  gem 'activesupport', '< 4'
-end
-
-platforms :mri_19, :mri_20 do
-  gem 'activesupport', '>= 2.3.14'
 end
 
 gem 'builder'
