@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.3
+
+ * Closes #421 bug with locals in engine
+
 ## 0.8.2
 
  * Passing locals when rendering templates via partials or inheritance (Thanks @simsalabim)
