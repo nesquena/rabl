@@ -49,34 +49,36 @@ module Rabl
     attr_accessor :perform_caching
     attr_accessor :use_read_multi
     attr_accessor :replace_nil_values_with_empty_strings
+    attr_accessor :replace_empty_string_values_with_nil_values
     attr_accessor :exclude_nil_values
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
     def initialize
-      @include_json_root                      = true
-      @include_child_root                     = true
-      @include_msgpack_root                   = true
-      @include_plist_root                     = true
-      @include_xml_root                       = false
-      @include_bson_root                      = true
-      @enable_json_callbacks                  = false
-      @bson_check_keys                        = false
-      @bson_move_id                           = false
-      @json_engine                            = nil
-      @msgpack_engine                         = nil
-      @bson_engine                            = nil
-      @plist_engine                           = nil
-      @xml_options                            = {}
-      @cache_sources                          = false
-      @cache_all_output                       = false
-      @escape_all_output                      = false
-      @view_paths                             = []
-      @cache_engine                           = Rabl::CacheEngine.new
-      @perform_caching                        = false
-      @use_read_multi                         = true
-      @replace_nil_values_with_empty_strings  = false
-      @exclude_nil_values                     = false
+      @include_json_root                            = true
+      @include_child_root                           = true
+      @include_msgpack_root                         = true
+      @include_plist_root                           = true
+      @include_xml_root                             = false
+      @include_bson_root                            = true
+      @enable_json_callbacks                        = false
+      @bson_check_keys                              = false
+      @bson_move_id                                 = false
+      @json_engine                                  = nil
+      @msgpack_engine                               = nil
+      @bson_engine                                  = nil
+      @plist_engine                                 = nil
+      @xml_options                                  = {}
+      @cache_sources                                = false
+      @cache_all_output                             = false
+      @escape_all_output                            = false
+      @view_paths                                   = []
+      @cache_engine                                 = Rabl::CacheEngine.new
+      @perform_caching                              = false
+      @use_read_multi                               = true
+      @replace_nil_values_with_empty_strings        = false
+      @replace_empty_string_values_with_nil_values  = false
+      @exclude_nil_values                           = false
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
