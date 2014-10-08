@@ -28,7 +28,8 @@ module Rabl
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
       data = locals[:object].nil? ? self.default_object : locals[:object]
-      @_data_object, @_data_name = data_object(data), data_name(data)
+      @_data_object = data_object(data)
+      @_data_name = @_options[:object_root_name] || data_name(data)
       if @_options[:source_location]
         instance_eval(@_source, @_options[:source_location]) if @_source.present?
       else # without source location

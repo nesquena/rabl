@@ -5,6 +5,7 @@
  * FIX #142 Better resource resolution for AR Scopes
  * Adds Rails 4 test fixture   (Thanks @siong1987)
  * Adds Rails 4 cache digestor (Thanks @siong1987)
+ * Child now supports `object_root` and `root` arguments like 'collection'
 
 ## 0.8.6
 

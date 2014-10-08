@@ -95,6 +95,11 @@ module Rabl
       defined?(@_collection_name) ? @_collection_name : nil
     end
 
+    # Returns true if the value is a name value (symbol or string)
+    def is_name_value?(val)
+      val.is_a?(String) || val.is_a?(Symbol)
+    end
+
     # Fetches a key from the cache and stores rabl template result otherwise
     # fetch_from_cache('some_key') { ...rabl template result... }
     def fetch_result_from_cache(cache_key, cache_options=nil, &block)

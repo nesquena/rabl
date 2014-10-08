@@ -147,9 +147,11 @@ module Rabl
     # child(@users => :people) { ... }
     def child(data, options={}, &block)
       return false unless data.present? && resolve_condition(options)
-      name, object = data_name(data), data_object(data)
+      name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
+      object = data_object(data)
       include_root = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
-      engine_options = @options.slice(:child_root).merge(:root => include_root)
+      object_root_name = options[:object_root] if is_name_value?(options[:object_root])
+      engine_options = @options.slice(:child_root).merge(:root => include_root, :object_root_name => object_root_name)
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
       @_engines << { name => self.object_to_engine(object, engine_options, &block) }
     end
