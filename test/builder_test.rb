@@ -70,6 +70,10 @@ context "Rabl::Builder" do
         topic.build(User.new(:name => nil))
       end.equivalent_to({ :name => nil })
 
+      asserts "that it handles existing non nil values correctly" do
+        topic.build(User.new(:name => 10))
+      end.equivalent_to({ :name => 10 })
+
       teardown do
         Rabl.configuration.replace_empty_string_values_with_nil_values = false
       end
