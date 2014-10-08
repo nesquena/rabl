@@ -14,6 +14,7 @@ context 'Rabl::Configuration' do
     asserts(:json_engine).equals { json_engine }
     asserts(:cache_engine).is_a?(Rabl::CacheEngine)
     asserts(:replace_nil_values_with_empty_strings).equals false
+    asserts(:exclude_nil_values).equals false
   end
 
   context 'custom JSON engine configured as Symbol' do
@@ -55,4 +56,14 @@ context 'Rabl::Configuration' do
 
     asserts(:replace_nil_values_with_empty_strings).equals true
   end # replace nil values with empty strings
+
+  context 'exclude nil values' do
+    setup do
+      Rabl.configure do |c|
+        c.exclude_nil_values = true
+      end
+    end
+
+    asserts(:exclude_nil_values).equals true
+  end # exclude nil values
 end

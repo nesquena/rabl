@@ -93,6 +93,7 @@ module Rabl
       wrap_result(options[:root_name])
 
       replace_nil_values if Rabl.configuration.replace_nil_values_with_empty_strings
+      remove_nil_values if Rabl.configuration.exclude_nil_values
 
       # Return Results
       @_root_name ? { @_root_name => @_result } : @_result
@@ -101,6 +102,13 @@ module Rabl
     def replace_nil_values
       @_result = @_result.inject({}) do |hash, (k, v)|
         hash[k] = v.nil? ? '' : v
+        hash
+      end
+    end
+
+    def remove_nil_values
+      @_result = @_result.inject({}) do |hash, (k, v)|
+        hash[k] = v unless v.nil?
         hash
       end
     end
