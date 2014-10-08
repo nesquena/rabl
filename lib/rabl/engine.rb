@@ -62,11 +62,13 @@ module Rabl
       if is_object?(data) || !data # object @user
         builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        if template_cache_configured? && Rabl.configuration.use_read_multi
+        result = if template_cache_configured? && Rabl.configuration.use_read_multi
           read_multi(data, options)
         else
           data.map { |object| builder.build(object, options) }
         end
+        result = result.map(&:presence).compact if Rabl.configuration.exclude_empty_values_in_collections
+        result
       end
     end
 

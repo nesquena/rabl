@@ -51,6 +51,7 @@ module Rabl
     attr_accessor :replace_nil_values_with_empty_strings
     attr_accessor :replace_empty_string_values_with_nil_values
     attr_accessor :exclude_nil_values
+    attr_accessor :exclude_empty_values_in_collections
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
@@ -79,6 +80,7 @@ module Rabl
       @replace_nil_values_with_empty_strings        = false
       @replace_empty_string_values_with_nil_values  = false
       @exclude_nil_values                           = false
+      @exclude_empty_values_in_collections   = false
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
