@@ -26,7 +26,8 @@ module Rabl
       options = {
         :format => :json,
         :scope => self,
-        :view_path => []
+        :view_path => [],
+        :template => source
       }.update(options)
 
       @options = options

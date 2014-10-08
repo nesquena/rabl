@@ -328,11 +328,11 @@ module Rabl
     end
 
     def cache_key_with_digest(cache_key)
-      virtual_path = @_virtual_path ? @_virtual_path : @virtual_path
+      template = @_options[:template] || @virtual_path
       Array(cache_key) + [
         @_options[:root_name],
         @_options[:format],
-        Digestor.digest(virtual_path, :rabl, lookup_context, dependencies: view_cache_dependencies)
+        Digestor.digest(template, :rabl, lookup_context)
       ]
     end
 
