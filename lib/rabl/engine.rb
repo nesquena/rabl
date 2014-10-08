@@ -306,10 +306,10 @@ module Rabl
       _cache = @_cache if defined?(@_cache)
       cache_key, cache_options = *_cache || nil
       if template_cache_configured? && cache_key
-        if Rails.version =~ /^[4]/
-          result_cache_key = cache_key_with_digest(cache_key)
-        else # fallback for Rails 3
-          result_cache_key = cache_key_simple(cache_key)
+        result_cache_key = if digestor_available?
+          cache_key_with_digest(cache_key)
+        else # fallback for Rails 3, and Non-Rails app
+          cache_key_simple(cache_key)
         end
 
         if self.cache_read_on_render
@@ -327,6 +327,10 @@ module Rabl
     def read_multi(data, options={})
       builder = Rabl::MultiBuilder.new(data, options)
       builder.to_a
+    end
+
+    def digestor_available?
+      defined?(Rails) && Rails.version =~ /^[4]/
     end
 
     def cache_key_with_digest(cache_key)
