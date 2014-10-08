@@ -357,7 +357,7 @@ module Rabl
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
       set_locals(locals)
-      set_source(&block)
+      set_source(locals, &block)
     end
 
     def set_locals(locals)
@@ -365,7 +365,7 @@ module Rabl
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
     end
 
-    def set_source(&block)
+    def set_source(locals, &block)
       return unless @_source.present?
 
       if @_options[:source_location]
