@@ -142,8 +142,9 @@ Rabl.configure do |config|
 end
 ```
 
-Each option specifies behavior related to RABL's output. If `include_json_root` is disabled that removes the
-root node for each root object in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
+Each option specifies behavior related to RABL's output. 
+
+If `include_json_root` is disabled that removes the root node for each root object in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
 output if the incoming request has a 'callback' parameter.
 
 If `include_child_root` is set to false then child objects in the response will not include
