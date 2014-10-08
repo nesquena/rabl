@@ -37,7 +37,7 @@ context "Rabl::Engine" do
 
     context "with a specified format" do
       setup do
-        template = RablTemplate.new("code", format: 'xml') { "" }
+        template = RablTemplate.new("code", :format => 'xml') { "" }
         template.render(Object.new)
         engine = template.instance_eval('@engine')
         engine.instance_eval('@_options')[:format]
