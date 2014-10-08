@@ -57,7 +57,7 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options={})
-      options = @_options.merge(options)
+      options = options.merge(@_options)
       data = @_data_object
       builder = Rabl::Builder.new(options)
       options[:root_name] = determine_object_root(@_data_object, @_data_name, options[:root])
@@ -334,7 +334,7 @@ module Rabl
         Digestor.digest(@virtual_path, :rabl, lookup_context, dependencies: view_cache_dependencies)
       ]
     end
-    
+
     def cache_key_simple(key)
       Array(key) + [@_options[:root_name], @_options[:format]]
     end
