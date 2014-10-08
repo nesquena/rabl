@@ -21,9 +21,9 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user })
     def apply(scope, locals, &block)
       reset_options!
-      locals.merge!(locals.delete(:locals) || {})
       @_locals, @_scope = locals, scope
       self.copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+      locals.merge!(locals.delete(:locals) || {})
       locals.each { |k,v| instance_variable_set(:"@#{k}", v) }
       @_options[:scope] = @_scope
       @_options[:format] ||= self.request_format
