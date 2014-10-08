@@ -10,12 +10,14 @@ module Rabl
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
       data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && defined?(@_object) && @_object ? @_object.__send__(data) : data
+      data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data) ? @_object.__send__(data) : data
     end
 
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
-      @_object.__send__(data)
+      attribute = @_object.__send__(data)
+      attribute = attribute.as_json if is_collection?(attribute, false) && attribute.respond_to?(:as_json)
+      attribute
     end
 
     # data_name(data) => "user"
@@ -29,7 +31,7 @@ module Rabl
       data = data_object(data_token)
       if is_collection?(data) # data is a collection
         object_name = data.table_name if data.respond_to?(:table_name)
-        if !object_name && data.respond_to?(:first)
+        if object_name.nil? && data.respond_to?(:first)
           first = data.first
           object_name = data_name(first).to_s.pluralize if first.present?
         end
@@ -65,16 +67,16 @@ module Rabl
     # is_object?(@user) => true
     # is_object?([]) => false
     # is_object?({}) => false
-    def is_object?(obj)
-      obj && (!data_object(obj).respond_to?(:map) || !data_object(obj).respond_to?(:each) ||
-       (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).any?)
+    def is_object?(obj, follow_symbols = true)
+      obj && !is_collection?(obj, follow_symbols)
     end
 
     # Returns true if the obj is a collection of items
     # is_collection?(@user) => false
     # is_collection?([]) => true
-    def is_collection?(obj)
-      obj && data_object(obj).respond_to?(:map) && data_object(obj).respond_to?(:each) &&
+    def is_collection?(obj, follow_symbols = true)
+      data_obj = follow_symbols ? data_object(obj) : obj
+      data_obj && data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
         (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).empty?
     end
 
@@ -108,6 +110,13 @@ module Rabl
     def fetch_result_from_cache(cache_key, cache_options=nil, &block)
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       Rabl.configuration.cache_engine.fetch(expanded_cache_key, cache_options, &block)
+    end
+
+    def write_result_to_cache(cache_key, cache_options=nil, &block)
+      expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+      result = yield
+      Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)
+      result
     end
 
     # Returns true if the cache has been enabled for the application

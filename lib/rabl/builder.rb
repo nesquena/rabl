@@ -23,24 +23,69 @@ module Rabl
     # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
     def build(object, options={})
       @_object = object
+      compile_engines
 
-      cache_results do
-        compile_hash(options)
+      unless options[:keep_engines]
+        cache_results { compile_hash(options) }
       end
     end
 
+    def engines
+      @_engines ||= []
+    end
+
+    def replace_engine(engine, value)
+      engines[engines.index(engine)] = value
+    end
+
+    def to_hash(options={})
+      cache_results { compile_hash(options) }
+    end
+
     protected
+
+    # Returns the builder with all engine-producing options evaluated.
+    # (extends, node, children, glues)
+    def compile_engines
+      @_engines = []
+
+      update_settings(:extends)
+      update_settings(:child)
+      update_settings(:glue)
+    end
 
     # Returns a hash representation of the data object
     # compile_hash(:root_name => false)
     # compile_hash(:root_name => "user")
     def compile_hash(options={})
       @_result = {}
-      update_settings(:extends)
+
+      # Turn engines into hashes
+      @_engines.each do |engine|
+        # engine was stored in the form { name => #<Rabl::Engine> }
+        if engine.is_a?(Hash)
+          engine.each do |key, value|
+            if value.is_a?(Rabl::Engine)
+              value = value.render
+
+              if value
+                engine[key] = value
+              else
+                engine.delete(key)
+              end
+            end
+          end
+        elsif engine.is_a?(Rabl::Engine)
+          engine = engine.render
+        end
+
+        @_result.merge!(engine) if engine.is_a?(Hash)
+      end
+
+      @_engines = []
+
       update_attributes
       update_settings(:node)
-      update_settings(:child)
-      update_settings(:glue)
 
       wrap_result(options[:root_name])
 
@@ -148,7 +193,7 @@ module Rabl
       engine_options = @options.slice(:child_root).merge(:root => include_root)
       engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
       object = { object => name } if data.respond_to?(:each_pair) && object # child :users => :people
-      @_result[name.to_sym] = self.object_to_hash(object, engine_options, &block)
+      @_engines << { name.to_sym => self.object_to_engine(object, engine_options, &block) }
     end
 
     # Glues data from a child node to the json_output
@@ -156,8 +201,7 @@ module Rabl
     def glue(data, options={}, &block)
       return false unless data.present? && resolve_condition(options)
       object = data_object(data)
-      glued_attributes = self.object_to_hash(object, :root => false, &block)
-      @_result.merge!(glued_attributes) if glued_attributes
+      @_engines << self.object_to_engine(object, :root => false, &block)
     end
 
     # Extends an existing rabl template with additional attributes in the block
@@ -165,8 +209,7 @@ module Rabl
     def extends(file, options={}, &block)
       return unless resolve_condition(options)
       options = @options.slice(:child_root).merge(:object => @_object).merge(options)
-      result = self.partial(file, options, &block)
-      @_result.merge!(result) if result.is_a?(Hash)
+      @_engines << self.partial_as_engine(file, options, &block)
     end
 
     # Evaluate conditions given a symbol to evaluate

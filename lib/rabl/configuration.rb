@@ -47,6 +47,7 @@ module Rabl
     attr_accessor :cache_engine
     attr_accessor :raise_on_missing_attribute
     attr_accessor :perform_caching
+    attr_accessor :use_read_multi
     attr_accessor :replace_nil_values_with_empty_strings
     attr_accessor :replace_empty_string_values_with_nil_values
     attr_accessor :exclude_nil_values
@@ -75,6 +76,7 @@ module Rabl
       @view_paths                                   = []
       @cache_engine                                 = Rabl::CacheEngine.new
       @perform_caching                              = false
+      @use_read_multi                               = true
       @replace_nil_values_with_empty_strings        = false
       @replace_empty_string_values_with_nil_values  = false
       @exclude_nil_values                           = false

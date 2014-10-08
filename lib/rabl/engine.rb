@@ -19,12 +19,28 @@ module Rabl
     end
 
     # Renders the representation based on source, object, scope and locals
-    # Rabl::Engine.new("...source...", { :format => "xml" }).render(scope, { :foo => "bar", :object => @user })
-    def render(scope, locals, &block)
+    # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user })
+    def apply(scope, locals, &block)
       reset_options!(scope)
       set_instance_variables!(scope, locals, &block)
       instance_exec(root_object, &block) if block_given?
-      cache_results { self.send("to_" + @_options[:format].to_s, @_options) }
+
+      self
+    end
+
+    # Renders the representation based on a previous apply
+    # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user }).render
+    def render(scope = nil, locals = nil, &block)
+      apply(scope, locals) if scope || locals
+      cache_results { self.send("to_#{@_options[:format]}", @_options) }
+    end
+
+    # Returns the cache key of the engine
+    def cache_key
+      _cache = @_cache if defined?(@_cache)
+      cache_key, _ = *_cache || nil
+      return nil if cache_key.nil?
+      Array(cache_key) + [@_options[:root_name], @_options[:format]]
     end
 
     # Returns a hash representation of the data object
@@ -38,7 +54,11 @@ module Rabl
       if is_object?(data) || !data # object @user
         result = builder.build(data, options)
       elsif is_collection?(data) # collection @users
-        result = data.map { |object| builder.build(object, options) }
+        result = if template_cache_configured? && Rabl.configuration.use_read_multi
+          read_multi(*data, options)
+        else
+          data.map { |object| builder.build(object, options) }
+        end
         result = result.map(&:presence).compact if Rabl.configuration.exclude_empty_values_in_collections
       end
       Rabl.configuration.escape_all_output ? escape_output(result) : result
@@ -208,6 +228,11 @@ module Rabl
     end
     alias_method :helpers, :helper
 
+    # Disables reading (but not writing) from the cache when rendering.
+    def cache_read_on_render=(c)
+      @_cache_read_on_render = c
+    end
+
     protected
 
     # Returns a guess at the default object for this template
@@ -263,6 +288,10 @@ module Rabl
       vars.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
     end
 
+    def cache_read_on_render
+      @_cache_read_on_render = @_cache_read_on_render.nil? ? true : @_cache_read_on_render
+    end
+
     private
 
     # Resets the options parsed from a rabl template.
@@ -273,6 +302,7 @@ module Rabl
       @_options[:glue] = []
       @_options[:extends] = []
       @_options[:root_name]  = nil
+      @_options[:read_multi] = false
       @_options[:scope] = scope
     end
 
@@ -287,10 +317,23 @@ module Rabl
         else # fallback for Rails 3, and Non-Rails app
           cache_key_simple(cache_key)
         end
-        fetch_result_from_cache(result_cache_key, cache_options, &block)
+
+        if self.cache_read_on_render
+          fetch_result_from_cache(result_cache_key, cache_options, &block)
+        else
+          write_result_to_cache(result_cache_key, cache_options, &block)
+        end
       else # skip caching
         yield
       end
+    end
+
+    # Uses read_multi to render a collection of cache keys,
+    # falling back to a normal render in the event of a miss.
+    def read_multi(*data)
+      options = data.extract_options!
+      builder = Rabl::MultiBuilder.new(data, options)
+      builder.to_a
     end
 
     def digestor_available?
