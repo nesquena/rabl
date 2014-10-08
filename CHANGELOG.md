@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.9.0.pre4 (Sept 24 2013)
+
+* FIX #497 Renderer should support partial caching and a digestor bug fixed (Thanks @siong1987)
+
 ## 0.9.0.pre3 (Sept 22 2013)
 
  * FIX #495 Digest cache when rendering from controller (Thanks @siong1987)
