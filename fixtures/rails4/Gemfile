@@ -8,6 +8,8 @@ gem 'sqlite3'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 gem 'riot', :group => "test"
 
+gem "oj"
+
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.0'
 

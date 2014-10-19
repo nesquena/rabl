@@ -19,7 +19,7 @@ end
 # Set default options for Oj json parser (if exists)
 begin
   require 'oj'
-  Oj.default_options =  { :mode => :compat, :time_format => :ruby }
+  Oj.default_options =  { :mode => :compat, :time_format => :ruby, :use_to_json => true }
 rescue LoadError
 end
 
