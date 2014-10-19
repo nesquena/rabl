@@ -60,6 +60,8 @@ module Rabl
     def compile_hash(options={})
       @_result = {}
 
+      update_attributes
+
       # Turn engines into hashes
       @_engines.each do |engine|
         # engine was stored in the form { name => #<Rabl::Engine> }
@@ -84,7 +86,6 @@ module Rabl
 
       @_engines = []
 
-      update_attributes
       update_settings(:node)
 
       wrap_result(options[:root_name])
