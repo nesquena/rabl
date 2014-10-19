@@ -29,18 +29,18 @@ context "Rabl::MultiBuilder" do
     end.is_a?(Array)
   end
 
-  context "#map_cache_key" do
+  context "#map_cache_key_to_engine" do
     asserts "maps the cache keys to the engines" do
       mb = multi_builder [], {}
       b = builder
       e = engine User.new
       mock(e).cache_key.returns(['cache key'])
-      mb.send(:map_cache_key, e, b)
+      mb.send(:map_cache_key_to_engine, e)
       mb.instance_variable_get('@cache_key_to_engine').values.include?(e)
     end.equals(true)
   end
 
-  context "#cache_results" do
+  context "#read_cache_results" do
     setup do
       mb = multi_builder [], {}
       mb.instance_variable_set('@cache_key_to_engine', { 'cache_key' => engine(User.new) })
@@ -49,21 +49,22 @@ context "Rabl::MultiBuilder" do
 
     asserts "uses read_multi to find all of the cached values with keys" do
       mock(Rabl.configuration.cache_engine).read_multi('cache_key').returns({})
-      topic.send(:cache_results)
+      topic.send(:read_cache_results)
     end
   end
 
-  context "map_results_to_builders" do
-    asserts "maps the results of cache_results to builder" do
+  context "replace_engines_with_cache_results" do
+    asserts "replaces the builders' engines with the cache results" do
       mb = multi_builder [], {}
       e = engine User.new
       b = builder
       mb.instance_variable_set('@cache_key_to_engine', { 'cache_key' => e })
       mb.instance_variable_set('@engine_to_builder', { e => b })
       b.instance_variable_set('@_engines', [e])
+      mb.instance_variable_set('@cache_results', { 'cache_key' => '{}' })
 
       mock(b).replace_engine(e, '{}')
-      mb.send(:map_results_to_builders, { 'cache_key' => '{}' })
+      mb.send(:replace_engines_with_cache_results)
     end
   end
 end
