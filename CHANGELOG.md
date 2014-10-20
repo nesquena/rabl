@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.11.1 (October 19th)
+
+* NEW #417 Major rewrite caching layer to be much faster using read_multi (@ahlatimer, @DouweM)
+* FIX #589 Use set to speed up is_collection method check (@ccocchi)
+* FIX #584 Fix issues with newer releases of oj gem (@DouweM)
+
 ## 0.11.0 (August 16th)
 
 * Restore ruby 1.8 compatibility (@s01ipsist, @patrickdavey)
