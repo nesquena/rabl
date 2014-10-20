@@ -664,11 +664,17 @@ Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full l
 
 ## Authors and Contributors ##
 
+Active Maintainers:
+
+ * [Douwe Maan](https://github.com/DouweM)
+ * [Nathan Esquenazi](https://github.com/nesquena)
+
 Thanks to [Miso](http://gomiso.com) for allowing me to create this for our applications and release this project!
 
 * [Nathan Esquenazi](https://github.com/nesquena) - Creator of the project
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
 * [Tim Lee](https://github.com/timothy1ee) - RABL was a great name chosen by the Miso CTO.
+* [Douwe Maan](https://github.com/DouweM) - Multi support for caching, fixed test suite
 * [David Sommers](https://github.com/databyte) - Template resolution, caching support, and much more
 * [Rick Thomas](https://github.com/rickthomasjr) - Added options for extends and Sinatra testing
 * [Benjamin Yu](https://github.com/byu) - Added msgpack format support
@@ -709,4 +715,3 @@ Thanks again for all of these great projects.
 ## Copyright ##
 
 Copyright © 2011-2013 Nathan Esquenazi. See [MIT-LICENSE](https://github.com/nesquena/rabl/blob/master/MIT-LICENSE) for details.
-
