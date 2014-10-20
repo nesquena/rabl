@@ -1,9 +1,10 @@
 require 'active_support/inflector' # for the sake of pluralizing
+require 'set'
 
 module Rabl
   module Helpers
     # Set of class names known to be objects, not collections
-    KNOWN_OBJECT_CLASSES = ['Struct', 'Hashie::Mash']
+    KNOWN_OBJECT_CLASSES = Set.new(['Struct', 'Hashie::Mash'])
 
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
@@ -77,7 +78,7 @@ module Rabl
     def is_collection?(obj, follow_symbols = true)
       data_obj = follow_symbols ? data_object(obj) : obj
       data_obj && data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
-        (KNOWN_OBJECT_CLASSES & obj.class.ancestors.map(&:name)).empty?
+        obj.class.ancestors.none? { |a| KNOWN_OBJECT_CLASSES.include? a.name }
     end
 
     # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
