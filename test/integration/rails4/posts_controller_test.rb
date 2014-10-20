@@ -111,7 +111,7 @@ context "PostsController" do
     asserts("contains post body")  { topic['body'] }.equals { @post1.body }
 
     # Attributes (custom name)
-    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.utc.to_s }
+    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.iso8601(3) }
 
     # Child
     asserts("contains post user child username") { topic["user"]["username"] }.equals { @post1.user.username }
