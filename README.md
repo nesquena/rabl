@@ -675,6 +675,7 @@ Thanks to [Miso](http://gomiso.com) for allowing me to create this for our appli
 * [Arthur Chiu](https://github.com/achiu) - Core Maintainer, Riot Testing Guru
 * [Tim Lee](https://github.com/timothy1ee) - RABL was a great name chosen by the Miso CTO.
 * [Douwe Maan](https://github.com/DouweM) - Multi support for caching, fixed test suite
+* [Andrew Latimer](https://github.com/ahlatimer) - Multi support for caching
 * [David Sommers](https://github.com/databyte) - Template resolution, caching support, and much more
 * [Rick Thomas](https://github.com/rickthomasjr) - Added options for extends and Sinatra testing
 * [Benjamin Yu](https://github.com/byu) - Added msgpack format support
