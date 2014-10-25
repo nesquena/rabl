@@ -10,8 +10,9 @@ module Rabl
     # data_object(@user => :person) => @user
     # data_object(:user => :person) => @_object.send(:user)
     def data_object(data)
-      data = (data.is_a?(Hash) && data.keys.size == 1) ? data.keys.first : data
-      data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data) ? @_object.__send__(data) : data
+      data = data.keys.first if data.is_a?(Hash) && data.keys.size == 1
+      data = @_object.__send__(data) if data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data)
+      data
     end
 
     # data_object_attribute(data) => @_object.send(data)
@@ -28,14 +29,19 @@ module Rabl
     # data_name([]) => "array"
     def data_name(data_token)
       return unless data_token # nil or false
+
       return data_token.values.first if data_token.is_a?(Hash) # @user => :user
+
       data = data_object(data_token)
+
       if is_collection?(data) # data is a collection
         object_name = data.table_name if data.respond_to?(:table_name)
+
         if object_name.nil? && data.respond_to?(:first)
           first = data.first
           object_name = data_name(first).to_s.pluralize if first.present?
         end
+
         object_name ||= data_token if data_token.is_a?(Symbol)
         object_name
       elsif is_object?(data) # data is an object
@@ -54,8 +60,9 @@ module Rabl
     # determine_object_root(@user, :user, true) => "user"
     # determine_object_root(@user, :person) => "person"
     # determine_object_root([@user, @user]) => "user"
-    def determine_object_root(data_token, data_name=nil, include_root=true)
+    def determine_object_root(data_token, data_name = nil, include_root = true)
       return if object_root_name == false
+
       root_name = data_name.to_s if include_root
       if is_object?(data_token) || data_token.nil?
         root_name
@@ -78,13 +85,17 @@ module Rabl
     def is_collection?(obj, follow_symbols = true)
       data_obj = follow_symbols ? data_object(obj) : obj
       data_obj && data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
-        obj.class.ancestors.none? { |a| KNOWN_OBJECT_CLASSES.include? a.name }
+        obj.class.ancestors.none? { |a| KNOWN_OBJECT_CLASSES.include?(a.name) }
     end
 
-    # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
+    # Returns the context_scope wrapping this engine, used for retrieving data, invoking methods, etc
     # In Rails, this is the controller and in Padrino this is the request context
     def context_scope
-      defined?(@_scope) ? @_scope : nil
+      defined?(@_context_scope) ? @_context_scope : nil
+    end
+
+    def view_path
+      defined?(@_view_path) ? @_view_path : nil
     end
 
     # Returns the root (if any) name for an object within a collection
@@ -106,14 +117,34 @@ module Rabl
       val.is_a?(String) || val.is_a?(Symbol)
     end
 
+    # Returns an Engine based representation of any data object given ejs template block
+    # object_to_hash(@user) { attribute :full_name } => { ... }
+    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
+    # object_to_hash([@user], :source => "...") { attribute :full_name } => { ... }
+    # options must have :source (rabl file contents)
+    # options can have :source_location (source filename)
+    def object_to_engine(object, options = {}, &block)
+      return if object.nil?
+
+      return [] if is_collection?(object) && object.blank? # empty collection
+
+      options = { 
+        :format     => "hash", 
+        :view_path  => view_path, 
+        :root       => (options[:root] || false)
+      }.merge(options)
+      
+      Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
+    end
+
     # Fetches a key from the cache and stores rabl template result otherwise
     # fetch_from_cache('some_key') { ...rabl template result... }
-    def fetch_result_from_cache(cache_key, cache_options=nil, &block)
+    def fetch_result_from_cache(cache_key, cache_options = nil, &block)
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       Rabl.configuration.cache_engine.fetch(expanded_cache_key, cache_options, &block)
     end
 
-    def write_result_to_cache(cache_key, cache_options=nil, &block)
+    def write_result_to_cache(cache_key, cache_options = nil, &block)
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       result = yield
       Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)

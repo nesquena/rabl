@@ -57,7 +57,7 @@ context "Rabl::Engine" do
         template.instance_eval('@engine')
       end
 
-      asserts_topic.assigns(:_cache) { ['foo', nil] }
+      asserts_topic.assigns(:_cache_key) { 'foo' }
     end
 
     context "with cache and options" do
@@ -69,7 +69,8 @@ context "Rabl::Engine" do
         template.instance_eval('@engine')
       end
 
-      asserts_topic.assigns(:_cache) { ['foo', { :expires_in => 'bar' }] }
+      asserts_topic.assigns(:_cache_key) { 'foo' }
+      asserts_topic.assigns(:_cache_options) { { :expires_in => 'bar' } }
     end
 
     context "without cache" do
@@ -79,7 +80,7 @@ context "Rabl::Engine" do
         template.instance_eval('@engine')
       end
 
-      denies(:instance_variable_defined?, :@_cache)
+      denies(:instance_variable_defined?, :@_cache_key)
     end
   end
 

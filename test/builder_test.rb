@@ -1,13 +1,13 @@
 require File.expand_path('../teststrap',   __FILE__)
 
 context "Rabl::Builder" do
-  helper(:builder)    { |opt| Rabl::Builder.new(opt) }
-  helper(:build_hash) { |obj, opt| builder(opt).build(obj) }
+  helper(:builder)    { |*args| Rabl::Builder.new(*args) }
+  helper(:build_hash) { |*args| builder(*args).to_hash }
 
   setup do
     @users = [User.new, User.new]
     @user = User.new
-    builder({:view_path => '/path/to/views'})
+    builder(nil, nil, {:view_path => '/path/to/views'})
   end
 
   context "#initialize" do
@@ -15,46 +15,40 @@ context "Rabl::Builder" do
     asserts_topic.assigns :_view_path
   end
 
-  context "#build" do
-    setup { b = builder({}); b.build(User.new); b }
-    asserts_topic.assigns :_object
-    asserts_topic.assigns :_result
-  end
-
   context "#to_hash" do
     context "when given a simple object" do
-      setup { builder({ :attributes => { :name => {} } }) }
+      setup { builder(nil, { :attributes => [ { :name => :name } ] }) }
       asserts "that the object is set properly" do
-        topic.build(User.new, :root_name => "user")
+        topic.to_hash(User.new, nil, :root_name => "user")
       end.equivalent_to({ "user" => { :name => "rabl" } })
     end
 
     context "when given an object alias" do
-     setup { builder({ :attributes => { :name => { :as => :foo } } }) }
+     setup { builder(nil, { :attributes => [ { :name => :name, :options => { :as => :foo } } ] }) }
       asserts "that the object is set properly" do
-        topic.build(User.new, :root_name => "person")
+        topic.to_hash(User.new, nil, :root_name => "person")
       end.equivalent_to({ "person" => { :foo => "rabl" } })
     end
 
     context "when specified with no root" do
-      setup { builder({ :attributes => { :name => { :as => :name } } }) }
+      setup { builder(nil, { :attributes => [ { :name => :name, :options => { :as => :name } } ] }) }
       asserts "that the object is set properly" do
-        topic.build(User.new, :root => false)
+        topic.to_hash(User.new, nil, :root => false)
       end.equivalent_to({ :name => "rabl" })
     end
 
     context "when nil values are replaced with empty strings" do
       setup do
         Rabl.configuration.replace_nil_values_with_empty_strings = true
-        builder({ :attributes => { :name => {} }, :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => u.twitter } } }] })
+        builder(nil, { :attributes => [ { :name => :name } ], :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => u.twitter } } }] })
       end
 
       asserts "that an empty string is returned as the value" do
-        topic.build(User.new(:name => nil, :twitter => nil))
+        topic.to_hash(User.new(:name => nil, :twitter => nil))
       end.equivalent_to({ :name => '', :extra => { :twitter => '' } })
 
       asserts "that it handles existing non nil values correctly" do
-        topic.build(User.new(:name => 10, :twitter => 'twitter'))
+        topic.to_hash(User.new(:name => 10, :twitter => 'twitter'))
       end.equivalent_to({ :name => 10, :extra => { :twitter => 'twitter' } })
 
       teardown do
@@ -65,19 +59,19 @@ context "Rabl::Builder" do
     context "when empty string values are replaced with nil values" do
       setup do
         Rabl.configuration.replace_empty_string_values_with_nil_values = true
-        builder({ :attributes => { :name => {} }, :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => u.twitter } } }] })
+        builder(nil, { :attributes => [ { :name => :name } ], :node => [{ :name => :extra, :options => {}, :block => lambda { |u| { :twitter => u.twitter } } }] })
       end
 
       asserts "that nil is returned as the value" do
-        topic.build(User.new(:name => "", :twitter => ''))
+        topic.to_hash(User.new(:name => "", :twitter => ''))
       end.equivalent_to({ :name => nil, :extra => { :twitter => nil } })
 
       asserts "that it handles existing nil values correctly" do
-        topic.build(User.new(:name => nil, :twitter => nil))
+        topic.to_hash(User.new(:name => nil, :twitter => nil))
       end.equivalent_to({ :name => nil, :extra => { :twitter => nil } })
 
       asserts "that it handles existing non nil values correctly" do
-        topic.build(User.new(:name => 10, :twitter => 'twitter'))
+        topic.to_hash(User.new(:name => 10, :twitter => 'twitter'))
       end.equivalent_to({ :name => 10, :extra => { :twitter => 'twitter' } })
 
       teardown do
@@ -88,10 +82,10 @@ context "Rabl::Builder" do
     context "when nil values are excluded" do
       setup do
         Rabl.configuration.exclude_nil_values = true
-        builder({ :attributes => { :name => {} } })
+        builder(nil, { :attributes => [ { :name => :name } ] })
       end
       asserts "that an nil attribute is not returned" do
-        topic.build(User.new(:name => nil))
+        topic.to_hash(User.new(:name => nil))
       end.equivalent_to({ })
       teardown do
         Rabl.configuration.exclude_nil_values = false
@@ -101,7 +95,7 @@ context "Rabl::Builder" do
 
   context "#attribute" do
     asserts "that the node" do
-      build_hash @user, :attributes => { :name => {}, :city => { :as => :city } }
+      build_hash @user, :attributes => [ { :name => :name }, { :name => :city, :options => { :as => :city } } ]
     end.equivalent_to({:name => 'rabl', :city => 'irvine'})
 
     context "that with a non-existent attribute" do
@@ -109,7 +103,7 @@ context "Rabl::Builder" do
         setup { stub(Rabl.configuration).raise_on_missing_attribute { false } }
 
         asserts "the node" do
-          build_hash @user, :attributes => { :fake => :fake }
+          build_hash @user, :attributes => [ { :name => :fake } ]
         end.equals({})
       end
 
@@ -117,22 +111,22 @@ context "Rabl::Builder" do
         setup { stub(Rabl.configuration).raise_on_missing_attribute { true } }
 
         asserts "the node" do
-          build_hash @user, :attributes => { :fake => :fake }
+          build_hash @user, :attributes => [ { :name => :fake } ]
         end.raises(RuntimeError)
       end
     end
 
     context "that with a string key" do
-      setup { builder({ :attributes => { "name" => {} } }) }
+      setup { builder(nil, { :attributes => [ { :name => "name" } ] }) }
       asserts "the node name is converted to a symbol" do
-        topic.build(User.new, :name => "user")
+        topic.to_hash(User.new, :name => "user")
       end.equivalent_to({ :name => "rabl" })
     end
 
     context "that with the same node names as strings and symbols" do
-      setup { builder({ :attributes => { "name" => {}, :name => {} } }) }
+      setup { builder(nil, { :attributes => [ { :name => "name" }, { :name => :name } ] }) }
       asserts "the nodes aren't duplicated" do
-        topic.build(User.new, :name => "user")
+        topic.to_hash(User.new, :name => "user")
       end.equivalent_to({ :name => "rabl" })
     end
   end
@@ -163,119 +157,119 @@ context "Rabl::Builder" do
 
   context "#child" do
     asserts "that it generates if no data present" do
-      builder(:child => []).build(@user)
+      builder(nil, :child => []).to_hash(@user)
     end.equals({})
 
     asserts "that it generates with a hash" do
-      b = builder(:child => [ { :data => { @user => :user }, :options => { }, :block => lambda { |u| attribute :name } } ])
-      b.build(@user)
+      b = builder(nil, :child => [ { :data => { @user => :user }, :options => { }, :block => lambda { |u| attribute :name } } ])
+      b.to_hash(@user)
     end.equivalent_to({ :user => { :name => "rabl" } })
 
     asserts "that it generates with a hash alias" do
-      b = builder :child => [{ :data => { @user => :person }, :options => {}, :block => lambda { |u| attribute :name } }]
-      b.build(@user)
+      b = builder nil, :child => [{ :data => { @user => :person }, :options => {}, :block => lambda { |u| attribute :name } }]
+      b.to_hash(@user)
     end.equivalent_to({ :person => { :name => "rabl" } })
 
     asserts "that it generates with an object" do
-      b = builder :child => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name } }]
+      b = builder nil, :child => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name } }]
       e = Rabl::Engine.new('')
       mock(b).data_name(@user) { :user }
       mock(e).render.returns('xyz')
       mock(b).object_to_engine(@user, { :root => false }).returns(e).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({ :user => 'xyz'})
 
     asserts "that it generates with an collection and child_root" do
-      b = builder :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }], :child_root => true
+      b = builder nil, { :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }] }, { :child_root => true }
       e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
       mock(e).render.returns('xyz')
       mock(b).object_to_engine(@users, { :root => true, :child_root => true }).returns(e).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({ :users => 'xyz'})
 
     asserts "that it generates with an collection and no child root" do
-      b = builder :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }], :child_root => false
+      b = builder nil, { :child => [{ :data => @users, :options => {}, :block => lambda { |u| attribute :name } }] }, { :child_root => false }
       e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
       mock(e).render.returns('xyz')
       mock(b).object_to_engine(@users, { :root => false, :child_root => false }).returns(e).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({ :users => 'xyz'})
 
     asserts "that it generates with an collection and a specified object_root_name and root" do
       ops = { :object_root => "person", :root => :people }
-      b = builder :child => [{ :data => @users, :options => ops, :block => lambda { |u| attribute :name } }], :child_root => true
+      b = builder nil, { :child => [{ :data => @users, :options => ops, :block => lambda { |u| attribute :name } }] }, { :child_root => true }
       e = Rabl::Engine.new('')
       mock(e).render.returns('xyz')
       mock(b).object_to_engine(@users, { :root => "person", :object_root_name => "person", :child_root => true }).returns(e).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({ :people => 'xyz'})
 
     asserts "that it converts the child name to a symbol" do
-      b = builder(:child => [ { :data => { @user => "user" }, :options => { }, :block => lambda { |u| attribute :name } } ])
-      b.build(@user)
+      b = builder(nil, :child => [ { :data => { @user => "user" }, :options => { }, :block => lambda { |u| attribute :name } } ])
+      b.to_hash(@user)
     end.equivalent_to({ :user => { :name => "rabl" } })
 
     asserts "that it does't duplicate childs with the same name as a string and symbol" do
-      b = builder(:child => [
+      b = builder(nil, :child => [
         { :data => { @user => "user" }, :options => { }, :block => lambda { |u| attribute :name } },
         { :data => { @user => :user }, :options => { }, :block => lambda { |u| attribute :name } }
       ])
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({ :user => { :name => "rabl" } })
   end
 
   context "#glue" do
     asserts "that it generates if no data present" do
-      builder(:glue => []).build(@user)
+      builder(nil, :glue => []).to_hash(@user)
     end.equals({})
 
     asserts "that it generates the glue attributes" do
-      b = builder :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
+      b = builder nil, :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
       e = Rabl::Engine.new('')
       mock(e).render.returns({:user => 'xyz'})
       mock(b).object_to_engine(@user, { :root => false }).returns(e).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({ :user => 'xyz' })
 
     asserts "that it appends the glue attributes to result" do
-      b = builder :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name => :user_name }}]
-      b.build(@user)
+      b = builder nil, :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name => :user_name }}]
+      b.to_hash(@user)
     end.equivalent_to({ :user_name => 'rabl' })
 
     asserts "that it does not generate new attributes if no glue attributes are present" do
-      b = builder :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
+      b = builder nil, :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
       e = Rabl::Engine.new('')
       mock(e).render.returns({})
       mock(b).object_to_engine(@user,{ :root => false }).returns(e).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equals({})
   end
 
   context "#extends" do
     asserts "that it does not generate if no data is present" do
-      b = builder :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
+      b = builder nil, :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
       e = Rabl::Engine.new('users/show')
       mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
       mock(e).render.returns({}).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equals({})
 
     asserts "that it generates if data is present" do
-      b = builder :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
+      b = builder nil, :extends => [{ :file => 'users/show', :options => {}, :block => lambda { |u| attribute :name  }}]
       e = Rabl::Engine.new('users/show')
       mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
       mock(e).render.returns({:user => 'xyz'}).subject
-      b.build(@user)
+      b.to_hash(@user)
     end.equivalent_to({:user => 'xyz'})
 
     asserts "that it generates if local data is present but object is false" do
-      b = builder :extends => [{ :file => 'users/show', :options => { :object => @user }, :block => lambda { |u| attribute :name  }}]
+      b = builder nil, :extends => [{ :file => 'users/show', :options => { :object => @user }, :block => lambda { |u| attribute :name  }}]
       e = Rabl::Engine.new('users/show')
       mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
       mock(e).render.returns({:user => 'xyz'}).subject
-      b.build(false)
+      b.to_hash(false)
     end.equivalent_to({:user => 'xyz'})
   end
 
@@ -291,26 +285,22 @@ context "Rabl::Builder" do
     end
 
     asserts "that it can use symbols on if condition and return false if method returns false" do
-      scope = Rabl::Builder.new
-      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope = Rabl::Builder.new(ArbObj.new)
       scope.send(:resolve_condition, { :if => :cool? })
     end.equals(false)
 
     asserts "that it can use symbols on if condition and return true if method returns true" do
-      scope = Rabl::Builder.new
-      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope = Rabl::Builder.new(ArbObj.new)
       scope.send :resolve_condition, { :if => :smooth? }
     end.equals(true)
 
     asserts "that it can use symbols as unless condition and return true if method returns false" do
-      scope = Rabl::Builder.new
-      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope = Rabl::Builder.new(ArbObj.new)
       scope.send :resolve_condition, { :unless => :cool? }
     end.equals(true)
 
     asserts "that it can use symbols as unmless condition and return false if method returns true" do
-      scope = Rabl::Builder.new
-      scope.instance_variable_set(:@_object, ArbObj.new)
+      scope = Rabl::Builder.new(ArbObj.new)
       scope.send :resolve_condition, { :unless => :smooth? }
     end.equals(false)
   end

@@ -21,7 +21,7 @@ module Rabl
       end
     end
 
-    def write(key, value, options={})
+    def write(key, value, options = {})
       if defined?(Rails)
         Rails.cache.write(key, value, options)
       end
