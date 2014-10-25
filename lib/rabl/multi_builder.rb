@@ -1,10 +1,13 @@
 module Rabl
   class MultiBuilder
+    include Helpers
+    
     # Constructs a new MultiBuilder given the data and options.
     # The options will be re-used for all Rabl::Builders.
     # Rabl::MultiBuilder.new([#<User ...>, #<User ...>, ...], { :format => 'json', :child_root => true })   
-    def initialize(data, options = {})
+    def initialize(data, settings = {}, options = {})
       @data                 = data
+      @settings             = settings
       @options              = options
       @builders             = []
       @engine_to_builder    = {}
@@ -14,12 +17,16 @@ module Rabl
     # Returns the result of all of the builders as an array
     def to_a
       generate_builders
-      read_cache_results
-      replace_engines_with_cache_results
 
-      @builders.map do |builder| 
-        builder.to_hash(@options)
+      if template_cache_configured? && Rabl.configuration.use_read_multi
+        map_engines_to_builders
+        read_cache_results
+        replace_engines_with_cache_results
       end
+
+      result = @builders.map(&:to_hash)
+      result = result.map(&:presence).compact if Rabl.configuration.exclude_empty_values_in_collections
+      result
     end
 
     private
@@ -28,12 +35,13 @@ module Rabl
     # and maps the cache keys for each of the engines
     # the builders generated
     def generate_builders
-      @data.each do |object|
-        builder = Rabl::Builder.new(@options)
-        builder.build(object, @options.merge(:keep_engines => true))
+      @builders = @data.map do |object|
+        Builder.new(object, @settings, @options)
+      end
+    end
 
-        @builders << builder
-
+    def map_engines_to_builders
+      @builders.each do |builder|
         builder.engines.each do |engine|
           @engine_to_builder[engine] = builder
 

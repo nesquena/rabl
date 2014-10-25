@@ -34,13 +34,13 @@ module Rabl
       @options  = options
       @object   = object
 
-      engine.source = self.process_source(source)
+      engine.source = process_source(source)
     end
 
     # Public: Actually render the template to the requested output format.
     #
     # - context_scope:
-    #     Override the render scope to the 'scope' object. Defaults to self.
+    #     Override the render context_scope to the 'context_scope' object. Defaults to self.
     #
     # Returns: And object representing the tranformed object in the requested format.
     #   e.g. json, xml, bson, plist

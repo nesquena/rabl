@@ -7,6 +7,7 @@ require 'active_support/core_ext/hash/slice'
 
 require 'rabl/version'
 require 'rabl/helpers'
+require 'rabl/sources'
 require 'rabl/partials'
 require 'rabl/engine'
 require 'rabl/builder'

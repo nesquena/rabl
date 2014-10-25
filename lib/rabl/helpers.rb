@@ -88,10 +88,14 @@ module Rabl
         obj.class.ancestors.none? { |a| KNOWN_OBJECT_CLASSES.include?(a.name) }
     end
 
-    # Returns the scope wrapping this engine, used for retrieving data, invoking methods, etc
+    # Returns the context_scope wrapping this engine, used for retrieving data, invoking methods, etc
     # In Rails, this is the controller and in Padrino this is the request context
     def context_scope
-      defined?(@_scope) ? @_scope : nil
+      defined?(@_context_scope) ? @_context_scope : nil
+    end
+
+    def view_path
+      defined?(@_view_path) ? @_view_path : nil
     end
 
     # Returns the root (if any) name for an object within a collection
@@ -113,14 +117,34 @@ module Rabl
       val.is_a?(String) || val.is_a?(Symbol)
     end
 
+    # Returns an Engine based representation of any data object given ejs template block
+    # object_to_hash(@user) { attribute :full_name } => { ... }
+    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
+    # object_to_hash([@user], :source => "...") { attribute :full_name } => { ... }
+    # options must have :source (rabl file contents)
+    # options can have :source_location (source filename)
+    def object_to_engine(object, options = {}, &block)
+      return if object.nil?
+
+      return [] if is_collection?(object) && object.blank? # empty collection
+
+      options = { 
+        :format     => "hash", 
+        :view_path  => view_path, 
+        :root       => (options[:root] || false)
+      }.merge(options)
+      
+      Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
+    end
+
     # Fetches a key from the cache and stores rabl template result otherwise
     # fetch_from_cache('some_key') { ...rabl template result... }
-    def fetch_result_from_cache(cache_key, cache_options=nil, &block)
+    def fetch_result_from_cache(cache_key, cache_options = nil, &block)
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       Rabl.configuration.cache_engine.fetch(expanded_cache_key, cache_options, &block)
     end
 
-    def write_result_to_cache(cache_key, cache_options=nil, &block)
+    def write_result_to_cache(cache_key, cache_options = nil, &block)
       expanded_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
       result = yield
       Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)

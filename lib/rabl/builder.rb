@@ -1,254 +1,240 @@
 module Rabl
   class Builder
-    include Rabl::Partials
+    include Helpers
+    include Partials
 
     SETTING_TYPES = {
-      :extends => :file,
-      :node    => :name,
-      :child   => :data,
-      :glue    => :data
+      :attributes => :name,
+      :node       => :name,
+      :child      => :data,
+      :glue       => :data,
+      :extends    => :file
     } unless const_defined?(:SETTING_TYPES)
 
     # Constructs a new rabl hash based on given object and options
     # options = { :format => "json", :root => true, :child_root => true,
     #   :attributes, :node, :child, :glue, :extends }
     #
-    def initialize(options = {}, &block)
-      @options    = options
-      @_scope     = options[:scope]
-      @_view_path = options[:view_path]
-    end
-
-    # Given an object and options, returns the hash representation
-    # build(@user, :format => "json", :attributes => { ... }, :root_name => "user")
-    def build(object, options = {})
+    def initialize(object, settings = {}, options = {}, &block)
       @_object = object
 
-      compile_engines
-
-      to_hash(options) unless options[:keep_engines]
+      @settings       = settings
+      @options        = options
+      @_context_scope = options[:scope]
+      @_view_path     = options[:view_path]
     end
 
     def engines
-      @_engines ||= []
+      return @_engines if defined?(@_engines)
+
+      @_engines = []
+
+      # Append onto @_engines
+      compile_settings(:extends)
+      compile_settings(:child)
+      compile_settings(:glue)
+
+      @_engines
     end
 
     def replace_engine(engine, value)
       engines[engines.index(engine)] = value
     end
 
-    def to_hash(options = {})
-      cache_results { compile_hash(options) }
+    def to_hash(object = nil, settings = {}, options = {})
+      @_object = object           if object
+      @options.merge!(options)    if options
+      @settings.merge!(settings)  if settings
+      
+      cache_results do
+        @_result = {}
+
+        # Merges directly into @_result
+        compile_settings(:attributes)
+
+        merge_engines_into_result
+
+        # Merges directly into @_result
+        compile_settings(:node)
+
+        replace_nil_values          if Rabl.configuration.replace_nil_values_with_empty_strings
+        replace_empty_string_values if Rabl.configuration.replace_empty_string_values_with_nil_values
+        remove_nil_values           if Rabl.configuration.exclude_nil_values
+
+        result = @_result
+        result = { @options[:root_name] => result } if @options[:root_name].present?
+        result
+      end
     end
 
     protected
+      def replace_nil_values
+        @_result = deep_replace_nil_values(@_result)
+      end
 
-    # Returns the builder with all engine-producing options evaluated.
-    # (extends, node, children, glues)
-    def compile_engines
-      @_engines = []
+      def deep_replace_nil_values(hash)
+        hash.inject({}) do |new_hash, (k, v)|
+          new_hash[k] = if v.is_a?(Hash)
+            deep_replace_nil_values(v)
+          else
+            v.nil? ? '' : v
+          end
+          new_hash
+        end
+      end
 
-      update_settings(:extends)
-      update_settings(:child)
-      update_settings(:glue)
-    end
+      def replace_empty_string_values
+        @_result = deep_replace_empty_string_values(@_result)
+      end
 
-    # Returns a hash representation of the data object
-    # compile_hash(:root_name => false)
-    # compile_hash(:root_name => "user")
-    def compile_hash(options = {})
-      @_result = {}
+      def deep_replace_empty_string_values(hash)
+        hash.inject({}) do |new_hash, (k, v)|
+          new_hash[k] = if v.is_a?(Hash)
+            deep_replace_empty_string_values(v)
+          else
+            (!v.nil? && v != "") ? v : nil
+          end
 
-      update_attributes
+          new_hash
+        end
+      end
 
-      # Turn engines into hashes
-      @_engines.each do |engine|
-        # engine was stored in the form { name => #<Rabl::Engine> }
-        if engine.is_a?(Hash)
-          engine.each do |key, value|
-            if value.is_a?(Rabl::Engine)
-              value = value.render
+      def remove_nil_values
+        @_result = @_result.inject({}) do |new_hash, (k, v)|
+          new_hash[k] = v unless v.nil?
+          new_hash
+        end
+      end
 
-              if value
-                engine[key] = value
-              else
-                engine.delete(key)
+      def compile_settings(type)
+        return unless @settings.has_key?(type)
+
+        settings_type = SETTING_TYPES[type]
+        @settings[type].each do |setting|
+          send(type, setting[settings_type], setting[:options] || {}, &setting[:block])
+        end
+      end
+
+      def merge_engines_into_result
+        engines.each do |engine|
+          # engine was stored in the form { name => #<Engine> }
+          if engine.is_a?(Hash)
+            engine.each do |key, value|
+              if value.is_a?(Engine)
+                value = value.render
+
+                if value
+                  engine[key] = value
+                else
+                  engine.delete(key)
+                end
               end
             end
+          elsif engine.is_a?(Engine)
+            engine = engine.render
           end
-        elsif engine.is_a?(Rabl::Engine)
-          engine = engine.render
-        end
 
-        @_result.merge!(engine) if engine.is_a?(Hash)
+          @_result.merge!(engine) if engine.is_a?(Hash)
+        end
       end
 
-      @_engines = []
+      # Indicates an attribute or method should be included in the json output
+      # attribute :foo, :as => "bar"
+      # attribute :foo, :as => "bar", :if => lambda { |m| m.foo }
+      def attribute(name, options = {})
+        return unless @_object && attribute_present?(name) && resolve_condition(options)
 
-      update_settings(:node)
+        attribute = data_object_attribute(name)
+        name = (options[:as] || name).to_sym
+        @_result[name] = attribute
+      end
+      alias_method :attributes, :attribute
 
-      replace_nil_values          if Rabl.configuration.replace_nil_values_with_empty_strings
-      replace_empty_string_values if Rabl.configuration.replace_empty_string_values_with_nil_values
-      remove_nil_values           if Rabl.configuration.exclude_nil_values
+      # Creates an arbitrary node that is included in the json output
+      # node(:foo) { "bar" }
+      # node(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
+      def node(name, options = {}, &block)
+        return unless resolve_condition(options)
 
-      # Return Results
-      result = @_result
-      result = { options[:root_name] => result } if options[:root_name].present?
-      result
-    end
+        result = block.call(@_object)
+        if name.present?
+          @_result[name.to_sym] = result
+        elsif result.is_a?(Hash) # merge hash into root hash
+          @_result.merge!(result)
+        end
+      end
+      alias_method :code, :node
 
-    def replace_nil_values
-      @_result = deep_replace_nil_values(@_result)
-    end
+      # Creates a child node that is included in json output
+      # child(@user) { attribute :full_name }
+      # child(@user => :person) { ... }
+      # child(@users => :people) { ... }
+      def child(data, options = {}, &block)
+        return unless data.present? && resolve_condition(options)
 
-    def deep_replace_nil_values(hash)
-      hash.inject({}) do |new_hash, (k, v)|
-        new_hash[k] = if v.is_a?(Hash)
-          deep_replace_nil_values(v)
+        name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
+        object = data_object(data)
+
+        include_root = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
+        engine_options = @options.slice(:child_root).merge(:root => include_root)
+        engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
+
+        object = { object => name } if data.is_a?(Hash) && object # child :users => :people
+
+        engines << { name.to_sym => object_to_engine(object, engine_options, &block) }
+      end
+
+      # Glues data from a child node to the json_output
+      # glue(@user) { attribute :full_name => :user_full_name }
+      def glue(data, options = {}, &block)
+        return unless data.present? && resolve_condition(options)
+
+        object = data_object(data)
+        engines << object_to_engine(object, :root => false, &block)
+      end
+
+      # Extends an existing rabl template with additional attributes in the block
+      # extends("users/show") { attribute :full_name }
+      def extends(file, options = {}, &block)
+        return unless resolve_condition(options)
+
+        options = @options.slice(:child_root).merge(:object => @_object).merge(options)
+        engines << partial_as_engine(file, options, &block)
+      end
+
+      # Evaluate conditions given a symbol to evaluate
+      def call_condition_proc(condition, object, &block)
+        block = lambda { |v| v } unless block_given?
+
+        if condition.respond_to?(:call)
+          # condition is a block to pass to the block
+          block.call(condition.call(object))
+        elsif condition.is_a?(Symbol) && object.respond_to?(condition)
+          # condition is a property of the object
+          block.call(object.send(condition))
         else
-          v.nil? ? '' : v
+          false
         end
-        new_hash
       end
-    end
 
-    def replace_empty_string_values
-      @_result = deep_replace_empty_string_values(@_result)
-    end
+      # resolve_condition(:if => true) => true
+      # resolve_condition(:if => lambda { |m| false }) => false
+      # resolve_condition(:unless => lambda { |m| true }) => true
+      def resolve_condition(options)
+        return true if options[:if].nil? && options[:unless].nil?
 
-    def deep_replace_empty_string_values(hash)
-      hash.inject({}) do |new_hash, (k, v)|
-        new_hash[k] = if v.is_a?(Hash)
-          deep_replace_empty_string_values(v)
-        else
-          (!v.nil? && v != "") ? v : nil
+        result = nil
+        if options.has_key?(:if)
+          result = options[:if] == true || call_condition_proc(options[:if], @_object)
         end
 
-        new_hash
+        if options.has_key?(:unless)
+          inverse_proc = lambda { |r| !r }
+          result = options[:unless] == false || call_condition_proc(options[:unless], @_object, &inverse_proc)
+        end
+
+        result
       end
-    end
-
-    def remove_nil_values
-      @_result = @_result.inject({}) do |new_hash, (k, v)|
-        new_hash[k] = v unless v.nil?
-        new_hash
-      end
-    end
-
-    def update_settings(type)
-      return unless @options.has_key?(type)
-
-      settings_type = SETTING_TYPES[type]
-      @options[type].each do |settings|
-        send(type, settings[settings_type], settings[:options], &settings[:block])
-      end
-    end
-
-    def update_attributes
-      return unless @options.has_key?(:attributes)
-
-      @options[:attributes].each do |attribute, settings|
-        attribute(attribute, settings)
-      end
-    end
-
-    # Indicates an attribute or method should be included in the json output
-    # attribute :foo, :as => "bar"
-    # attribute :foo, :as => "bar", :if => lambda { |m| m.foo }
-    def attribute(name, options = {})
-      return unless @_object && attribute_present?(name) && resolve_condition(options)
-
-      attribute = data_object_attribute(name)
-      name = (options[:as] || name).to_sym
-      @_result[name] = attribute
-    end
-    alias_method :attributes, :attribute
-
-    # Creates an arbitrary node that is included in the json output
-    # node(:foo) { "bar" }
-    # node(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
-    def node(name, options = {}, &block)
-      return unless resolve_condition(options)
-
-      result = block.call(@_object)
-      if name.present?
-        @_result[name.to_sym] = result
-      elsif result.is_a?(Hash) # merge hash into root hash
-        @_result.merge!(result)
-      end
-    end
-    alias_method :code, :node
-
-    # Creates a child node that is included in json output
-    # child(@user) { attribute :full_name }
-    # child(@user => :person) { ... }
-    # child(@users => :people) { ... }
-    def child(data, options = {}, &block)
-      return unless data.present? && resolve_condition(options)
-
-      name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
-      object = data_object(data)
-
-      include_root = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
-      engine_options = @options.slice(:child_root).merge(:root => include_root)
-      engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
-
-      object = { object => name } if data.is_a?(Hash) && object # child :users => :people
-
-      @_engines << { name.to_sym => object_to_engine(object, engine_options, &block) }
-    end
-
-    # Glues data from a child node to the json_output
-    # glue(@user) { attribute :full_name => :user_full_name }
-    def glue(data, options = {}, &block)
-      return unless data.present? && resolve_condition(options)
-
-      object = data_object(data)
-      @_engines << object_to_engine(object, :root => false, &block)
-    end
-
-    # Extends an existing rabl template with additional attributes in the block
-    # extends("users/show") { attribute :full_name }
-    def extends(file, options = {}, &block)
-      return unless resolve_condition(options)
-
-      options = @options.slice(:child_root).merge(:object => @_object).merge(options)
-      @_engines << partial_as_engine(file, options, &block)
-    end
-
-    # Evaluate conditions given a symbol to evaluate
-    def call_condition_proc(condition, object, &block)
-      block = lambda { |v| v } unless block_given?
-
-      if condition.respond_to?(:call)
-        # condition is a block to pass to the block
-        block.call(condition.call(object))
-      elsif condition.is_a?(Symbol) && object.respond_to?(condition)
-        # condition is a property of the object
-        block.call(object.send(condition))
-      else
-        false
-      end
-    end
-
-    # resolve_condition(:if => true) => true
-    # resolve_condition(:if => lambda { |m| false }) => false
-    # resolve_condition(:unless => lambda { |m| true }) => true
-    def resolve_condition(options)
-      return true if options[:if].nil? && options[:unless].nil?
-
-      result = nil
-      if options.has_key?(:if)
-        result = options[:if] == true || call_condition_proc(options[:if], @_object)
-      end
-
-      if options.has_key?(:unless)
-        inverse_proc = lambda { |r| !r }
-        result = options[:unless] == false || call_condition_proc(options[:unless], @_object, &inverse_proc)
-      end
-
-      result
-    end
 
     private
       # Checks if an attribute is present. If not, check if the configuration specifies that this is an error
@@ -263,7 +249,7 @@ module Rabl
         end
       end
 
-      # Returns a guess at the format in this scope
+      # Returns a guess at the format in this context_scope
       # request_format => "xml"
       def request_format
         format = @options[:format]

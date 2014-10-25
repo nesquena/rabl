@@ -5,7 +5,7 @@ require File.expand_path('../models/ormless', __FILE__)
 
 context "Rabl::MultiBuilder" do
   helper(:multi_builder) { |objects, options| Rabl::MultiBuilder.new(objects, options) }
-  helper(:builder)       {                    Rabl::Builder.new({}) }
+  helper(:builder)       {                    Rabl::Builder.new(nil, {}) }
   helper(:engine)        { |object|           Rabl::Engine.new("").apply(nil, :object => object) }
 
   context "#initialize" do
@@ -32,7 +32,6 @@ context "Rabl::MultiBuilder" do
   context "#map_cache_key_to_engine" do
     asserts "maps the cache keys to the engines" do
       mb = multi_builder [], {}
-      b = builder
       e = engine User.new
       mock(e).cache_key.returns(['cache key'])
       mb.send(:map_cache_key_to_engine, e)

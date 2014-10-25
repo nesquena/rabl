@@ -1,7 +1,8 @@
 module Rabl
   class Engine
-    include Rabl::Partials
-    include Rabl::Helpers::Escaper
+    include Helpers
+    include Partials
+    include Helpers::Escaper
 
     # List of supported rendering formats
     FORMATS = [:json, :xml, :plist, :bson, :msgpack]
@@ -9,21 +10,29 @@ module Rabl
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options = {})
-      @_source    = source
-      @_options   = options
-      @_view_path = options[:view_path]
+      @_source        = source
+      @_settings      = {}
+      @_options       = options
+
+      @_view_path     = options[:view_path]
+      @_context_scope = options[:scope]
+      
       @_cache_read_on_render = true
     end
 
-    def source=(string)
-      @_source = string
+    def source=(source)
+      @_source = source
     end
 
-    # Renders the representation based on source, object, scope and locals
-    # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user })
-    def apply(scope, locals, &block)
-      reset_options!(scope)
-      set_instance_variables!(scope, locals, &block)
+    # Renders the representation based on source, object, context_scope and locals
+    # Rabl::Engine.new("...source...", { :format => "xml" }).apply(context_scope, { :foo => "bar", :object => @user })
+    def apply(context_scope, locals, &block)
+      set_instance_variables!(context_scope, locals)
+
+      reset_settings!
+      reset_options!
+
+      eval_source(locals, &block)
 
       instance_exec(root_object, &block) if block_given?
 
@@ -31,12 +40,12 @@ module Rabl
     end
 
     # Renders the representation based on a previous apply
-    # Rabl::Engine.new("...source...", { :format => "xml" }).apply(scope, { :foo => "bar", :object => @user }).render
-    def render(scope = nil, locals = nil, &block)
-      apply(scope, locals) if scope || locals
+    # Rabl::Engine.new("...source...", { :format => "xml" }).apply(context_scope, { :foo => "bar", :object => @user }).render
+    def render(context_scope = nil, locals = nil, &block)
+      apply(context_scope, locals, &block) if context_scope || locals || block
 
       cache_results do
-        self.send("to_#{@_options[:format]}", @_options)
+        send("to_#{@_options[:format]}")
       end
     end
 
@@ -66,25 +75,18 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options = {})
-      options = options.merge(@_options)
+      options = @_options.merge(options)
 
       data = root_object
 
-      builder = Rabl::Builder.new(options)
-
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
-      if is_object?(data) || !data # object @user
-        result = builder.build(data, options)
-      elsif is_collection?(data) # collection @users
-        result = if template_cache_configured? && Rabl.configuration.use_read_multi
-          build_multi(*data, options)
-        else
-          data.map { |object| builder.build(object, options) }
+      result = \
+        if is_object?(data) || !data # object @user
+          Builder.new(data, @_settings, options).to_hash
+        elsif is_collection?(data) # collection @users
+          MultiBuilder.new(data, @_settings, options).to_a
         end
-
-        result = result.map(&:presence).compact if Rabl.configuration.exclude_empty_values_in_collections
-      end
 
       result = escape_output(result) if Rabl.configuration.escape_all_output
 
@@ -228,9 +230,9 @@ module Rabl
           attribute(key, conditions.merge(:as => as))
         end
       else # array of attributes i.e :foo, :bar, :baz
-        attr_options = args.extract_options!
+        options = args.extract_options!
         args.each do |name| 
-          @_options[:attributes][name] = attr_options
+          @_settings[:attributes] << { :name => name, :options => options }
         end
       end
     end
@@ -240,28 +242,28 @@ module Rabl
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options = {}, &block)
-      @_options[:node] << { :name => name, :options => options, :block => block }
+      @_settings[:node] << { :name => name, :options => options, :block => block }
     end
     alias_method :code, :node
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
     def child(data, options = {}, &block)
-      @_options[:child] << { :data => data, :options => options, :block => block }
+      @_settings[:child] << { :data => data, :options => options, :block => block }
     end
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
     def glue(data, options = {}, &block)
-      @_options[:glue] << { :data => data, :options => options, :block => block }
+      @_settings[:glue] << { :data => data, :options => options, :block => block }
     end
 
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options = {}, &block)
-      options = { :view_path => options[:view_path] || @_view_path }.merge(options)
+      options = { :view_path => options[:view_path] || view_path }.merge(options)
 
-      @_options[:extends] << { :file => file, :options => options, :block => block }
+      @_settings[:extends] << { :file => file, :options => options, :block => block }
     end
 
     # Includes a helper module with a RABL template
@@ -270,6 +272,16 @@ module Rabl
       klasses.each { |klass| self.class.__send__(:include, klass) }
     end
     alias_method :helpers, :helper
+
+    # Returns a hash representing the partial
+    # partial("users/show", :object => @user)
+    # options must have :object
+    # options can have :view_path, :child_root, :root
+    def partial(file, options = {}, &block)
+      engine = partial_as_engine(file, options, &block)
+      engine = engine.render if engine.is_a?(Engine)
+      engine
+    end
 
     # Disables reading (but not writing) from the cache when rendering.
     def cache_read_on_render=(read)
@@ -292,7 +304,7 @@ module Rabl
         ivar_object if is_object?(ivar_object)
       end
 
-      # Returns a guess at the format in this scope
+      # Returns a guess at the format in this context_scope
       # request_format => "xml"
       def request_format
         format = request_params[:format]
@@ -307,7 +319,7 @@ module Rabl
         format
       end
 
-      # Returns the request parameters if available in the scope
+      # Returns the request parameters if available in the context_scope
       # request_params => { :foo => "bar" }
       def request_params
         (context_scope.params if context_scope.respond_to?(:params)) || {}
@@ -332,12 +344,12 @@ module Rabl
         json_output
       end
 
-      # Augments respond to supporting scope methods
+      # Augments respond to supporting context_scope methods
       def respond_to?(name, include_private = false)
         context_scope.respond_to?(name, include_private) || super
       end
 
-      # Supports calling helpers defined for the template scope using method_missing hook
+      # Supports calling helpers defined for the template context_scope using method_missing hook
       def method_missing(name, *args, &block)
         context_scope.respond_to?(name, true) ? context_scope.__send__(name, *args, &block) : super
       end
@@ -347,17 +359,19 @@ module Rabl
         vars.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
       end
 
-      # Resets the options parsed from a rabl template.
-      def reset_options!(scope)
-        @_options[:attributes]  = {}
-        @_options[:node]        = []
-        @_options[:child]       = []
-        @_options[:glue]        = []
-        @_options[:extends]     = []
+      def reset_settings!
+        @_settings[:attributes]  = []
+        @_settings[:node]        = []
+        @_settings[:child]       = []
+        @_settings[:glue]        = []
+        @_settings[:extends]     = []
+      end
 
+      # Resets the options parsed from a rabl template.
+      def reset_options!
         @_options[:root_name]   = nil
         @_options[:read_multi]  = false
-        @_options[:scope]       = scope
+        @_options[:scope]       = context_scope
       end
 
       # Caches the results of the block based on object cache_key
@@ -372,27 +386,19 @@ module Rabl
         end
       end
 
-      # Uses read_multi to render a collection of cache keys,
-      # falling back to a normal render in the event of a miss.
-      def build_multi(*data)
-        options = data.extract_options!
-        builder = Rabl::MultiBuilder.new(data, options)
-        builder.to_a
-      end
-
       def digestor_available?
         defined?(Rails) && Rails.version =~ /^[4]/
       end
 
-      def set_instance_variables!(scope, locals, &block)
-        @_locals, @_scope = locals, scope
+      def set_instance_variables!(context_scope, locals)
+        @_context_scope = context_scope
+        @_locals        = locals
 
-        copy_instance_variables_from(@_scope, [:@assigns, :@helpers])
+        copy_instance_variables_from(context_scope, [:@assigns, :@helpers])
 
         @_options[:format] ||= request_format
 
         set_locals(locals)
-        set_source(locals, &block)
       end
 
       def set_locals(locals)
@@ -400,7 +406,9 @@ module Rabl
         locals.each { |key, value| instance_variable_set(:"@#{key}", value) }
       end
 
-      def set_source(locals, &block)
+      def eval_source(locals, &block)
+        # Note: locals and block may be used by the eval'ed source
+        
         return unless @_source.present?
 
         if @_options[:source_location]

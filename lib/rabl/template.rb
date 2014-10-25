@@ -11,8 +11,8 @@ if defined?(Tilt)
       @engine = ::Rabl::Engine.new(data, options)
     end
 
-    def evaluate(scope, locals, &block)
-      @engine.apply(scope, locals, &block).render
+    def evaluate(context_scope, locals, &block)
+      @engine.apply(context_scope, locals, &block).render
     end
   end
 
