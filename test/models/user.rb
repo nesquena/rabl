@@ -10,7 +10,7 @@ unless defined?(User)
     DEFAULT_HOBBIES  = ['Photography']
     DEFAULT_TWITTER  = 'rablgem'
 
-    def initialize(attributes={})
+    def initialize(attributes = {})
       %w(age city name first float hobbies twitter).each do |attr|
         self.send "#{attr}=", (attributes.has_key?(attr.to_sym) ? attributes[attr.to_sym] : self.class.const_get("DEFAULT_#{attr.upcase}"))
       end

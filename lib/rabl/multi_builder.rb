@@ -3,12 +3,12 @@ module Rabl
     # Constructs a new MultiBuilder given the data and options.
     # The options will be re-used for all Rabl::Builders.
     # Rabl::MultiBuilder.new([#<User ...>, #<User ...>, ...], { :format => 'json', :child_root => true })   
-    def initialize(data, options={})
-      @data = data
-      @options = options
-      @builders = []
-      @engine_to_builder = {}
-      @cache_key_to_engine = {}
+    def initialize(data, options = {})
+      @data                 = data
+      @options              = options
+      @builders             = []
+      @engine_to_builder    = {}
+      @cache_key_to_engine  = {}
     end
 
     # Returns the result of all of the builders as an array
@@ -17,7 +17,9 @@ module Rabl
       read_cache_results
       replace_engines_with_cache_results
 
-      @builders.map { |builder| builder.to_hash(@options) }
+      @builders.map do |builder| 
+        builder.to_hash(@options)
+      end
     end
 
     private

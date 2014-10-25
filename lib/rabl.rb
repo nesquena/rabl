@@ -58,13 +58,11 @@ module Rabl
     def source_cache(file, view_path, &block)
       return yield unless Rabl.configuration.cache_sources
 
-      @_source_cache ||= {}
       cache_key = [file, view_path].compact.join(":")
-      if cached_result = @_source_cache[cache_key]
-        cached_result
-      else # store result of block
-        @_source_cache[cache_key] = yield
-      end
+
+      @_source_cache ||= {}
+
+      @_source_cache[cache_key] ||= yield
     end
 
     # Resets the RABL source cache
@@ -77,7 +75,6 @@ module Rabl
     def render(object, source, options = {})
       Rabl::Renderer.new(source, object, options).render
     end
-
   end
 end
 

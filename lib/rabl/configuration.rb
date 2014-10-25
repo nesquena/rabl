@@ -80,7 +80,7 @@ module Rabl
       @replace_nil_values_with_empty_strings        = false
       @replace_empty_string_values_with_nil_values  = false
       @exclude_nil_values                           = false
-      @exclude_empty_values_in_collections   = false
+      @exclude_empty_values_in_collections          = false
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON
