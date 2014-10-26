@@ -190,7 +190,8 @@ module Rabl
         return unless data.present? && resolve_condition(options)
 
         object = data_object(data)
-        engines << object_to_engine(object, :root => false, &block)
+        engine = object_to_engine(object, :root => false, &block)
+        engines << engine if engine
       end
 
       # Extends an existing rabl template with additional attributes in the block
