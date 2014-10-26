@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.11.2 (October 26th)
+
+* FIX Don't put nil into builder engines when glueing nil object (@DouweM)
+
 ## 0.11.1 (October 19th)
 
 * NEW #417 Major rewrite caching layer to be much faster using read_multi (@ahlatimer, @DouweM)
