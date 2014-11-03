@@ -118,15 +118,13 @@ module Rabl
     end
 
     # Returns an Engine based representation of any data object given ejs template block
-    # object_to_hash(@user) { attribute :full_name } => { ... }
-    # object_to_hash(@user, :source => "...") { attribute :full_name } => { ... }
-    # object_to_hash([@user], :source => "...") { attribute :full_name } => { ... }
+    # object_to_engine(@user) { attribute :full_name } => { ... }
+    # object_to_engine(@user, :source => "...") { attribute :full_name } => { ... }
+    # object_to_engine([@user], :source => "...") { attribute :full_name } => { ... }
     # options must have :source (rabl file contents)
     # options can have :source_location (source filename)
     def object_to_engine(object, options = {}, &block)
       return if object.nil?
-
-      return [] if is_collection?(object) && object.blank? # empty collection
 
       options = { 
         :format     => "hash", 
