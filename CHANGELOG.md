@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.11.3 (November 3rd)
+
+* FIX error when attempting to cache empty child collections (@DouweM)
+* FIX bug causing Rails 4 cache digests never to be appended (@DouweM)
+
 ## 0.11.2 (October 26th)
 
 * FIX Don't put nil into builder engines when glueing nil object (@DouweM)
