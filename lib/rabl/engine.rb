@@ -55,7 +55,7 @@ module Rabl
       @_full_cache_key ||= begin
         cache_key = Array(@_cache_key) + [@_options[:root_name], @_options[:format]]
 
-        if digestor_available? && defined?(lookup_context)
+        if digestor_available? && respond_to?(:lookup_context) && lookup_context
           template = @_options[:template] || @virtual_path
 
           digest = \
