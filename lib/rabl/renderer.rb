@@ -1,8 +1,8 @@
 module Rabl
   class Renderer
     # Defines class method rendering in supported formats
-    # Rabl::Renderer.json('posts/show', @post)
-    # Rabl::Renderer.xml('posts/show', @post)
+    # Rabl::Renderer.json(@post, 'posts/show')
+    # Rabl::Renderer.xml(@post, 'posts/show')
     Rabl::Engine::FORMATS.each do |fmt|
       instance_eval <<-CODE
       def #{fmt}(object, source, options = {})
