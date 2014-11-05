@@ -117,20 +117,13 @@ module Rabl
 
       def merge_engines_into_result
         engines.each do |engine|
-          # engine was stored in the form { name => #<Engine> }
-          if engine.is_a?(Hash)
+          case engine
+          when Hash
+            # engine was stored in the form { name => #<Engine> }
             engine.each do |key, value|
-              if value.is_a?(Engine)
-                value = value.render
-
-                if value
-                  engine[key] = value
-                else
-                  engine.delete(key)
-                end
-              end
+              engine[key] = value.render if value.is_a?(Engine)
             end
-          elsif engine.is_a?(Engine)
+          when Engine
             engine = engine.render
           end
 

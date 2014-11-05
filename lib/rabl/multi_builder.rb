@@ -60,17 +60,19 @@ module Rabl
     end
 
     def disable_cache_read_on_render(engine)
-      if engine.is_a?(Hash)
+      case engine
+      when Hash
         disable_cache_read_on_render(engine.values.first)
-      else
+      when Engine
         engine.cache_read_on_render = false
       end
     end
 
     def cache_key_for(engine)
-      if engine.is_a?(Hash)
+      case engine
+      when Hash
         cache_key_for(engine.values.first)
-      else
+      when Engine
         engine.cache_key
       end
     end
