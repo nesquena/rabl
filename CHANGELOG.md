@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.11.4 (November 7th)
+
+* FIX Get MultiBuilder to behave properly around nil engines (@DouweM)
+
 ## 0.11.3 (November 3rd)
 
 * FIX error when attempting to cache empty child collections (@DouweM)
