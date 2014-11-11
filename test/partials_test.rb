@@ -4,6 +4,10 @@ require File.expand_path('../teststrap', __FILE__)
 
 class TestPartial
   include Rabl::Partials
+
+  def initialize(view_path = nil)
+    @_view_path = view_path
+  end
 end
 
 context "Rabl::Partials" do
@@ -158,4 +162,26 @@ context "Rabl::Partials" do
       end
     end
   end # Rails
+
+  context "#actual_view_path" do
+    context "with @_view_path" do
+      asserts "that it returns options[:view_path] when options[:view_path] is specified" do
+        TestPartial.new("app/view").method(:actual_view_path).call(view_path: "lib/view")
+      end.equals "lib/view"
+
+      asserts "that it returns @_view_path when options[:view_path] is not specified" do
+        TestPartial.new("app/view").method(:actual_view_path).call
+      end.equals "app/view"
+    end
+
+    context "without @_view_path" do
+      asserts "that it returns options[:view_path] when options[:view_path] is specified" do
+        TestPartial.new.method(:actual_view_path).call(view_path: "lib/view")
+      end.equals "lib/view"
+
+      asserts "that it returns nil when options[:view_path] is not specified" do
+        TestPartial.new.method(:actual_view_path).call
+      end.equals nil
+    end
+  end
 end # Rabl::Partials
