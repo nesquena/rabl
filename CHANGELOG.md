@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.11.5 (December 5th)
+
+* Check if context_scope includes ".settings.views" for Sinatra (@LTe)
+* Fix view path issue for partials (@LTe)
+
 ## 0.11.4 (November 7th)
 
 * FIX Get MultiBuilder to behave properly around nil engines (@DouweM)
