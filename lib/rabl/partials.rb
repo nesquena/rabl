@@ -7,7 +7,7 @@ module Rabl
       raise ArgumentError, "Must provide an :object option to render a partial" unless options.has_key?(:object)
 
       object    = options.delete(:object)
-      view_path = options[:view_path] || view_path
+      view_path = options[:view_path] || self.view_path
 
       source, location = fetch_source(file, :view_path => view_path)
 

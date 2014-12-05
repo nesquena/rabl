@@ -89,6 +89,26 @@ context "Rabl::Partials" do
     end
   end
 
+  context "partial_as_engine using configured view paths" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+
+    setup do
+      File.open(tmp_path + "_test.rabl", "w")
+      engine = Rabl::Engine.new('', :view_path => tmp_path)
+    end
+
+    asserts('returns new engine with given view_path') do
+      topic.partial_as_engine('test', :object => {}).view_path
+    end.equals do
+      tmp_path
+    end
+
+    teardown do
+      Rabl.configuration.view_paths = []
+    end
+  end
+
+
   context "fetch source with custom scope" do
     context "when Padrino is defined" do
       helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
