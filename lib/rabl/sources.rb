@@ -14,7 +14,7 @@ module Rabl
           elsif defined?(Rails) && context_scope.respond_to?(:view_paths)
             _view_paths = view_paths + Array(context_scope.view_paths.to_a)
             fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file)
-          elsif defined?(Sinatra) && context_scope.respond_to?(:settings)
+          elsif defined?(Sinatra) && context_scope.respond_to?(:settings) && context_scope.settings.respond_to?(:views)
             fetch_sinatra_source(file, options)
           else # generic template resolution
             fetch_manual_template(view_paths, file)

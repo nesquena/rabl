@@ -133,6 +133,30 @@ context "Rabl::Partials" do
 
       teardown { Object.send(:remove_const, :Padrino) }
     end
+
+    context "when Sinatra is defined" do
+      helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+
+      setup do
+        ::Sinatra = stub(Class.new)
+        Rabl.configuration.cache_sources = false
+        @it = TestPartial.new
+
+        def @it.context_scope; @context_scope ||= Object.new; end
+        context_scope = @it.context_scope
+        def context_scope.settings; @settings ||= Object.new end
+
+        File.open(tmp_path + "test.json.rabl", "w") { |f| f.puts "content" }
+      end
+
+      asserts('Sinatra constant dont break manual lookup') do
+        @it.fetch_source((tmp_path + "test").to_s)
+      end.equals do
+        ["content\n", "/" + (tmp_path + "test.json.rabl").to_s ]
+      end
+
+      teardown { Object.send(:remove_const, :Sinatra) }
+    end
   end
 
   context "fetch source with Rails" do
