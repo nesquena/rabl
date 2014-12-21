@@ -3,7 +3,6 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in rabl.gemspec
 gemspec
 
-gem 'rake', :require => false
 gem 'i18n', '~> 0.6'
 
 platforms :mri_18 do
@@ -12,7 +11,7 @@ platforms :mri_18 do
 end
 
 group :test do
-  # RABL TEST  
+  # RABL TEST
   gem 'builder'
 
   # FIXTURES
