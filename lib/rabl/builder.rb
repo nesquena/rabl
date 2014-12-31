@@ -45,7 +45,7 @@ module Rabl
       @_object = object           if object
       @options.merge!(options)    if options
       @settings.merge!(settings)  if settings
-      
+
       cache_results do
         @_result = {}
 
@@ -196,37 +196,23 @@ module Rabl
         engines << partial_as_engine(file, options, &block)
       end
 
-      # Evaluate conditions given a symbol to evaluate
-      def call_condition_proc(condition, object, &block)
-        block = lambda { |v| v } unless block_given?
-
-        if condition.respond_to?(:call)
-          # condition is a block to pass to the block
-          block.call(condition.call(object))
-        elsif condition.is_a?(Symbol) && object.respond_to?(condition)
-          # condition is a property of the object
-          block.call(object.send(condition))
-        else
-          false
-        end
+      # Evaluate conditions given a symbol/proc/lambda/variable to evaluate
+      def call_condition_proc(condition, object)
+        # This will evaluate lambda, proc & symbol and call it with 1 argument
+        return condition.to_proc.call(object) if condition.respond_to?(:to_proc)
+        # Else we send directly the object
+        condition
       end
 
       # resolve_condition(:if => true) => true
+      # resolve_condition(:if => 'Im truthy') => true
       # resolve_condition(:if => lambda { |m| false }) => false
-      # resolve_condition(:unless => lambda { |m| true }) => true
+      # resolve_condition(:unless => lambda { |m| false }) => true
+      # resolve_condition(:unless => lambda { |m| false }, :if => proc { true}) => true
       def resolve_condition(options)
-        return true if options[:if].nil? && options[:unless].nil?
-
-        result = nil
-        if options.has_key?(:if)
-          result = options[:if] == true || call_condition_proc(options[:if], @_object)
-        end
-
-        if options.has_key?(:unless)
-          inverse_proc = lambda { |r| !r }
-          result = options[:unless] == false || call_condition_proc(options[:unless], @_object, &inverse_proc)
-        end
-
+        result = true
+        result &&= call_condition_proc(options[:if], @_object) if options.key?(:if)
+        result &&= !call_condition_proc(options[:unless], @_object) if options.key?(:unless)
         result
       end
 
