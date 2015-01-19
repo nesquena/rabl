@@ -163,9 +163,11 @@ module Rabl
     def object(template_data)
       current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
       @_data_object = data_object(current_data)
-      @_data_name   = data_name(template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data)
+      @_root_name_data = template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data
+      @_root_name_data = @_root_name_data.values.first if @_root_name_data.is_a?(Hash)
 
-      if @_data_name == false
+      # If we turn this around, `@_root_name_date ==` may trigger data to be loaded unnecessarily.
+      if false == @_root_name_data
         @_object_root_name = false
         @_collection_name = false
       end
@@ -185,7 +187,7 @@ module Rabl
       return @_data_name if defined?(@_data_name)
 
       @_data_name = @_options[:object_root_name] || begin
-        data = @_locals[:object].nil? ? root_object : @_locals[:object]
+        data = defined?(@_root_name_data) ? @_root_name_data : (@_locals[:object].nil? ? root_object : @_locals[:object])
         data_name(data)
       end
     end
@@ -201,7 +203,7 @@ module Rabl
 
       @_object_root_name = options[:object_root] if options.has_key?(:object_root)
 
-      object(Array(data_object(data)))
+      object(data_object(data) || [])
     end
 
     # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key

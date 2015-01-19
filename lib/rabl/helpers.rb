@@ -35,7 +35,8 @@ module Rabl
       data = data_object(data_token)
 
       if is_collection?(data) # data is a collection
-        object_name = data.table_name if data.respond_to?(:table_name)
+        object_name = collection_root_name if collection_root_name
+        object_name ||= data.table_name if data.respond_to?(:table_name)
 
         if object_name.nil? && data.respond_to?(:first)
           first = data.first
