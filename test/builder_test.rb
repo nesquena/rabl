@@ -299,9 +299,59 @@ context "Rabl::Builder" do
       scope.send :resolve_condition, { :unless => :cool? }
     end.equals(true)
 
-    asserts "that it can use symbols as unmless condition and return false if method returns true" do
+    asserts "that it can use symbols as unless condition and return false if method returns true" do
       scope = Rabl::Builder.new(ArbObj.new)
       scope.send :resolve_condition, { :unless => :smooth? }
     end.equals(false)
+
+    asserts "that it can use :unless and :if at the same time and return true when if is true and unless is false" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send :resolve_condition, { :if => true, :unless => false }
+    end.equals(true)
+
+    asserts "that it can use :unless and :if at the same time and return false when if is false and unless is false" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send :resolve_condition, { :if => false, :unless => false }
+    end.equals(false)
+
+    asserts "that it can use :unless and :if at the same time and return false when if is true and unless is true" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send :resolve_condition, { :if => true, :unless => true }
+    end.equals(false)
+
+    asserts "that it can use :unless and :if at the same time and return false when if is false and unless is true" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send :resolve_condition, { :if => false, :unless => true }
+    end.equals(false)
+
+    asserts "that it can use lambda on if condition and return false if lambda returns false" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => lambda { |obj| false } })
+    end.equals(false)
+
+    asserts "that it can use lambda on if condition and return true if lambda returns true" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => lambda { |obj| true } })
+    end.equals(true)
+
+    asserts "that it can use proc on if condition and return false if proc returns false" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => proc { false } })
+    end.equals(false)
+
+    asserts "that it can use proc on if condition and return true if proc returns true" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => proc { true } })
+    end.equals(true)
+
+    asserts "that it can use a variable on if condition and return true if variable is truthy" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => 'Im truthy' })
+    end.equals('Im truthy')
+
+    asserts "that it can use a variable on if condition and return false if variable is falsy" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => nil })
+    end.equals(nil)
   end
 end
