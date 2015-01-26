@@ -7,12 +7,12 @@ if defined?(Tilt)
     end
 
     def prepare
-      options = @options.merge(:format => @options[:format], :source_location => file)
-      @engine = ::Rabl::Engine.new(data, options)
+      #left empty so each invocation has a new hash of options and new rabl engine for thread safety
     end
 
     def evaluate(context_scope, locals, &block)
-      @engine.apply(context_scope, locals, &block).render
+      options = @options.merge(:source_location => file)
+      ::Rabl::Engine.new(data, options).apply(context_scope, locals, &block).render
     end
   end
 
