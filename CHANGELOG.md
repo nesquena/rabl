@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.11.6 (January 26th)
+
+* Fix resolve_condition and simplify call_condition_proc (@vmeyet)
+* Respect eagerly loaded collections by not always calling #to_ary (@DouweM)
+* Move creation of options and engine in tilt template to avoid threading issues (@jseriff)
+
 ## 0.11.5 (December 5th)
 
 * Check if context_scope includes ".settings.views" for Sinatra (@LTe)
