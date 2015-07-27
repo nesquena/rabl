@@ -213,7 +213,7 @@ module Rabl
     # cache                  # uses the current item within a collection
     # cache 'user', expires_in: 1.hour
     # options is passed through to the cache store
-    def cache(key = nil, options = nil)
+    def cache(key = nil, options = {})
       key ||= root_object # if called but missing, use object
       @_cache_key     = key
       @_cache_options = options
