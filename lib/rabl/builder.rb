@@ -138,12 +138,12 @@ module Rabl
       def attribute(name, options = {})
         return unless @_object && attribute_present?(name) && resolve_condition(options)
 
-        name = (options[:as] || name).to_sym
-
         # returns if not included in fields
         return if not @filters.blank? and not @filters.has_filter_for? name
 
         attribute = data_object_attribute(name)
+        name = (options[:as] || name).to_sym
+
         @_result[name] = attribute
       end
       alias_method :attributes, :attribute
