@@ -15,10 +15,11 @@ module Rabl
     # options = { :format => "json", :root => true, :child_root => true,
     #   :attributes, :node, :child, :glue, :extends }
     #
-    def initialize(object, settings = {}, options = {}, &block)
+    def initialize(object, settings = {}, options = {}, filters = nil, &block)
       @_object = object
 
       @settings       = settings
+      @filters        = filters || options[:filters]
       @options        = options
       @_context_scope = options[:scope]
       @_view_path     = options[:view_path]
@@ -137,8 +138,12 @@ module Rabl
       def attribute(name, options = {})
         return unless @_object && attribute_present?(name) && resolve_condition(options)
 
-        attribute = data_object_attribute(name)
         name = (options[:as] || name).to_sym
+
+        # returns if not included in fields
+        return if not @filters.blank? and not @filters.has_filter_for? name
+
+        attribute = data_object_attribute(name)
         @_result[name] = attribute
       end
       alias_method :attributes, :attribute
@@ -148,6 +153,9 @@ module Rabl
       # node(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
       def node(name, options = {}, &block)
         return unless resolve_condition(options)
+
+        # returns if not included in fields
+        return if not @filters.blank? and not @filters.has_filter_for? name
 
         result = block.call(@_object)
         if name.present?
@@ -166,11 +174,32 @@ module Rabl
         return unless data.present? && resolve_condition(options)
 
         name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
+
+        # returns if not included in fields
+        return if not @filters.blank? and not (@filters.has_filter_for?(name) || @filters.parent == name.to_s.underscore.to_sym)
+
         object = data_object(data)
 
         include_root = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
         engine_options = @options.slice(:child_root).merge(:root => include_root)
         engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
+
+        # filters
+        unless @filters.blank?
+          if is_collection?(object) and @filters.is_a?(Rabl::Filter)
+            object = @filters.execute_functions_in(object, name)
+          end
+
+          filters = if @filters and @filters.has_filter_for?(name)
+            @filters.get_filter(name).fields
+          else
+            @filters
+          end
+          filters = false if filters.nil?
+        else
+          filters = false
+        end
+        engine_options.merge!(:filters => filters)
 
         object = { object => name } if data.is_a?(Hash) && object # child :users => :people
 
@@ -192,7 +221,7 @@ module Rabl
       def extends(file, options = {}, &block)
         return unless resolve_condition(options)
 
-        options = @options.slice(:child_root).merge(:object => @_object).merge(options)
+        options = @options.slice(:child_root, :filters).merge(:object => @_object).merge(options)
         engines << partial_as_engine(file, options, &block)
       end
 
