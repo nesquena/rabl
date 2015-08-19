@@ -5,9 +5,10 @@ module Rabl
     # Constructs a new MultiBuilder given the data and options.
     # The options will be re-used for all Rabl::Builders.
     # Rabl::MultiBuilder.new([#<User ...>, #<User ...>, ...], { :format => 'json', :child_root => true })   
-    def initialize(data, settings = {}, options = {})
+    def initialize(data, settings = {}, options = {}, filters = [], parent=nil)
       @data                 = data
       @settings             = settings
+      @filters              = filters
       @options              = options
       @builders             = []
       @engine_to_builder    = {}
@@ -36,7 +37,7 @@ module Rabl
     # the builders generated
     def generate_builders
       @builders = @data.map do |object|
-        Builder.new(object, @settings, @options)
+        Builder.new(object, @settings, @options, @filters)
       end
     end
 

@@ -175,7 +175,7 @@ context "Rabl::Builder" do
       e = Rabl::Engine.new('')
       mock(b).data_name(@user) { :user }
       mock(e).render.returns('xyz')
-      mock(b).object_to_engine(@user, { :root => false }).returns(e).subject
+      mock(b).object_to_engine(@user, { :root => false, filters:false }).returns(e).subject
       b.to_hash(@user)
     end.equivalent_to({ :user => 'xyz'})
 
@@ -184,7 +184,7 @@ context "Rabl::Builder" do
       e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
       mock(e).render.returns('xyz')
-      mock(b).object_to_engine(@users, { :root => true, :child_root => true }).returns(e).subject
+      mock(b).object_to_engine(@users, { :root => true, :child_root => true, filters:false }).returns(e).subject
       b.to_hash(@user)
     end.equivalent_to({ :users => 'xyz'})
 
@@ -193,7 +193,7 @@ context "Rabl::Builder" do
       e = Rabl::Engine.new('')
       mock(b).data_name(@users) { :users }
       mock(e).render.returns('xyz')
-      mock(b).object_to_engine(@users, { :root => false, :child_root => false }).returns(e).subject
+      mock(b).object_to_engine(@users, { :root => false, :child_root => false, filters:false }).returns(e).subject
       b.to_hash(@user)
     end.equivalent_to({ :users => 'xyz'})
 
@@ -202,7 +202,7 @@ context "Rabl::Builder" do
       b = builder nil, { :child => [{ :data => @users, :options => ops, :block => lambda { |u| attribute :name } }] }, { :child_root => true }
       e = Rabl::Engine.new('')
       mock(e).render.returns('xyz')
-      mock(b).object_to_engine(@users, { :root => "person", :object_root_name => "person", :child_root => true }).returns(e).subject
+      mock(b).object_to_engine(@users, { :root => "person", :object_root_name => "person", :child_root => true, filters:false }).returns(e).subject
       b.to_hash(@user)
     end.equivalent_to({ :people => 'xyz'})
 

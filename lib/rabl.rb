@@ -15,6 +15,8 @@ require 'rabl/multi_builder'
 require 'rabl/configuration'
 require 'rabl/renderer'
 require 'rabl/cache_engine'
+require 'rabl/filter'
+require 'rabl/filter_field'
 
 if defined?(Rails)
   require 'rabl/tracker'  if Rails.version =~ /^[4]/

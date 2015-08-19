@@ -14,6 +14,8 @@ module Rabl
       @_settings      = {}
       @_options       = options
 
+      @filters        = options[:filters] unless options[:filters].nil?
+
       @_view_path     = options[:view_path]
       @_context_scope = options[:scope]
       
@@ -81,11 +83,21 @@ module Rabl
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
+
+      @filters = if Rabl.configuration.filter_fields_from_request &&
+                      (is_object?(data) || !data) &&
+                      @filters.nil? &&
+                      context_scope.params[:fields]
+                  Filter.new(context_scope.params[:fields])
+                else
+                  false
+                end
+
       result = \
         if is_object?(data) || !data # object @user
-          Builder.new(data, @_settings, options).to_hash
+          Builder.new(data, @_settings, options, @filters).to_hash
         elsif is_collection?(data) # collection @users
-          MultiBuilder.new(data, @_settings, options).to_a
+          MultiBuilder.new(data, @_settings, options, @filters).to_a
         end
 
       result = escape_output(result) if Rabl.configuration.escape_all_output
