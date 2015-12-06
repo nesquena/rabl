@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.11.7 (December 6th, 2015)
+
+* Use empty hash as default cache options (@infertux)
+* Update ERB::Util link in README (@mortonfox)
+
 ## 0.11.6 (January 26th)
 
 * Fix resolve_condition and simplify call_condition_proc (@vmeyet)
