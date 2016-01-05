@@ -16,7 +16,7 @@ module Rabl
 
       @_view_path     = options[:view_path]
       @_context_scope = options[:scope]
-      
+
       @_cache_read_on_render = true
     end
 
@@ -94,7 +94,7 @@ module Rabl
     end
 
     def to_dumpable(options = {})
-      options = { 
+      options = {
         :child_root => Rabl.configuration.include_child_root
       }.merge(options)
 
@@ -132,7 +132,7 @@ module Rabl
     # to_xml(:root => true)
     def to_xml(options = {})
       options = {
-        :root       => (include_root = Rabl.configuration.include_xml_root), 
+        :root       => (include_root = Rabl.configuration.include_xml_root),
         :child_root => include_root && Rabl.configuration.include_child_root
       }.merge(options)
 
@@ -228,12 +228,12 @@ module Rabl
         attr_aliases  = args.first.except(:if, :unless)
         conditions    = args.first.slice(:if, :unless)
 
-        attr_aliases.each do |key, as| 
+        attr_aliases.each do |key, as|
           attribute(key, conditions.merge(:as => as))
         end
       else # array of attributes i.e :foo, :bar, :baz
         options = args.extract_options!
-        args.each do |name| 
+        args.each do |name|
           @_settings[:attributes] << { :name => name, :options => options }
         end
       end
@@ -389,7 +389,7 @@ module Rabl
       end
 
       def digestor_available?
-        defined?(Rails) && Rails.version =~ /^[4]/
+        defined?(Rails) && Rails.version =~ /^[45]/
       end
 
       def set_instance_variables!(context_scope, locals)
@@ -410,7 +410,7 @@ module Rabl
 
       def eval_source(locals, &block)
         # Note: locals and block may be used by the eval'ed source
-        
+
         return unless @_source.present?
 
         if @_options[:source_location]

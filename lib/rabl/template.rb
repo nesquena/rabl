@@ -41,7 +41,7 @@ if defined?(ActionView) && defined?(Rails) && Rails.version.to_s =~ /^2/
 end
 
 # Rails 3.X / 4.X Template
-if defined?(ActionView) && defined?(Rails) && Rails.version.to_s =~ /^[34]/
+if defined?(ActionView) && defined?(Rails) && Rails.version.to_s =~ /^[345]/
   module ActionView
     module Template::Handlers
       class Rabl
