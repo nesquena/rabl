@@ -26,35 +26,31 @@ context "Rabl::Engine" do
   context "#request_format" do
     context "is json by default" do
       setup do
-        template = RablTemplate.new("code") { "" }
+        template = RablTemplate.new("code") { 'node(:foo) { "bar" }' }
         template.render(Object.new)
-        engine = template.instance_eval('@engine')
-        engine.instance_eval('@_options')[:format]
       end
 
-      asserts_topic.equals('json')
+      asserts_topic.equivalent_to('{"foo":"bar"}')
     end
 
     context "with a specified format" do
       setup do
-        template = RablTemplate.new("code", :format => 'xml') { "" }
+        template = RablTemplate.new("code", :format => 'xml') { 'node(:foo) { "bar" }' }
         template.render(Object.new)
-        engine = template.instance_eval('@engine')
-        engine.instance_eval('@_options')[:format]
       end
 
-      asserts_topic.equals('xml')
+      asserts_topic.includes('<foo>bar</foo>')
     end
   end
 
   context "#cache" do
     context "with cache" do
       setup do
-        template = rabl %q{
+        template = Rabl::Engine.new(%q{
           cache 'foo'
-        }
+        })
         template.render(Object.new)
-        template.instance_eval('@engine')
+        template
       end
 
       asserts_topic.assigns(:_cache_key) { 'foo' }
@@ -62,11 +58,11 @@ context "Rabl::Engine" do
 
     context "with cache and options" do
       setup do
-        template = rabl %q{
+        template = Rabl::Engine.new(%q{
           cache 'foo', :expires_in => 'bar'
-        }
+        })
         template.render(Object.new)
-        template.instance_eval('@engine')
+        template
       end
 
       asserts_topic.assigns(:_cache_key) { 'foo' }
@@ -75,9 +71,9 @@ context "Rabl::Engine" do
 
     context "without cache" do
       setup do
-        template = RablTemplate.new {}
+        template = Rabl::Engine.new("")
         template.render(Object.new)
-        template.instance_eval('@engine')
+        template
       end
 
       denies(:instance_variable_defined?, :@_cache_key)

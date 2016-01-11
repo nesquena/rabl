@@ -394,13 +394,13 @@ module Rabl
 
       def set_instance_variables!(context_scope, locals)
         @_context_scope = context_scope
-        @_locals        = locals
+        @_locals        = locals || {}
 
         copy_instance_variables_from(context_scope, [:@assigns, :@helpers])
 
         @_options[:format] ||= request_format
 
-        set_locals(locals)
+        set_locals(@_locals)
       end
 
       def set_locals(locals)

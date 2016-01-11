@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.11.8 (January 10th, 2016)
+
+* Check that the Rails module has the .version method before invocation (@caldwecr)
+* Adds nominal rails5 support (@lsylvester)
+
 ## 0.11.7 (December 6th, 2015)
 
 * Use empty hash as default cache options (@infertux)

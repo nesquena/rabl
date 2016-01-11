@@ -94,7 +94,7 @@ context "Rabl::Partials" do
 
     setup do
       File.open(tmp_path + "_test.rabl", "w")
-      engine = Rabl::Engine.new('', :view_path => tmp_path)
+      Rabl::Engine.new('', :view_path => tmp_path)
     end
 
     asserts('returns new engine with given view_path') do
