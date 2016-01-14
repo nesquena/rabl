@@ -199,7 +199,7 @@ module Rabl
       # Evaluate conditions given a symbol/proc/lambda/variable to evaluate
       def call_condition_proc(condition, object)
         # This will evaluate lambda, proc & symbol and call it with 1 argument
-        return condition.to_proc.call(object) if condition.respond_to?(:to_proc)
+        return condition.to_proc.call(object) if condition.is_a?(Proc) || condition.is_a?(Symbol)
         # Else we send directly the object
         condition
       end
