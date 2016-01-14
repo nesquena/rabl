@@ -353,5 +353,10 @@ context "Rabl::Builder" do
       scope = Rabl::Builder.new(ArbObj.new)
       scope.send(:resolve_condition, { :if => nil })
     end.equals(nil)
+
+    asserts "that it can use a hash variable on if condition and return true" do
+      scope = Rabl::Builder.new(ArbObj.new)
+      scope.send(:resolve_condition, { :if => { some: 'data' } })
+    end.equals(nil)
   end
 end
