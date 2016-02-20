@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.12.0 (February 13th, 2016)
+
+* Compatibility with ruby 2.3.0 (@vmeyet)
+
 ## 0.11.8 (January 10th, 2016)
 
 * Check that the Rails module has the .version method before invocation (@caldwecr)
