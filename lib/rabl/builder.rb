@@ -1,3 +1,5 @@
+require 'active_support/inflector' # for the sake of camelcasing keys
+
 module Rabl
   class Builder
     include Helpers
@@ -138,7 +140,7 @@ module Rabl
         return unless @_object && attribute_present?(name) && resolve_condition(options)
 
         attribute = data_object_attribute(name)
-        name = (options[:as] || name).to_sym
+        name = create_key(options[:as] || name)
         @_result[name] = attribute
       end
       alias_method :attributes, :attribute
@@ -151,7 +153,7 @@ module Rabl
 
         result = block.call(@_object)
         if name.present?
-          @_result[name.to_sym] = result
+          @_result[create_key(name)] = result
         elsif result.is_a?(Hash) # merge hash into root hash
           @_result.merge!(result)
         end
@@ -174,7 +176,7 @@ module Rabl
 
         object = { object => name } if data.is_a?(Hash) && object # child :users => :people
 
-        engines << { name.to_sym => object_to_engine(object, engine_options, &block) }
+        engines << { create_key(name) => object_to_engine(object, engine_options, &block) }
       end
 
       # Glues data from a child node to the json_output
@@ -246,6 +248,14 @@ module Rabl
           fetch_result_from_cache(cache_key, &block)
         else # skip cache
           yield
+        end
+      end
+
+      def create_key(name)
+        if Rabl.configuration.camelize_keys
+          name.to_s.camelize(Rabl.configuration.camelize_keys == :upper ? :upper : :lower).to_sym
+        else
+          name.to_sym
         end
       end
   end
