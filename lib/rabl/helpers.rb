@@ -123,12 +123,12 @@ module Rabl
     def object_to_engine(object, options = {}, &block)
       return if object.nil?
 
-      options = { 
-        :format     => "hash", 
-        :view_path  => view_path, 
+      options.reverse_merge!({
+        :format     => "hash".freeze,
+        :view_path  => view_path,
         :root       => (options[:root] || false)
-      }.merge(options)
-      
+      })
+
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end
 

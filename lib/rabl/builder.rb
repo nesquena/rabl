@@ -15,7 +15,7 @@ module Rabl
     # options = { :format => "json", :root => true, :child_root => true,
     #   :attributes, :node, :child, :glue, :extends }
     #
-    def initialize(object, settings = {}, options = {}, &block)
+    def initialize(object, settings = {}, options = {})
       @_object = object
 
       @settings       = settings
@@ -41,7 +41,7 @@ module Rabl
       engines[engines.index(engine)] = value
     end
 
-    def to_hash(object = nil, settings = {}, options = {})
+    def to_hash(object = nil, settings = nil, options = nil)
       @_object = object           if object
       @options.merge!(options)    if options
       @settings.merge!(settings)  if settings
@@ -168,9 +168,9 @@ module Rabl
         name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
         object = data_object(data)
 
-        include_root = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
-        engine_options = @options.slice(:child_root).merge(:root => include_root)
-        engine_options.merge!(:object_root_name => options[:object_root]) if is_name_value?(options[:object_root])
+        engine_options = @options.slice(:child_root)
+        engine_options[:root] = is_collection?(object) && options.fetch(:object_root, @options[:child_root]) # child @users
+        engine_options[:object_root_name] = options[:object_root] if is_name_value?(options[:object_root])
 
         object = { object => name } if data.is_a?(Hash) && object # child :users => :people
 
@@ -192,7 +192,7 @@ module Rabl
       def extends(file, options = {}, &block)
         return unless resolve_condition(options)
 
-        options = @options.slice(:child_root).merge(:object => @_object).merge(options)
+        options = @options.slice(:child_root).merge!(:object => @_object).merge!(options)
         engines << partial_as_engine(file, options, &block)
       end
 
