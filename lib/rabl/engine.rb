@@ -75,7 +75,7 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options = {})
-      options = @_options.merge(options)
+      options.reverse_merge!(@_options)
 
       data = root_object
 
@@ -94,9 +94,7 @@ module Rabl
     end
 
     def to_dumpable(options = {})
-      options = {
-        :child_root => Rabl.configuration.include_child_root
-      }.merge(options)
+      options.reverse_merge!({ :child_root => Rabl.configuration.include_child_root })
 
       result = to_hash(options)
       result = { collection_root_name => result } if collection_root_name
@@ -106,7 +104,7 @@ module Rabl
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options = {})
-      options = { :root => Rabl.configuration.include_json_root }.merge(options)
+      options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
       result = to_dumpable(options)
       format_json(result)
     end
@@ -263,7 +261,7 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options = {}, &block)
-      options = { :view_path => options[:view_path] || view_path }.merge(options)
+      options.reverse_merge!({ :view_path => options[:view_path] || view_path })
 
       @_settings[:extends] << { :file => file, :options => options, :block => block }
     end
@@ -357,7 +355,7 @@ module Rabl
       end
 
       def copy_instance_variables_from(object, exclude = []) #:nodoc:
-        vars = object.instance_variables.map(&:to_s) - exclude.map(&:to_s)
+        vars = object.instance_variables - exclude
         vars.each { |name| instance_variable_set(name, object.instance_variable_get(name)) }
       end
 

@@ -122,9 +122,15 @@ context "Rabl::Helpers" do
       @helper_class.is_collection?([@user])
     end.equals(true)
 
-    asserts "returns true for an array" do
+    asserts "returns false for a Hashie::Mash with 1 key" do
       obj = Hashie::Mash.new({:name => 'hello'})
       @helper_class.is_collection?(obj)
     end.equals(false)
+
+    asserts "returns false for a Hashie::Mash with 2 keys" do
+      obj = Hashie::Mash.new({:name => 'hello', :key2 => 'key2'})
+      @helper_class.is_collection?(obj)
+    end.equals(false)
+
   end # is_collection method
 end

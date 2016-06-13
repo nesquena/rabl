@@ -1,11 +1,7 @@
 require 'active_support/inflector' # for the sake of pluralizing
-require 'set'
 
 module Rabl
   module Helpers
-    # Set of class names known to be objects, not collections
-    KNOWN_OBJECT_CLASSES = Set.new(['Struct', 'Hashie::Mash'])
-
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
     # data_object(:user => :person) => @_object.send(:user)
@@ -86,7 +82,7 @@ module Rabl
     def is_collection?(obj, follow_symbols = true)
       data_obj = follow_symbols ? data_object(obj) : obj
       data_obj && data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
-        obj.class.ancestors.none? { |a| KNOWN_OBJECT_CLASSES.include?(a.name) }
+        !(data_obj.is_a?(Struct) || defined?(Hashie::Mash) && data_obj.is_a?(Hashie::Mash))
     end
 
     # Returns the context_scope wrapping this engine, used for retrieving data, invoking methods, etc
@@ -127,12 +123,12 @@ module Rabl
     def object_to_engine(object, options = {}, &block)
       return if object.nil?
 
-      options = { 
-        :format     => "hash", 
-        :view_path  => view_path, 
+      options.reverse_merge!({
+        :format     => "hash".freeze,
+        :view_path  => view_path,
         :root       => (options[:root] || false)
-      }.merge(options)
-      
+      })
+
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end
 
