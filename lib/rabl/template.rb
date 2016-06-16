@@ -46,7 +46,7 @@ if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rai
     module Template::Handlers
       class Rabl
         class_attribute :default_format
-        self.default_format = Mime::JSON
+        self.default_format = Mime[:json]
 
         def self.call(template)
           source = template.source
