@@ -417,5 +417,5 @@ module Rabl
           instance_eval(@_source)
         end
       end
-    end
+  end
 end
