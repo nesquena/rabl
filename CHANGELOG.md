@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.13.0 (July 15th, 2016)
+
+* Compatibility with Rails 5
+
 ## 0.12.0 (February 13th, 2016)
 
 * Compatibility with ruby 2.3.0 (@vmeyet)
