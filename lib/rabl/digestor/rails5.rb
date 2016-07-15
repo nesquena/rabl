@@ -1,5 +1,7 @@
 module Rabl
   class Digestor < ActionView::Digestor
+    @@digest_monitor = Mutex.new
+
     def self.digest(name:, finder:, **options)
 
       options.assert_valid_keys(:dependencies, :partial)
