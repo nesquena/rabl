@@ -7,7 +7,7 @@ end
 # We load the bson library if it is available.
 begin
   require 'bson'
-  rescue LoadError
+rescue LoadError
 end
 
 # We load the plist library if it is available.
