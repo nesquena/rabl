@@ -90,10 +90,10 @@ get "/posts", :provides => [:json, :xml] do
 end
 ```
 
-Then we can create the following RABL template to express the API output of `@posts`:
+Then we can create the following RABL json template to express the API output of `@posts`:
 
 ```ruby
-# app/views/posts/index.rabl
+# app/views/posts/index.json.rabl
 collection @posts
 attributes :id, :title, :subject
 child(:user) { attributes :full_name }
