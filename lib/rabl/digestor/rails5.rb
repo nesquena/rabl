@@ -19,7 +19,11 @@ module Rabl
 
             pre_stored = finder.digest_cache.put_if_absent(cache_key, false).nil? # put_if_absent returns nil on insertion
 
-            finder.digest_cache[cache_key] = stored_digest = Digestor.new(name, finder, options).digest
+            finder.digest_cache[cache_key] = stored_digest = ActionView::Digestor.digest(
+              name: name,
+              finder: finder,
+              dependencies: options[:dependencies],
+            )
           ensure
             # something went wrong or ActionView::Resolver.caching? is false, make sure not to corrupt the @@cache
             finder.digest_cache.delete_pair(cache_key, false) if pre_stored && !stored_digest
