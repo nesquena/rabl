@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.13.1 (October 21st, 2016)
+
+* Further compatibility with Rails 5
+
 ## 0.13.0 (July 15th, 2016)
 
 * Compatibility with Rails 5
