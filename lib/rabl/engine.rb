@@ -27,6 +27,8 @@ module Rabl
     # Renders the representation based on source, object, context_scope and locals
     # Rabl::Engine.new("...source...", { :format => "xml" }).apply(context_scope, { :foo => "bar", :object => @user })
     def apply(context_scope, locals, &block)
+      locals = locals.dup unless locals.nil?
+
       set_instance_variables!(context_scope, locals)
 
       reset_settings!
