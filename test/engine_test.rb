@@ -23,6 +23,12 @@ context "Rabl::Engine" do
     asserts_topic.assigns :_view_path
   end
 
+  context "#apply" do
+    denies("that it raises exception when given frozen locals").raises(RuntimeError) do
+      Rabl::Engine.new("").apply(Object.new, {}.freeze)
+    end
+  end
+
   context "#request_format" do
     context "is json by default" do
       setup do
