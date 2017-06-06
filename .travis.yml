@@ -13,3 +13,22 @@ notifications:
     - databyte@gmail.com
 before_install:
   - gem install bundler
+gemfile:
+  - gemfiles/activesupport_2_3.gemfile
+  - gemfiles/activesupport_3_0.gemfile
+  - gemfiles/activesupport_3_1.gemfile
+  - gemfiles/activesupport_3_2.gemfile
+  - gemfiles/activesupport_4_0.gemfile
+  - gemfiles/activesupport_4_1.gemfile
+  - gemfiles/activesupport_4_2.gemfile
+  - gemfiles/activesupport_5_0.gemfile
+matrix:
+  exclude:
+    - rvm: 1.9.3
+      gemfile: gemfiles/activesupport_5_0.gemfile
+    - rvm: 2.0.0
+      gemfile: gemfiles/activesupport_5_0.gemfile
+    - rvm: 2.1
+      gemfile: gemfiles/activesupport_5_0.gemfile
+    - rvm: 2.2
+      gemfile: gemfiles/activesupport_5_0.gemfile

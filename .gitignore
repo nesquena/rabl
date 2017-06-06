@@ -6,3 +6,4 @@ pkg/*
 fixtures/rails2/log/*.log
 tags
 .idea
+gemfiles/*.lock
