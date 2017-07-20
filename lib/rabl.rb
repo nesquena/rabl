@@ -83,6 +83,6 @@ end
 if defined?(Padrino)
   require 'padrino-core'
   Padrino.after_load { Rabl.register! }
-elsif defined?(Rails) && Rails.version =~ /^2/
+elsif defined?(Rails.version) && Rails.version =~ /^2/
   Rabl.register!
 end
