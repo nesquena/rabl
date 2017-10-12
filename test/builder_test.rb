@@ -91,6 +91,32 @@ context "Rabl::Builder" do
         Rabl.configuration.exclude_nil_values = false
       end
     end
+
+    context "when keys are camelized" do
+      setup do
+        Rabl.configuration.camelize_keys = true
+        builder(nil, { :attributes => [ { :name => :first_pets_name } ] })
+      end
+      asserts "that the key is camelized" do
+        topic.to_hash(User.new)
+      end.equivalent_to({ :firstPetsName => 'jack' })
+      teardown do
+        Rabl.configuration.camelize_keys = false
+      end
+    end
+
+    context "when keys are camelized with upper case first letter" do
+      setup do
+        Rabl.configuration.camelize_keys = :upper
+        builder(nil, { :attributes => [ { :name => :first_pets_name } ] })
+      end
+      asserts "that the key is camelized with upper case first letter" do
+        topic.to_hash(User.new)
+      end.equivalent_to({ :FirstPetsName => 'jack' })
+      teardown do
+        Rabl.configuration.camelize_keys = false
+      end
+    end
   end
 
   context "#attribute" do
