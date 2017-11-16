@@ -257,6 +257,18 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"user\":{\"city\":\"irvine\"}}")
+
+      asserts "that it can add attributes sourced from block" do
+        template = rabl %{
+          object @user
+          attribute \{|m| m.api_attributes \}
+        }
+        scope = Object.new
+        user = User.new(:name => 'coen', :city =>'aston' , :first => 'skipped')
+        mock(user).api_attributes.returns([:name, :city])
+        scope.instance_variable_set :@user, user
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"user\":{\"city\":\"aston\", \"name\":\"coen\"}}")
     end
 
     context "#code" do

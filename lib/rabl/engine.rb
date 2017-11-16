@@ -223,8 +223,11 @@ module Rabl
     # attribute :foo, :as => "bar"
     # attribute :foo => :bar, :bar => :baz
     # attribute :foo => :bar, :bar => :baz, :if => lambda { |r| r.foo }
-    def attribute(*args)
-      if args.first.is_a?(Hash) # :foo => :bar, :bar => :baz
+    # attribute { |m| m.attribute_list }
+    def attribute(*args, &block)
+      if block_given?
+        @_settings[:attributes] << { :block => block }
+      elsif args.first.is_a?(Hash) # :foo => :bar, :bar => :baz
         attr_aliases  = args.first.except(:if, :unless)
         conditions    = args.first.slice(:if, :unless)
 

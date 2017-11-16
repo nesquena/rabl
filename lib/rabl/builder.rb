@@ -136,12 +136,23 @@ module Rabl
       # Indicates an attribute or method should be included in the json output
       # attribute :foo, :as => "bar"
       # attribute :foo, :as => "bar", :if => lambda { |m| m.foo }
-      def attribute(name, options = {})
-        return unless @_object && attribute_present?(name) && resolve_condition(options)
+      # attribute {|m| m.attribute_list }
+      def attribute(name, options = {}, &block)
+        return unless @_object
 
-        attribute = data_object_attribute(name)
-        name = create_key(options[:as] || name)
-        @_result[name] = attribute
+        if block_given?
+          result = block.call(@_object)
+          return unless result.is_a?(Array)
+          result.each do |name|
+            @_result[name] = data_object_attribute(name)
+          end
+        else
+          return unless attribute_present?(name) && resolve_condition(options)
+
+          attribute = data_object_attribute(name)
+          name = create_key(options[:as] || name)
+          @_result[name] = attribute
+        end
       end
       alias_method :attributes, :attribute
 
