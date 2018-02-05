@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake'
   s.add_development_dependency 'tilt'
   s.add_development_dependency 'oj'
-  s.add_development_dependency 'msgpack',  '~> 0.4.5'
+  s.add_development_dependency 'msgpack',  '~> 1.0.0'
   s.add_development_dependency 'bson',     '~> 1.7.0'
   s.add_development_dependency 'plist'
 end
