@@ -583,11 +583,11 @@ You can also pass in other instance variables to be used in your template as:
 Rabl::Renderer.new('posts/show', @post, :locals => { :custom_title => "Hello world!" })
 ````
 
-Then, in your template, you can use `@custom_title` as:
+Then, in your template, you can use `locals[:custom_title]` as:
 
-```
+```ruby
 attribute :content
-node(:title) { @custom_title }
+node(:title) { locals[:custom_title] }
 ```
 
 ### Content Type Headers ###
