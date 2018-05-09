@@ -7,6 +7,7 @@ gem 'rails', '4.2.8'
 gem 'sqlite3'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 gem 'riot', :group => "test"
+gem 'pry-rails', :group => "test"
 
 gem "oj"
 
