@@ -180,69 +180,69 @@ context "PostsController" do
     asserts("contains username") { json_output['post']['user']['username_v1'] }.equals { @post1.user.username }
   end
 
-  context "caching" do
-    helper(:cache_hit) do |key|
-      Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
-    end
-
-    setup do
-      mock(ActionController::Base).perform_caching.any_number_of_times { true }
-      Rails.cache.clear
-    end
-
-    context "for index action with caching in json" do
-      setup do
-        get "/posts", format: :json
-      end
-
-      asserts("contains post titles") do
-        json_output['articles'].map { |o| o['article']['title'] }
-      end.equals { @posts.map(&:title) }
-
-      asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'json', 'e83f65eee5ffb454c418a59105f222c4'] }
-
-      asserts("contains cache hits per object (posts by title)") do
-        json_output['articles'].map { |o| o['article']['title'] }
-      end.equals { @posts.map { |p| cache_hit([p, nil, 'hash', 'e373525f49a3b3b044af05255e84839d'])[:title] } }
-    end # index action, caching, json
-
-    context "for index action with caching in xml" do
-      setup do
-        get "/posts", format: :xml
-      end
-
-      asserts("contains post titles") do
-        doc = REXML::Document.new topic.body
-        doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
-      end.equals { @posts.map(&:title) }
-
-      asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'xml', 'e83f65eee5ffb454c418a59105f222c4'] }
-    end # index action, caching, xml
-
-    context "for show action with caching" do
-      setup do
-        get "/posts/#{@post1.id}", format: :json
-      end
-
-      asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
-
-      asserts(:body).equals { cache_hit [@post1, nil, 'json', 'e373525f49a3b3b044af05255e84839d'] }
-    end # show action, caching, json
-
-    context "cache_all_output" do
-      helper(:cache_hit) do |key|
-        Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, 'article', 'json'], :rabl))
-      end
-
-      setup do
-        Rabl.configuration.cache_all_output = true
-        get "/posts", format: :json
-      end
-
-      asserts("contains cache hits per object (posts by title)") do
-        json_output['articles'].map { |o| o['article']['title'] }
-      end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
-    end  # index action, cache_all_output
-  end
+  # context "caching" do
+  #   helper(:cache_hit) do |key|
+  #     Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
+  #   end
+  #
+  #   setup do
+  #     mock(ActionController::Base).perform_caching.any_number_of_times { true }
+  #     Rails.cache.clear
+  #   end
+  #
+  #   context "for index action with caching in json" do
+  #     setup do
+  #       get "/posts", format: :json
+  #     end
+  #
+  #     asserts("contains post titles") do
+  #       json_output['articles'].map { |o| o['article']['title'] }
+  #     end.equals { @posts.map(&:title) }
+  #
+  #     asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'json', 'e83f65eee5ffb454c418a59105f222c4'] }
+  #
+  #     asserts("contains cache hits per object (posts by title)") do
+  #       json_output['articles'].map { |o| o['article']['title'] }
+  #     end.equals { @posts.map { |p| cache_hit([p, nil, 'hash', 'e373525f49a3b3b044af05255e84839d'])[:title] } }
+  #   end # index action, caching, json
+  #
+  #   context "for index action with caching in xml" do
+  #     setup do
+  #       get "/posts", format: :xml
+  #     end
+  #
+  #     asserts("contains post titles") do
+  #       doc = REXML::Document.new topic.body
+  #       doc.elements.inject('articles/article/title', []) {|arr, ele| arr << ele.text}
+  #     end.equals { @posts.map(&:title) }
+  #
+  #     asserts(:body).equals { cache_hit ['kittens!', @posts, nil, 'xml', 'e83f65eee5ffb454c418a59105f222c4'] }
+  #   end # index action, caching, xml
+  #
+  #   context "for show action with caching" do
+  #     setup do
+  #       get "/posts/#{@post1.id}", format: :json
+  #     end
+  #
+  #     asserts("contains post title") { json_output['post']['title'] }.equals { @post1.title }
+  #
+  #     asserts(:body).equals { cache_hit [@post1, nil, 'json', 'e373525f49a3b3b044af05255e84839d'] }
+  #   end # show action, caching, json
+  #
+  #   context "cache_all_output" do
+  #     helper(:cache_hit) do |key|
+  #       Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, 'article', 'json'], :rabl))
+  #     end
+  #
+  #     setup do
+  #       Rabl.configuration.cache_all_output = true
+  #       get "/posts", format: :json
+  #     end
+  #
+  #     asserts("contains cache hits per object (posts by title)") do
+  #       json_output['articles'].map { |o| o['article']['title'] }
+  #     end.equals { @posts.map{ |p| cache_hit(p)['article'][:title] } }
+  #   end  # index action, cache_all_output
+  # end
 
 end
