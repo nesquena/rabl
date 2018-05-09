@@ -35,7 +35,7 @@ context "UsersController" do
     # Attributes (custom name)
     asserts("contains registered_at") do
       json_output.map { |u| u["user"]["registered_at"] }
-    end.equals { @users.map(&:created_at).map { |t| t.iso8601(3) } }
+    end.equals { @users.map(&:created_at).map { |t| t.strftime("%Y-%m-%d %H:%M:%S %Z") } }
 
     # Node (renders based on attribute)
     asserts("contains role") do
@@ -64,7 +64,7 @@ context "UsersController" do
     asserts("contains email") { json_output["person"]["email"] }.equals { @user1.email }
     asserts("contains location") { json_output["person"]["location"] }.equals { @user1.location }
     # Attributes (custom name)
-    asserts("contains registered_at") { json_output["person"]["registered_at"] }.equals { @user1.created_at.iso8601(3) }
+    asserts("contains registered_at") { json_output["person"]["registered_at"] }.equals { @user1.created_at.strftime("%Y-%m-%d %H:%M:%S %Z") }
     # Node (renders based on attribute)
     asserts("contains role node") { json_output["person"]["role"] }.equals "normal"
 

@@ -38,7 +38,7 @@ context "PostsController" do
     # Attributes (custom name)
     asserts("contains post posted_at") do
       json_output['articles'].map { |o| o["article"]["posted_at"] }
-    end.equals { @posts.map(&:created_at).map{ |t| t.iso8601(3) } }
+    end.equals { @posts.map(&:created_at).map{ |t| t.strftime("%Y-%m-%d %H:%M:%S %Z") } }
 
     # Child
     asserts("contains post user child username") do
@@ -111,7 +111,7 @@ context "PostsController" do
     asserts("contains post body")  { topic['body'] }.equals { @post1.body }
 
     # Attributes (custom name)
-    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.iso8601(3) }
+    asserts("contains post posted_at") { topic['posted_at'] }.equals { @post1.created_at.strftime("%Y-%m-%d %H:%M:%S %Z") }
 
     # Child
     asserts("contains post user child username") { topic["user"]["username"] }.equals { @post1.user.username }
