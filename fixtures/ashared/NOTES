@@ -42,3 +42,14 @@ ln -s "../../ashared/views_rails_3/" app/views
 ln -s "../../ashared/migrate" db/migrate
 ln -s ../../../../test/integration/rails3_2/posts_controller_test.rb test/functional/posts_controller_test.rb
 ln -s ../../../../test/integration/rails3_2/users_controller_test.rb test/functional/users_controller_test.rb
+
+# Rails 5
+
+cd fixtures/rails5
+ln -s "../../ashared/models" app/models
+ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/migrate" db/migrate
+ln -s ../../../../test/integration/rails5/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln -s ../../../../test/integration/rails5/users_controller_test.rb test/functional/users_controller_test.rb
+echo "Mime::Type.register 'application/vnd.rabl-test_v1+json', :rabl_test_v1" >> config/initializers/mime_types.rb
+# Do route file?

@@ -33,4 +33,7 @@ Rails4::Application.configure do
 
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
+
+  # Run tests in sorted order (squash test error)
+  config.active_support.test_order = :sorted
 end

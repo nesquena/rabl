@@ -37,7 +37,12 @@ task "test:setup" do
     puts "\n*** Setting up for #{File.basename(fixture)} tests ***\n"
     `export BUNDLE_GEMFILE="#{fixture}/Gemfile"` if ENV["TRAVIS"]
     Bundler.with_clean_env {
-      Dir.chdir(fixture) { puts `mkdir -p tmp/cache; bundle install --gemfile="#{fixture}/Gemfile"`; }
+      Dir.chdir(fixture) {
+        puts `mkdir -p tmp/cache; bundle install --gemfile="#{fixture}/Gemfile"`
+        if fixture.include? 'rails'
+          puts `bundle exec rake db:reset`
+        end
+      }
     }
   end
 end

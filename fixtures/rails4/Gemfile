@@ -1,14 +1,18 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.0.0'
+gem 'rails', '4.2.8'
 
 # Use sqlite3 as the database for Active Record
 gem 'sqlite3'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 gem 'riot', :group => "test"
+gem 'pry-rails', :group => "test"
 
 gem "oj"
+
+# respond_to is its own gem now
+gem 'responders', '~> 2.0'
 
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.0'

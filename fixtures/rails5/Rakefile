@@ -7,7 +7,7 @@ require 'rake/testtask'
 Rails.application.load_tasks
 
 Rake::TestTask.new("test:rabl") do |test|
-  test.pattern = "test/controllers/**/*_test.rb"
+  test.pattern = "test/functional/**/*_test.rb"
   test.verbose = true
   test.warning = false
 end
