@@ -10,6 +10,9 @@ gem 'riot', :group => "test"
 
 gem "oj"
 
+# respond_to is its own gem now
+gem 'responders', '~> 2.0'
+
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.0'
 
