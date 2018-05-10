@@ -43,3 +43,4 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 gem 'riot', :group => "test"
+gem 'responders', '~> 2.0'
