@@ -155,21 +155,24 @@ context "PostsController" do
     asserts("contains post partial body")  { topic['partial']['body'] }.equals { @post1.body }
   end # renderer action, json
 
-  context "for index action rendering JSON within HTML" do
-    setup do
-      get "/posts", format: :html
-    end
+  # HTML isn't supported in API mode
+  unless Rails.application.config.api_only
+    context "for index action rendering JSON within HTML" do
+      setup do
+        get "/posts", format: :html
+      end
 
-    asserts(:body).includes { "<html>" }
-  end # index action, html
+      asserts(:body).includes { "<html>" }
+    end # index action, html
 
-  context "for show action rendering JSON within HTML" do
-    setup do
-      get "/posts/#{@post1.id}", format: :html
-    end
+    context "for show action rendering JSON within HTML" do
+      setup do
+        get "/posts/#{@post1.id}", format: :html
+      end
 
-    asserts(:body).includes { "<html>" }
-  end # show action, html
+      asserts(:body).includes { "<html>" }
+    end # show action, html
+  end
 
   context "mime_type" do
     setup do
