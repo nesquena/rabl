@@ -11,6 +11,19 @@ end
 # Load Riot Test Environment
 require File.expand_path(File.dirname(__FILE__) + "/../../../test/integration/test_init.rb")
 
+# silence_stream was removed for Rails 5 because it's not thread-safe.
+# Duplicate that work here:
+# See https://github.com/rails/rails/pull/13392
+def silence_stream(stream)
+  old_stream = stream.dup
+  stream.reopen(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'NUL:' : '/dev/null')
+  stream.sync = true
+  yield
+ensure
+  stream.reopen(old_stream)
+  old_stream.close
+end
+
 # Run Migrations
 silence_stream(STDOUT) do
   dbconf = YAML::load(File.open('config/database.yml'))[Rails.env]
