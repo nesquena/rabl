@@ -53,3 +53,24 @@ ln -s ../../../../test/integration/rails5/posts_controller_test.rb test/function
 ln -s ../../../../test/integration/rails5/users_controller_test.rb test/functional/users_controller_test.rb
 echo "Mime::Type.register 'application/vnd.rabl-test_v1+json', :rabl_test_v1" >> config/initializers/mime_types.rb
 # Do route file?
+
+# Rails 5 API mode
+
+cd fixtures
+rvm use 2.5.0
+rails _5.0.0_ new rails5_api --api
+cd rails5_api
+# Server config
+echo "Mime::Type.register 'application/vnd.rabl-test_v1+json', :rabl_test_v1" >> config/initializers/mime_types.rb
+cp ../rails5/config/routes.rb config/routes.rb
+# App stuff
+rm -r app/models app/views app/migrate
+ln -s "../../ashared/models" app/models
+ln -s "../../ashared/views/" app/views
+ln -s "../../ashared/migrate" db/migrate
+# Test setup
+mkdir test/functional
+ln -s ../../../../test/integration/rails5/posts_controller_test.rb test/functional/posts_controller_test.rb
+ln -s ../../../../test/integration/rails5/users_controller_test.rb test/functional/users_controller_test.rb
+cp ../rails5/test/test_helper.rb ./test/test_helper.rb
+# Do a bunch of junk with gemfiles and test helpers and such
