@@ -59,23 +59,32 @@ echo "Mime::Type.register 'application/vnd.rabl-test_v1+json', :rabl_test_v1" >>
 
 # Rails 5 API mode
 
+# Basic setup
 cd fixtures
 rvm use 2.5.0
-rails _5.0.0_ new rails5_api --api
+rails _5.0.2_ new rails5_api --api
 cd rails5_api
+
 # Server config
 echo "Mime::Type.register 'application/vnd.rabl-test_v1+json', :rabl_test_v1" >> config/initializers/mime_types.rb
 cp ../rails5/config/routes.rb config/routes.rb
-# App stuff
+
+# Application
 rm -r app/models app/views app/migrate
 ln -s "../../ashared/models" app/models
 ln -s "../../ashared/views_rails_3/" app/views
 ln -s "../../ashared/migrate" db/migrate
-cp ../rails5/app/controllers/posts_controller.rb ./app/controllers/
-cp ../rails5/app/controllers/users_controller.rb ./app/controllers/
+ln -s "../../ashared/helpers" app/helpers
+ln -s "../../../ashared/controllers_rails_5/posts_controller.rb" app/controllers/posts_controller.rb
+ln -s "../../../ashared/controllers_rails_5/users_controller.rb" app/controllers/users_controller.rb
+
 # Test setup
+cp ../rails5/Rakefile ./
 mkdir test/functional
 ln -s ../../../../test/integration/rails5/posts_controller_test.rb test/functional/posts_controller_test.rb
 ln -s ../../../../test/integration/rails5/users_controller_test.rb test/functional/users_controller_test.rb
 cp ../rails5/test/test_helper.rb ./test/test_helper.rb
+
 # Do a bunch of junk with gemfiles and test helpers and such
+
+# end Rails 5 API mode

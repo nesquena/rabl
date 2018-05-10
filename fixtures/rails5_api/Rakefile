@@ -2,5 +2,12 @@
 # for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
 
 require_relative 'config/application'
+require 'rake/testtask'
 
 Rails.application.load_tasks
+
+Rake::TestTask.new("test:rabl") do |test|
+  test.pattern = "test/functional/**/*_test.rb"
+  test.verbose = true
+  test.warning = false
+end
