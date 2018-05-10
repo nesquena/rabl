@@ -68,6 +68,8 @@ rm -r app/models app/views app/migrate
 ln -s "../../ashared/models" app/models
 ln -s "../../ashared/views/" app/views
 ln -s "../../ashared/migrate" db/migrate
+cp ../rails5/app/controllers/posts_controller.rb ./app/controllers/
+cp ../rails5/app/controllers/users_controller.rb ./app/controllers/
 # Test setup
 mkdir test/functional
 ln -s ../../../../test/integration/rails5/posts_controller_test.rb test/functional/posts_controller_test.rb
