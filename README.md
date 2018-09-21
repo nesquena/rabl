@@ -303,6 +303,13 @@ Named and aliased attributes can not be combined on the same line. This currentl
 attributes :foo, :bar => :baz # throws exception
 ```
 
+in such cases, you need to specify attributes twice.
+
+```ruby
+attributes :foo
+attributes :bar => :baz
+```
+
 ### Child Nodes ###
 
 Often a response requires including nested information from data associated with the parent model:
