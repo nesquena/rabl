@@ -60,7 +60,7 @@ module Rabl
         if digestor_available? && respond_to?(:lookup_context) && lookup_context
           template = @_options[:template] || @virtual_path
 
-          digest = \
+          digest =
             if Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
               Digestor.digest(:name => template, :finder => lookup_context)
             else
@@ -83,7 +83,7 @@ module Rabl
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
-      result = \
+      result =
         if is_object?(data) || !data # object @user
           Builder.new(data, @_settings, options).to_hash
         elsif is_collection?(data) # collection @users
