@@ -167,6 +167,7 @@ module Rabl
       @_root_name_data = @_root_name_data.values.first if @_root_name_data.is_a?(Hash)
 
       # If we turn this around, `@_root_name_date ==` may trigger data to be loaded unnecessarily.
+      # TODO: is nil a different semantic? otherwise don't use `false ==`, use !
       if false == @_root_name_data
         @_object_root_name = false
         @_collection_name = false
