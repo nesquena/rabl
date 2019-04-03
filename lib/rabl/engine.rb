@@ -60,7 +60,7 @@ module Rabl
         if digestor_available? && respond_to?(:lookup_context) && lookup_context
           template = @_options[:template] || @virtual_path
 
-          digest = \
+          digest =
             if Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
               Digestor.digest(:name => template, :finder => lookup_context)
             else
@@ -83,7 +83,7 @@ module Rabl
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
-      result = \
+      result =
         if is_object?(data) || !data # object @user
           Builder.new(data, @_settings, options).to_hash
         elsif is_collection?(data) # collection @users
@@ -167,6 +167,7 @@ module Rabl
       @_root_name_data = @_root_name_data.values.first if @_root_name_data.is_a?(Hash)
 
       # If we turn this around, `@_root_name_date ==` may trigger data to be loaded unnecessarily.
+      # TODO: is nil a different semantic? otherwise don't use `false ==`, use !
       if false == @_root_name_data
         @_object_root_name = false
         @_collection_name = false
@@ -409,15 +410,21 @@ module Rabl
       end
 
       def eval_source(locals, &block)
-        # Note: locals and block may be used by the eval'ed source
-
         return unless @_source.present?
 
-        if @_options[:source_location]
-          instance_eval(@_source, @_options[:source_location])
-        else
-          instance_eval(@_source)
+        msg = "cached_source_#{@_source.hash.abs}"
+
+        unless self.respond_to? msg then
+          src = "def #{msg} locals, &block\n#{@_source}\nend"
+
+          if @_options[:source_location]
+            self.class.class_eval(src, @_options[:source_location])
+          else
+            self.class.class_eval(src)
+          end
         end
+
+        send msg, locals, &block
       end
   end
 end

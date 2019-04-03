@@ -22,7 +22,12 @@ silence_warnings do
   require File.expand_path('../models/user', __FILE__)
 end
 
-Riot.pretty_dots
+if $stdout.tty? then
+  Riot.pretty_dots
+else
+  Riot.dots
+  Riot.plain!
+end
 
 class Riot::Situation
   def char_split(str)
