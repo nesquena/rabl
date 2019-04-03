@@ -409,15 +409,21 @@ module Rabl
       end
 
       def eval_source(locals, &block)
-        # Note: locals and block may be used by the eval'ed source
-
         return unless @_source.present?
 
-        if @_options[:source_location]
-          instance_eval(@_source, @_options[:source_location])
-        else
-          instance_eval(@_source)
+        msg = "cached_source_#{@_source.hash.abs}"
+
+        unless self.respond_to? msg then
+          src = "def #{msg} locals, &block\n#{@_source}\nend"
+
+          if @_options[:source_location]
+            self.class.class_eval(src, @_options[:source_location])
+          else
+            self.class.class_eval(src)
+          end
         end
+
+        send msg, locals, &block
       end
   end
 end
