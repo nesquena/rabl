@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.1 (April 28th, 2019)
+
+* Many adjustments and various non-breaking fixes
+* Improvements to caching (@zenspider)
+* Fix tests for Rails 5 (@robertoz)
+
 ## 0.13.1 (October 21st, 2016)
 
 * Further compatibility with Rails 5
