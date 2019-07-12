@@ -13,8 +13,6 @@ Gem::Specification.new do |s|
   s.description = %q{General ruby templating with json, bson, xml and msgpack support}
   s.license     = 'MIT'
 
-  s.rubyforge_project = "rabl"
-
   s.files         = `git ls-files`.split("\n")
   s.require_paths = ["lib"]
 
