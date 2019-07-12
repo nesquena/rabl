@@ -1,7 +1,6 @@
 # RABL #
 
 [![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.svg)](http://travis-ci.org/nesquena/rabl)
-[![Dependency Status](https://gemnasium.com/nesquena/rabl.svg)](https://gemnasium.com/nesquena/rabl)
 [![Code Climate](https://codeclimate.com/github/nesquena/rabl.svg)](https://codeclimate.com/github/nesquena/rabl)
 
 RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON.
