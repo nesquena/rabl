@@ -61,7 +61,9 @@ module Rabl
           template = @_options[:template] || @virtual_path
 
           digest =
-            if Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
+            if Rails.version.to_s =~ /^[6]/
+              Digestor.digest(name: template, finder: lookup_context, format: :rabl)
+            elsif Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
               Digestor.digest(:name => template, :finder => lookup_context)
             else
               Digestor.digest(template, :rabl, lookup_context)
@@ -390,7 +392,7 @@ module Rabl
       end
 
       def digestor_available?
-        defined?(Rails) && Rails.version =~ /^[45]/
+        defined?(Rails) && Rails.version =~ /^[456]/
       end
 
       def set_instance_variables!(context_scope, locals)

@@ -22,7 +22,7 @@ module Rabl
         Rabl.register!
 
         # Inject dependency tracker for :rabl
-        if Rails.version =~ /^[45]/
+        if Rails.version =~ /^[456]/
           require 'action_view/dependency_tracker'
           ActionView::DependencyTracker.register_tracker :rabl, Rabl::Tracker
         end
