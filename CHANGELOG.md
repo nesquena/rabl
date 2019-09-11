@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.14.2 (September 10th, 2019)
+
+* Made Rails 6 compatible (@jpawlyn)
+* Drop EOL'd property from gemspec (@olleolleolle)
+
 ## 0.14.1 (April 28th, 2019)
 
 * Many adjustments and various non-breaking fixes
