@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## master (unreleased)
+## 0.14.3 (April 22nd, 2020)
 
 * Fix regression on Rails 4.2 (@tagliala)
 
