@@ -114,6 +114,16 @@ context "Rabl::Helpers" do
       @helper_class.is_collection?(obj.new)
     end.equals(false)
 
+    asserts "returns false for an object with map" do
+      obj = Class.new { def map; end }
+      @helper_class.is_collection?(obj.new)
+    end.equals(false)
+
+    asserts "returns true for an object with each and map" do
+      obj = Class.new { def each; end; def map; end }
+      @helper_class.is_collection?(obj.new)
+    end.equals(true)
+
     asserts "returns false for a hash alias" do
       @helper_class.is_collection?(@user => :user)
     end.equals(false)

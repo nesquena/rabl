@@ -84,7 +84,7 @@ module Rabl
     def is_collection?(obj, follow_symbols = true)
       data_obj = follow_symbols ? data_object(obj) : obj
       data_obj &&
-        data_obj.is_a?(Enumerable) &&
+        data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
         !(data_obj.is_a?(Struct) ||
           defined?(Hashie::Mash) && data_obj.is_a?(Hashie::Mash))
     end
