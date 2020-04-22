@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## master (unreleased)
+
+* Fix regression on Rails 4.2 (@tagliala)
+
 ## 0.14.2 (September 10th, 2019)
 
 * Made Rails 6 compatible (@jpawlyn)
