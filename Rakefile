@@ -9,7 +9,11 @@ Rake::TestTask.new(:test) do |test|
   test.pattern = 'test/*_test.rb'
   test.warning = true
   test.verbose = true
-  test.ruby_opts = ['-rubygems']
+  if RUBY_VERSION < "1.9.0"
+    # -rubygems isn't needed as of 1.9, and is gone as of 2.5
+    # https://github.com/ruby/ruby/blob/v2_5_0/NEWS#stdlib-compatibility-issues-excluding-feature-bug-fixes
+    test.ruby_opts = ['-rubygems']
+  end
 end
 
 # Running integration tests
@@ -17,7 +21,7 @@ end
 # rake test:setup
 # rake test:full
 
-fixture_list = "{padrino_test,sinatra_test,rails2,rails3,rails3_2,rails4,rails5}"
+fixture_list = "{padrino_test,sinatra_test,rails2,rails3,rails3_2,rails4,rails5,rails5_api}"
 
 desc "Clean up the fixtures being tested by cleaning and installing dependencies"
 task "test:clean" do
@@ -33,7 +37,12 @@ task "test:setup" do
     puts "\n*** Setting up for #{File.basename(fixture)} tests ***\n"
     `export BUNDLE_GEMFILE="#{fixture}/Gemfile"` if ENV["TRAVIS"]
     Bundler.with_clean_env {
-      Dir.chdir(fixture) { puts `mkdir -p tmp/cache; bundle install --gemfile="#{fixture}/Gemfile"`; }
+      Dir.chdir(fixture) {
+        puts `mkdir -p tmp/cache; bundle install --gemfile="#{fixture}/Gemfile"`
+        if fixture.include? 'rails'
+          puts `bundle exec rake db:reset`
+        end
+      }
     }
   end
 end

@@ -211,10 +211,11 @@ module Rabl
 
       # Evaluate conditions given a symbol/proc/lambda/variable to evaluate
       def call_condition_proc(condition, object)
-        # This will evaluate lambda, proc & symbol and call it with 1 argument
-        return condition.to_proc.call(object) if condition.is_a?(Proc) || condition.is_a?(Symbol)
-        # Else we send directly the object
-        condition
+        case condition
+        when Proc   then condition.call(object)
+        when Symbol then condition.to_proc.call(object)
+        else             condition
+        end
       end
 
       # resolve_condition(:if => true) => true
@@ -224,8 +225,10 @@ module Rabl
       # resolve_condition(:unless => lambda { |m| false }, :if => proc { true}) => true
       def resolve_condition(options)
         result = true
-        result &&= call_condition_proc(options[:if], @_object) if options.key?(:if)
-        result &&= !call_condition_proc(options[:unless], @_object) if options.key?(:unless)
+        result &&=  call_condition_proc(options[:if], @_object)     if
+          options.key?(:if)
+        result &&= !call_condition_proc(options[:unless], @_object) if
+          options.key?(:unless)
         result
       end
 
@@ -233,13 +236,9 @@ module Rabl
       # Checks if an attribute is present. If not, check if the configuration specifies that this is an error
       # attribute_present?(created_at) => true
       def attribute_present?(name)
-        if @_object.respond_to?(name)
-          true
-        elsif Rabl.configuration.raise_on_missing_attribute
-          raise "Failed to render missing attribute #{name}"
-        else
-          false
-        end
+        @_object.respond_to?(name) ||
+          (Rabl.configuration.raise_on_missing_attribute &&
+           raise("Failed to render missing attribute #{name}"))
       end
 
       # Returns a guess at the format in this context_scope

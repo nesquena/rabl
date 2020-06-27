@@ -1,7 +1,6 @@
 # RABL #
 
 [![Continuous Integration status](https://secure.travis-ci.org/nesquena/rabl.svg)](http://travis-ci.org/nesquena/rabl)
-[![Dependency Status](https://gemnasium.com/nesquena/rabl.svg)](https://gemnasium.com/nesquena/rabl)
 [![Code Climate](https://codeclimate.com/github/nesquena/rabl.svg)](https://codeclimate.com/github/nesquena/rabl)
 
 RABL (Ruby API Builder Language) is a Rails and [Padrino](http://padrinorb.com) ruby templating system for generating JSON, XML, MessagePack, PList and BSON.
@@ -303,6 +302,13 @@ Named and aliased attributes can not be combined on the same line. This currentl
 attributes :foo, :bar => :baz # throws exception
 ```
 
+in such cases, you need to specify attributes twice.
+
+```ruby
+attributes :foo
+attributes :bar => :baz
+```
+
 ### Child Nodes ###
 
 Often a response requires including nested information from data associated with the parent model:
@@ -583,11 +589,11 @@ You can also pass in other instance variables to be used in your template as:
 Rabl::Renderer.new('posts/show', @post, :locals => { :custom_title => "Hello world!" })
 ````
 
-Then, in your template, you can use `@custom_title` as:
+Then, in your template, you can use `locals[:custom_title]` as:
 
-```
+```ruby
 attribute :content
-node(:title) { @custom_title }
+node(:title) { locals[:custom_title] }
 ```
 
 ### Content Type Headers ###
@@ -628,11 +634,8 @@ Tutorials can always be helpful when first getting started:
  * [Railscasts #322](http://railscasts.com/episodes/322-rabl) - Ryan Bates explains RABL
  * [BackboneRails](http://www.backbonerails.com/) - Great screencasts by Brian Mann
  * http://blog.joshsoftware.com/2011/12/23/designing-rails-api-using-rabl-and-devise/
- * http://engineering.gomiso.com/2011/06/27/building-a-platform-api-on-rails/
- * http://blog.lawrencenorton.com/better-json-requests-with-rabl
  * http://tech.favoritemedium.com/2011/06/using-rabl-in-rails-json-web-api.html
  * http://seesparkbox.com/foundry/better_rails_apis_with_rabl
- * http://blog.dcxn.com/2011/06/22/rails-json-templates-through-rabl
  * http://teohm.github.com/blog/2011/05/31/using-rabl-in-rails-json-web-api
 
 Let me know if there's any other useful resources not listed here.

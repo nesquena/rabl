@@ -21,6 +21,7 @@ group :test do
   gem 'sqlite3'
   gem 'sinatra', '>= 1.2.0'
   gem 'hashie'
+  gem 'riot'
 end
 
 group :development, :test do

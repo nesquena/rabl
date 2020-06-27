@@ -5,8 +5,35 @@
 #     config.cache_engine = AdvancedCacheEngine.new
 #
 
+class LRU < Hash
+  attr_accessor :max_size
+
+  def initialize
+    super
+    self.max_size = 100_000
+  end
+
+  def []= k,v
+    r = super
+    limit_size
+    r
+  end
+
+  def limit_size
+    if size > max_size then
+      delete keys.shift while size > max_size
+    end
+  end
+end
+
 module Rabl
   class CacheEngine
+    def initialize
+      unless defined?(Rails)
+        @cache = LRU.new
+      end
+    end
+
 
     # Fetch given a key and options and a fallback block attempts to find the key in the cache
     # and stores the block result in there if no key is found.
@@ -17,13 +44,15 @@ module Rabl
       if defined?(Rails)
         Rails.cache.fetch(key, cache_options, &block)
       else
-        yield
+        @cache[key] ||= yield
       end
     end
 
     def write(key, value, options = {})
       if defined?(Rails)
         Rails.cache.write(key, value, options)
+      else
+        @cache[key] = yield
       end
     end
 

@@ -14,7 +14,9 @@ module Rabl
     # data_object_attribute(data) => @_object.send(data)
     def data_object_attribute(data)
       attribute = @_object.__send__(data)
-      attribute = attribute.as_json if is_collection?(attribute, false) && attribute.respond_to?(:as_json)
+      attribute = attribute.as_json if
+        is_collection?(attribute, false) &&
+        attribute.respond_to?(:as_json)
       attribute
     end
 
@@ -81,8 +83,10 @@ module Rabl
     # is_collection?([]) => true
     def is_collection?(obj, follow_symbols = true)
       data_obj = follow_symbols ? data_object(obj) : obj
-      data_obj && data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
-        !(data_obj.is_a?(Struct) || defined?(Hashie::Mash) && data_obj.is_a?(Hashie::Mash))
+      data_obj &&
+        data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
+        !(data_obj.is_a?(Struct) ||
+          defined?(Hashie::Mash) && data_obj.is_a?(Hashie::Mash))
     end
 
     # Returns the context_scope wrapping this engine, used for retrieving data, invoking methods, etc

@@ -13,8 +13,6 @@ Gem::Specification.new do |s|
   s.description = %q{General ruby templating with json, bson, xml and msgpack support}
   s.license     = 'MIT'
 
-  s.rubyforge_project = "rabl"
-
   s.files         = `git ls-files`.split("\n")
   s.require_paths = ["lib"]
 
@@ -30,7 +28,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake'
   s.add_development_dependency 'tilt'
   s.add_development_dependency 'oj'
-  s.add_development_dependency 'msgpack',  '~> 0.4.5'
+  s.add_development_dependency 'msgpack',  '~> 1.0.0'
   s.add_development_dependency 'bson',     '~> 1.7.0'
   s.add_development_dependency 'plist'
 end
