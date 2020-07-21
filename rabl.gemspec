@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = %q{General ruby templating with json, bson, xml and msgpack support}
   s.license     = 'MIT'
 
-  s.files         = `git ls-files`.split("\n")
+  s.files         = `git ls-files -z -- {*.md,MIT-LICENSE,lib}`.split("\x0").sort
   s.require_paths = ["lib"]
 
 
