@@ -31,6 +31,7 @@ module Rabl
     def initialize
       unless defined?(Rails)
         @cache = LRU.new
+        @mutex = Mutex.new
       end
     end
 
@@ -44,7 +45,9 @@ module Rabl
       if defined?(Rails)
         Rails.cache.fetch(key, cache_options, &block)
       else
-        @cache[key] ||= yield
+        @mutex.synchronize do
+          @cache[key] ||= yield
+        end
       end
     end
 
@@ -52,7 +55,9 @@ module Rabl
       if defined?(Rails)
         Rails.cache.write(key, value, options)
       else
-        @cache[key] = yield
+        @mutex.synchronize do
+          @cache[key] = yield
+        end
       end
     end
 

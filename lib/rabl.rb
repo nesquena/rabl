@@ -30,6 +30,8 @@ module Rabl
     # Rabl.register!
     def register!
       require 'rabl/template'
+      @_source_cache = {}
+      @_source_cache_mutex = Mutex.new
     end
 
     # Yields a RABL configuration block
@@ -59,16 +61,17 @@ module Rabl
     def source_cache(file, view_path, &block)
       return yield unless Rabl.configuration.cache_sources
 
-      cache_key = [file, view_path].compact.join(":")
-
-      @_source_cache ||= {}
-
-      @_source_cache[cache_key] ||= yield
+      @_source_cache_mutex.synchronize do
+        cache_key = [file, view_path].compact.join(":")
+        @_source_cache[cache_key] ||= yield
+      end
     end
 
     # Resets the RABL source cache
     def reset_source_cache!
-      @_source_cache = {}
+      @_source_cache_mutex.synchronize do
+        @_source_cache = {}
+      end
     end
 
     # Renders an object using a specified template within an application.
