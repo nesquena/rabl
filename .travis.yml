@@ -12,7 +12,12 @@ rvm:
   - 2.4.10
   - 2.5.8
   - 2.6.6
-  - 2.7.1
+  - 2.7.2
+  - ruby-head
+jobs:
+  allow_failures:
+    - rvm: ruby-head
+  fast_finish: true
 notifications:
   recipients:
     - nesquena@gmail.com
