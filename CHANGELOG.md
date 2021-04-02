@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.14.4 (April 1st, 2021)
+
+* Test against latest Ruby versions
+* Exclude yarn lock
+* Remove non-required files from the .gem
+
 ## 0.14.3 (April 22nd, 2020)
 
 * Fix regression on Rails 4.2 (@tagliala)
