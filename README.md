@@ -186,7 +186,7 @@ If `exclude_nil_values` is set to `true`, all values that are `nil` and would no
 
 if `exclude_empty_values_in_collections` is set to `true`, all values in a collection that are `{}` and would normally be displayed as `{}` in the response are not included in the response.
 
-If `camelize_keys` is set to `true`, all object keys will be converted to camel case. By default the first character will be lower case. The value can be set to `:upper` to set the first chracter to upper case.
+If `camelize_keys` is set to `true`, all object keys will be converted to camel case. By default the first character will be lower case. The value can be set to `:upper` to set the first character to upper case.
 
 If you wish to use [oj](https://github.com/ohler55/oj) as
 the primary JSON encoding engine simply add that to your Gemfile:
