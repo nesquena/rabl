@@ -184,7 +184,7 @@ If `replace_nil_values_with_empty_strings` is set to `true`, all values that are
 
 If `exclude_nil_values` is set to `true`, all values that are `nil` and would normally be displayed as `null` in the response are not included in the response.
 
-if `exclude_empty_values_in_collections` is set to `true`, all vaules in a collection that are `{}` and would normally be displayed as `{}` in the response are not included in the response.
+if `exclude_empty_values_in_collections` is set to `true`, all values in a collection that are `{}` and would normally be displayed as `{}` in the response are not included in the response.
 
 If `camelize_keys` is set to `true`, all object keys will be converted to camel case. By default the first character will be lower case. The value can be set to `:upper` to set the first chracter to upper case.
 
