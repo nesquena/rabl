@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.14.5 (May 29th, 2021)
+
+* Restrict and validate the `to_***` methods available within engine (Brian McFadden)
+
 ## 0.14.4 (April 1st, 2021)
 
 * Test against latest Ruby versions
