@@ -6,6 +6,7 @@ module Rabl
 
     # List of supported rendering formats
     FORMATS = [:json, :xml, :plist, :bson, :msgpack]
+    SAFE_FORMATS = FORMATS + [:mpac, :dumpable, :hash]
 
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
@@ -395,6 +396,10 @@ module Rabl
         defined?(Rails) && Rails.version =~ /^[456]/
       end
 
+      def valid_format?(format)
+        SAFE_FORMATS.include?(format.to_sym) && respond_to?("to_#{format}")
+      end
+
       def set_instance_variables!(context_scope, locals)
         @_context_scope = context_scope
         @_locals        = locals || {}
@@ -402,6 +407,9 @@ module Rabl
         copy_instance_variables_from(context_scope, [:@assigns, :@helpers])
 
         @_options[:format] ||= request_format
+
+        # Prevent calls to inherited methods `to_yaml`, `to_enum`, etc.
+        @_options[:format] = 'json' unless valid_format?(@_options[:format])
 
         set_locals(@_locals)
       end

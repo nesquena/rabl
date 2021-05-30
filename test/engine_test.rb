@@ -47,6 +47,31 @@ context "Rabl::Engine" do
 
       asserts_topic.includes('<foo>bar</foo>')
     end
+
+    context "don't allow calls to inherited methods; default to JSON" do
+      code = 'node(:foo) { "bar" }'
+      expected_json = '{"foo":"bar"}'
+      setup do
+        template = RablTemplate.new("code", :format => 's') { code }
+        template.render(Object.new)
+      end
+
+      asserts_topic.equivalent_to(expected_json)
+
+      setup do
+        template = RablTemplate.new("code", :format => 'ruby') { code }
+        template.render(Object.new)
+      end
+
+      asserts_topic.equivalent_to(expected_json)
+
+      setup do
+        template = RablTemplate.new("code", :format => 'enum') { code }
+        template.render(Object.new)
+      end
+
+      asserts_topic.equivalent_to(expected_json)
+    end
   end
 
   context "#cache" do
