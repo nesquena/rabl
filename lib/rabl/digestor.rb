@@ -1,3 +1,5 @@
+require 'action_view'
+
 module Rabl
   class Digestor < ActionView::Digestor
     # Override the original digest function to ignore partial which
