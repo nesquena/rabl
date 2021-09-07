@@ -1,3 +1,5 @@
+require 'action_view'
+
 module Rabl
   class Digestor < ActionView::Digestor
     def self.digest(name, format, finder, options = {})
