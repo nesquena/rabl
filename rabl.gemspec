@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   end
 
   s.add_development_dependency 'riot',     '~> 0.12.3'
-  s.add_development_dependency 'rr',       '~> 1.0.2'
+  s.add_development_dependency 'rr'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'tilt'
   s.add_development_dependency 'oj'
