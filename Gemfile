@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in rabl.gemspec
 gemspec
 
-gem 'i18n', '~> 0.6'
+gem 'i18n', '>= 0.6'
 
 platforms :mri_18 do
   gem 'SystemTimer'
