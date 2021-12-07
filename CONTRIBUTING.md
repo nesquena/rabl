@@ -34,4 +34,4 @@ Syntax:
 
 And in case we didn't emphasize it enough: we love tests!
 
-NOTE: Adapted from https://raw.github.com/thoughtbot/factory_girl_rails/master/CONTRIBUTING.md
+NOTE: Adapted from https://raw.githubusercontent.com/thoughtbot/factory_bot_rails/main/CONTRIBUTING.md
