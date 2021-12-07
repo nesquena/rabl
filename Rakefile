@@ -35,7 +35,7 @@ desc "Prepares the fixtures being tested by installing dependencies"
 task "test:setup" do
   Dir[File.dirname(__FILE__) + "/fixtures/#{fixture_list}"].each do |fixture|
     puts "\n*** Setting up for #{File.basename(fixture)} tests ***\n"
-    `export BUNDLE_GEMFILE="#{fixture}/Gemfile"` if ENV["TRAVIS"]
+    `export BUNDLE_GEMFILE="#{fixture}/Gemfile"` if ENV["CI"]
     Bundler.with_clean_env {
       Dir.chdir(fixture) {
         puts `mkdir -p tmp/cache; bundle install --gemfile="#{fixture}/Gemfile"`
