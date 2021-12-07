@@ -1,4 +1,6 @@
 require 'active_support/core_ext/hash/conversions'
+require 'active_support/time'
+
 require File.expand_path('../teststrap', __FILE__)
 require 'rabl/template'
 
