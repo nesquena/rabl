@@ -255,7 +255,7 @@ context "Rabl::Builder" do
       b = builder nil, :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
       e = Rabl::Engine.new('')
       mock(e).render.returns({:user => 'xyz'})
-      mock(b).object_to_engine(@user, { :root => false }).returns(e).subject
+      mock(b).object_to_engine(@user, :root => false).returns(e).subject
       b.to_hash(@user)
     end.equivalent_to({ :user => 'xyz' })
 
@@ -268,7 +268,7 @@ context "Rabl::Builder" do
       b = builder nil, :glue => [{ :data => @user, :options => {}, :block => lambda { |u| attribute :name }}]
       e = Rabl::Engine.new('')
       mock(e).render.returns({})
-      mock(b).object_to_engine(@user,{ :root => false }).returns(e).subject
+      mock(b).object_to_engine(@user, :root => false).returns(e).subject
       b.to_hash(@user)
     end.equals({})
   end
