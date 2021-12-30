@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.15.0 (December 30, 2021)
+
+* Support for Rails 7 (@tagliala)
+* Improvements to unit testing
+* Miscellanious other bug fixes
+
 ## 0.14.5 (May 29th, 2021)
 
 * Restrict and validate the `to_***` methods available within engine (Brian McFadden)
