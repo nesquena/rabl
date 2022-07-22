@@ -27,6 +27,15 @@ context "Rabl::Engine" do
     denies("that it raises exception when given frozen locals").raises(RuntimeError) do
       Rabl::Engine.new("").apply(Object.new, {}.freeze)
     end
+
+    asserts "that it can call method in block with positional and keyword arguments" do
+      template = RablTemplate.new("code") { 'node(:foo) { func("bar", kw: "baz") }' }
+      obj = Object.new
+      def obj.func(arg, kw:)
+        "#{arg}-#{kw}"
+      end
+      template.render(obj)
+    end.equals "{\"foo\":\"bar-baz\"}"
   end
 
   context "#request_format" do

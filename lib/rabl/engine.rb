@@ -356,8 +356,8 @@ module Rabl
       end
 
       # Supports calling helpers defined for the template context_scope using method_missing hook
-      def method_missing(name, *args, &block)
-        context_scope.respond_to?(name, true) ? context_scope.__send__(name, *args, &block) : super
+      def method_missing(name, *args, **kwargs, &block)
+        context_scope.respond_to?(name, true) ? context_scope.__send__(name, *args, **kwargs, &block) : super
       end
 
       def copy_instance_variables_from(object, exclude = []) #:nodoc:
