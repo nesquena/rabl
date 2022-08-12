@@ -153,6 +153,7 @@ module Rabl
       # node(:foo, :if => lambda { |m| m.foo.present? }) { "bar" }
       def node(name, options = {}, &block)
         return unless resolve_condition(options)
+        return if @options.has_key?(:except) && [@options[:except]].flatten.include?(name)
 
         result = block.call(@_object)
         if name.present?
