@@ -162,6 +162,26 @@ context "Rabl::Builder" do
       build_hash @user, :node => [{ :name => :foo, :options => {}, :block => lambda { |u| "bar" } }]
     end.equivalent_to({:foo => 'bar'})
 
+    asserts "that it excludes nodes in the :except list" do
+      build_hash @user, {:node => [{ :name => :foo, :block => lambda { |u| "bar" } }]}, {except: [:foo]}
+    end.equivalent_to({})
+
+    asserts "that it excludes nodes in the :except attribute" do
+      build_hash @user, {:node => [{ :name => :foo, :block => lambda { |u| "bar" } }]}, {except: :foo}
+    end.equivalent_to({})
+
+    asserts "that it has node not in except list" do
+      build_hash @user, {:node => [{ :name => :foo, :block => lambda { |u| "bar" } }]}, {except: [:unknown]}
+    end.equivalent_to({:foo => 'bar'})
+
+    asserts "that it has multiple nodes" do
+      build_hash(@user,
+                 {:node => [{ :name => :foo, :block => lambda { |u| "bar" } },
+                            {:name => :baz, :block => lambda{|_u| "bar"}},
+                            {:name => :bam, :block => lambda{|_u| "boom"}}]},
+                  {except: [:unknown, :baz]})
+    end.equivalent_to({:foo => 'bar', :bam => 'boom'})
+
     asserts "that using object it has node :boo" do
       build_hash @user, :node => [
         { :name => :foo, :options => {}, :block => lambda { |u| "bar" } },
@@ -296,6 +316,14 @@ context "Rabl::Builder" do
       mock(b).partial_as_engine('users/show',{ :object => @user}).returns(e)
       mock(e).render.returns({:user => 'xyz'}).subject
       b.to_hash(false)
+    end.equivalent_to({:user => 'xyz'})
+
+    asserts "that it generates with exclude 'except' option" do
+      b = builder nil, :extends => [{ :file => 'users/show', :options => { :except => :user_id }, :block => lambda { |u| attribute :name  }}]
+      e = Rabl::Engine.new('users/show')
+      mock(b).partial_as_engine('users/show',{ :object => @user, except: :user_id}).returns(e)
+      mock(e).render.returns({:user => 'xyz'}).subject
+      b.to_hash(@user)
     end.equivalent_to({:user => 'xyz'})
   end
 
