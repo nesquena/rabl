@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.16.0 (August 21, 2022)
+
+* Add "except" option to `extends` (Thanks @perryqh)
+* Fix `ArgumentError` when block given with keyword arguments (Thanks @kyoshidajp)
+* Add Ruby 3.1 to the CI matrix (Thanks @petergoldstein)
+* Document Rabl setting `oj`'s mode (Thanks @ghiculescu)
+
 ## 0.15.0 (December 30, 2021)
 
 * Support for Rails 7 (@tagliala)
