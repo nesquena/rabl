@@ -28,6 +28,24 @@ context "Rabl::Engine" do
       Rabl::Engine.new("").apply(Object.new, {}.freeze)
     end
 
+    asserts "that it can call method in block without arguments" do
+      template = RablTemplate.new("code") { 'node(:foo) { func }' }
+      obj = Object.new
+      def obj.func
+        "bar"
+      end
+      template.render(obj)
+    end.equals "{\"foo\":\"bar\"}"
+
+    asserts "that it can call method in block with positional arguments" do
+      template = RablTemplate.new("code") { 'node(:foo) { func("bar") }' }
+      obj = Object.new
+      def obj.func(arg)
+        "#{arg}"
+      end
+      template.render(obj)
+    end.equals "{\"foo\":\"bar\"}"
+
     asserts "that it can call method in block with positional and keyword arguments" do
       template = RablTemplate.new("code") { 'node(:foo) { func("bar", kw: "baz") }' }
       obj = Object.new
