@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.16.1 (Oct 10, 2022)
+
+* Fix ArgumentError when there are no keyword arguments for Ruby < 2.7 (Thanks @sylvain-8422)
+
 ## 0.16.0 (August 21, 2022)
 
 * Add "except" option to `extends` (Thanks @perryqh)
