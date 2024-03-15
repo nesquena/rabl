@@ -39,5 +39,5 @@ ActiveSupport.use_standard_json_time_format = true
 # if you're including raw json in an HTML page.
 ActiveSupport.escape_html_entities_in_json = false
 
-# Now we can estabilish connection with our db
+# Now we can establish connection with our db
 ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[Padrino.env])

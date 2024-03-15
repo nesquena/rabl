@@ -15,7 +15,7 @@
 
 * Support for Rails 7 (@tagliala)
 * Improvements to unit testing
-* Miscellanious other bug fixes
+* Miscellaneous other bug fixes
 
 ## 0.14.5 (May 29th, 2021)
 

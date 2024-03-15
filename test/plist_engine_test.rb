@@ -85,7 +85,7 @@ context "Rabl::Engine" do
     end
 
     context "#code" do
-      asserts "that it can create an arbitraty code node" do
+      asserts "that it can create an arbitrary code node" do
         template = rabl %{
           code(:foo) { 'bar' }
         }

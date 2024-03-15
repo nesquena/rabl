@@ -42,7 +42,7 @@ module Rabl
     # - context_scope:
     #     Override the render context_scope to the 'context_scope' object. Defaults to self.
     #
-    # Returns: And object representing the tranformed object in the requested format.
+    # Returns: And object representing the transformed object in the requested format.
     #   e.g. json, xml, bson, plist
     def render(context_scope = nil)
       context_scope ||= options[:scope] || self
