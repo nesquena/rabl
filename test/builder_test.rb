@@ -257,7 +257,7 @@ context "Rabl::Builder" do
       b.to_hash(@user)
     end.equivalent_to({ :user => { :name => "rabl" } })
 
-    asserts "that it does't duplicate childs with the same name as a string and symbol" do
+    asserts "that it doesn't duplicate children with the same name as a string and symbol" do
       b = builder(nil, :child => [
         { :data => { @user => "user" }, :options => { }, :block => lambda { |u| attribute :name } },
         { :data => { @user => :user }, :options => { }, :block => lambda { |u| attribute :name } }
