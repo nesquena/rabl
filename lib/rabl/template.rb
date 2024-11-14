@@ -62,8 +62,8 @@ if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rai
   ActionView::Template.register_template_handler :rabl, ActionView::Template::Handlers::Rabl
 end
 
-# Rails 6.X / 7.X Template
-if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s =~ /^[67]/
+# Rails 6.X / 7.X / 8.X Template
+if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s =~ /^[678]/
   module ActionView
     module Template::Handlers
       class Rabl

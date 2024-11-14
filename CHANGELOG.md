@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## unreleased
+
+* Support for Rails 8 (@basex)
+
 ## 0.16.1 (Oct 10, 2022)
 
 * Fix ArgumentError when there are no keyword arguments for Ruby < 2.7 (Thanks @sylvain-8422)
