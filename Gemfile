@@ -22,9 +22,16 @@ group :test do
   gem 'sqlite3', sqlite3_version
   gem 'sinatra', '>= 1.2.0'
   gem 'hashie'
-  gem 'riot'
 end
 
 group :development, :test do
+  gem 'bson', '< 2' # FIXME: Versions >= 2 make tests fail
   # gem 'debugger'
+  gem 'msgpack'
+  gem 'oj'
+  gem 'plist'
+  gem 'rake'
+  gem 'riot'
+  gem 'rr'
+  gem 'tilt'
 end
