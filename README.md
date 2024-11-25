@@ -1,5 +1,6 @@
 # RABL #
 
+[![Gem Version](https://badge.fury.io/rb/rabl.svg)](https://badge.fury.io/rb/rabl)
 [![Continuous Integration status](https://github.com/nesquena/rabl/actions/workflows/ci.yml/badge.svg)](https://github.com/nesquena/rabl/actions)
 [![Code Climate](https://codeclimate.com/github/nesquena/rabl.svg)](https://codeclimate.com/github/nesquena/rabl)
 
