@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## unreleased
+## 0.17.0 (Nov 26, 2024)
 
 * Support for Rails 8 (@basex)
 
