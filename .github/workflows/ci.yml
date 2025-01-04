@@ -13,13 +13,14 @@ jobs:
 
     strategy:
       matrix:
-        ruby-version: ['2.3', '2.4', '2.5', '2.6', '2.7', '3.0', '3.1', '3.2', '3.3']
+        ruby-version: ['2.5', '2.6', '2.7', '3.0', '3.1', '3.2', '3.3']
         channel: ['stable']
         os: ['ubuntu-latest']
 
         include:
           # Test legacy Ruby versions on ubuntu-20.04 to avoid segmentation
-          # faults and errors with `Marshal`. Ref: ruby/setup-ruby#496
+          # faults and errors with `Marshal` or `sqlite3` not compiling.
+          # Ref: ruby/setup-ruby#496, nesquena/rabl#774
           - ruby-version: '1.9.3'
             channel: 'stable'
             os: 'ubuntu-20.04'
@@ -30,6 +31,12 @@ jobs:
             channel: 'stable'
             os: 'ubuntu-20.04'
           - ruby-version: '2.2'
+            channel: 'stable'
+            os: 'ubuntu-20.04'
+          - ruby-version: '2.3'
+            channel: 'stable'
+            os: 'ubuntu-20.04'
+          - ruby-version: '2.4'
             channel: 'stable'
             os: 'ubuntu-20.04'
 
