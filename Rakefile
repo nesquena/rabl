@@ -21,7 +21,7 @@ end
 # rake test:setup
 # rake test:full
 
-fixture_list = "{padrino_test,sinatra_test,rails2,rails3,rails3_2,rails4,rails5,rails5_api}"
+fixture_list = ENV['FIXTURE'] || "{padrino_test,sinatra_test,rails2,rails3,rails3_2,rails4,rails5,rails5_api,rails6,rails7}"
 
 desc "Clean up the fixtures being tested by cleaning and installing dependencies"
 task "test:clean" do
@@ -52,7 +52,7 @@ task "test:fixtures" do
   Dir[File.dirname(__FILE__) + "/fixtures/#{fixture_list}"].each do |fixture|
     puts "\n*** Running tests for #{File.basename(fixture)}... ***\n"
     Bundler.with_clean_env {
-      Dir.chdir(fixture) { puts `bundle check; bundle exec rake test:rabl` }
+      Dir.chdir(fixture) { sh 'bundle check; bundle exec rake test:rabl' }
     }
   end
 end
