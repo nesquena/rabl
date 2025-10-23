@@ -13,32 +13,18 @@ jobs:
 
     strategy:
       matrix:
-        ruby-version: ['2.5', '2.6', '2.7', '3.0', '3.1', '3.2', '3.3']
+        ruby-version: ['2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '3.0', '3.1', '3.2', '3.3', '3.4']
         channel: ['stable']
         os: ['ubuntu-latest']
 
         include:
-          # Test legacy Ruby versions on ubuntu-20.04 to avoid segmentation
-          # faults and errors with `Marshal` or `sqlite3` not compiling.
-          # Ref: ruby/setup-ruby#496, nesquena/rabl#774
+          # NOTE: Ruby 1.9.3 fails to install on ubuntu-24.04 despite being listed as
+          # supported in ruby/setup-ruby docs at https://github.com/ruby/setup-ruby?tab=readme-ov-file#supported-versions:
+          #
+          #     Error: Unavailable version 1.9.3-p551 for ruby on ubuntu-24.04.
           - ruby-version: '1.9.3'
             channel: 'stable'
-            os: 'ubuntu-20.04'
-          - ruby-version: '2.0'
-            channel: 'stable'
-            os: 'ubuntu-20.04'
-          - ruby-version: '2.1'
-            channel: 'stable'
-            os: 'ubuntu-20.04'
-          - ruby-version: '2.2'
-            channel: 'stable'
-            os: 'ubuntu-20.04'
-          - ruby-version: '2.3'
-            channel: 'stable'
-            os: 'ubuntu-20.04'
-          - ruby-version: '2.4'
-            channel: 'stable'
-            os: 'ubuntu-20.04'
+            os: 'ubuntu-22.04'
 
           - ruby-version: 'head'
             channel: 'experimental'
