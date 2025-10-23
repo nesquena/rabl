@@ -25,7 +25,7 @@ group :test do
 end
 
 group :development, :test do
-  gem 'bson', '< 2' # FIXME: Versions >= 2 make tests fail
+  gem 'bson'
   # gem 'debugger'
   gem 'msgpack'
   gem 'oj'

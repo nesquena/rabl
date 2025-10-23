@@ -156,7 +156,14 @@ module Rabl
         result = { root_name => result }
       end
 
-      Rabl.configuration.bson_engine.serialize(result).to_s
+      bson_engine = Rabl.configuration.bson_engine
+      if bson_engine.respond_to?(:serialize)
+        # BSON < 2.0 API
+        bson_engine.serialize(result).to_s
+      else
+        # BSON >= 2.0 API
+        result.to_bson.to_s
+      end
     end
 
     # Sets the object to be used as the data source for this template
