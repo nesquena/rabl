@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PostsController < ApplicationController
   respond_to :json, :xml, :html, :rabl_test_v1
 

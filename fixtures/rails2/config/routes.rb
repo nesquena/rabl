@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ActionController::Routing::Routes.draw do |map|
   map.resources :posts
   map.resources :users

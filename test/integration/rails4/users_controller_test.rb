@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Lives in <rabl>/test/integration/users_controller_test.rb
 # Symlinked to fixture applications
 

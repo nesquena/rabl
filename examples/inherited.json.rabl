@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Extends base.json.rabl and adds additional nodes
 
 extends("base")

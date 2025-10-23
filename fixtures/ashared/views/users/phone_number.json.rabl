@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 attributes :prefix, :suffix, :area_code
 attributes :is_primary => :primary
 

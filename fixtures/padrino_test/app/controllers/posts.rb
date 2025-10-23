@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 PadrinoTest.controllers :posts do
   get :index do
     @posts = Post.order("id ASC")

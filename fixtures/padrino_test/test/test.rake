@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rake/testtask'
 
 test_tasks = Dir['test/*/'].map { |d| File.basename(d) }

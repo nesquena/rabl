@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ##
 # This file mounts each app in the Padrino project to a specified sub-uri.
 # You can mount additional applications using any of these commands below:

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ##
 # You can use other adapters like:
 #

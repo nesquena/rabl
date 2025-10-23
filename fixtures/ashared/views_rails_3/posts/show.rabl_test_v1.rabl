@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 object @post
 
 attribute :title => :title_v1

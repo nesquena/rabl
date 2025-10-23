@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Use the @media object set in route
 object @media
 

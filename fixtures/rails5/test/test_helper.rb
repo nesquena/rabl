@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Load Silence Functionality
 require File.expand_path(File.dirname(__FILE__) + "/../../../test/silence.rb")
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Settings specified here will take precedence over those in config/environment.rb
 
 # The production environment is meant for finished, "live" apps.

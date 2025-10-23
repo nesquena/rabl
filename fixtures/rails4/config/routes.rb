@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails4::Application.routes.draw do
   resources :users
   resources :posts do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Kernel
   def silence_warnings
     with_warnings(nil) { yield }

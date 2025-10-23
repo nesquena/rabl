@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 PadrinoTest.controllers :users do
   get :index do
     @users = User.order("username ASC")

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 collection @posts => :articles
 cache ['kittens!', @posts]
 

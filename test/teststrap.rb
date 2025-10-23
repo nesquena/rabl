@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
 
 module Kernel
@@ -31,7 +33,7 @@ end
 
 module RiotTestHelpers
   def char_split(str)
-    str.force_encoding("iso-8859-1").split("").sort
+    str.dup.force_encoding("iso-8859-1").split("").sort
   end
 
   def clean_plist(text)

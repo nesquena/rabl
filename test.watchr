@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ENV["WATCHR"] = "1"
 system 'clear'
 

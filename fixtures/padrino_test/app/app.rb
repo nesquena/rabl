@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PadrinoTest < Padrino::Application
   register Padrino::Rendering
   register Padrino::Mailer

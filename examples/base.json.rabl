@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # See 'inherited' for an example of how to extend this template
 
 # Include these three attributes
