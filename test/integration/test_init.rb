@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/test'
 require 'riot'
 require 'riot/rr'

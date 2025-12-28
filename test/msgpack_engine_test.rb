@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # encoding: iso-8859-1
 
 require File.expand_path('../teststrap', __FILE__)
