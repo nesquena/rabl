@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 unless defined?(User)
   class User
     attr_accessor :age, :city, :name, :first, :float, :hobbies, :twitter, :first_pets_name

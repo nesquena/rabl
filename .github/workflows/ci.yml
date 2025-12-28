@@ -33,11 +33,15 @@ jobs:
     continue-on-error: ${{ matrix.channel != 'stable' }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
+    - name: Enable frozen string flags in RUBYOPT (Ruby >= 3.0)
+      if: ${{ !(startsWith(matrix.ruby-version, '1.') || startsWith(matrix.ruby-version, '2.') ) }}
+      run: |
+        echo "RUBYOPT=--enable=frozen-string-literal --debug=frozen-string-literal" >> $GITHUB_ENV
     - name: Run tests
       run: bundle exec rake
