@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rabl
   class Railtie < Rails::Railtie
     initializer "rabl.initialize" do |app|
