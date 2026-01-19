@@ -1,4 +1,5 @@
 require 'active_support'
+require 'active_support/core_ext/array/extract_options'
 require 'active_support/core_ext/string/inflections'
 require 'active_support/core_ext/object/blank'
 require 'active_support/core_ext/hash/reverse_merge'
