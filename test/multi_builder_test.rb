@@ -67,5 +67,15 @@ context "Rabl::MultiBuilder" do
       mock(b).replace_engine(e, '{}')
       mb.send(:replace_engines_with_cache_results)
     end
+
+    asserts "does not raise an error when cache results contain unknown keys" do
+      mb = multi_builder [], {}
+      mb.instance_variable_set('@cache_key_to_engine', {})
+      mb.instance_variable_set('@engine_to_builder', {})
+      mb.instance_variable_set('@cache_results', { 'unknown_key' => '{}' })
+
+      mb.send(:replace_engines_with_cache_results)
+      true
+    end.equals(true)
   end
 end
