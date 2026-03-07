@@ -94,7 +94,7 @@ module Rabl
       @cache_results.each do |key, value|
         engine = @cache_key_to_engine[key]
         builder = @engine_to_builder[engine]
-        builder.replace_engine(engine, value) if builder && value
+        builder.replace_engine(engine, value) if value && engine && builder
       end
     end
   end
