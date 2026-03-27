@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rabl
   # DependencyTracker for ActionView to support cache digest
   class Tracker

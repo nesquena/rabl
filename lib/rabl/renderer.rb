@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rabl
   class Renderer
     # Defines class method rendering in supported formats

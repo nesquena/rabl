@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Defines the default cache engine for RABL when caching is invoked for a template.
 # You can define your own caching engines by creating an object that responds to fetch and
 # setting the configuration option:

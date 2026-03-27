@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # We load the msgpack library if it is available.
 begin
   require 'msgpack'
