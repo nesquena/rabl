@@ -3,3 +3,5 @@
 .rvmrc
 Gemfile.lock
 pkg/*
+.claude/settings.local.json
+mcp-vscode.json
