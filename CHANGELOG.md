@@ -6,6 +6,7 @@
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
+* Fix NoMethodError on nil builder when replacing engines with cache results (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 
