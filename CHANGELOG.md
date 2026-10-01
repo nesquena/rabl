@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.18.0 (unreleased)
+
+* Allow BSON >= 2.0 (@tagliala)
+* Support Frozen String Literals (@tagliala)
+* Fix extract_options! not being available (@A1bi)
+* Improve caching lookup performance (@pharris2411)
+
 ## 0.17.0 (Nov 26, 2024)
 
 * Support for Rails 8 (@basex)

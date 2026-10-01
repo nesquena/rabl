@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TILT Template
 if defined?(Tilt)
   class RablTemplate < Tilt::Template

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/inflector' # for the sake of pluralizing
 
 module Rabl
@@ -128,7 +130,7 @@ module Rabl
       return if object.nil?
 
       options.reverse_merge!({
-        :format     => "hash".freeze,
+        :format     => "hash",
         :view_path  => view_path,
         :root       => (options[:root] || false)
       })
