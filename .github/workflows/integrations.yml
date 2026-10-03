@@ -1,0 +1,47 @@
+name: Integration tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Integration tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        ruby-version: ['2.5', '2.6', '2.7', '3.0']
+        fixture: [ '{rails6}', '{rails7}' ]
+        experimental: [false]
+
+        include:
+          - ruby-version: 'head'
+            fixture: '{rails6}'
+            experimental: true
+          - ruby-version: 'head'
+            fixture: '{rails7}'
+            experimental: true
+
+        exclude:
+          - ruby-version: '2.5'
+            fixture: '{rails7}'
+          - ruby-version: '2.6'
+            fixture: '{rails7}'
+
+    env:
+      FIXTURE: ${{ matrix.fixture }}
+
+    continue-on-error: ${{ matrix.experimental }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - name: Run tests
+      run: bundle exec rake test:clean test:setup test:fixtures

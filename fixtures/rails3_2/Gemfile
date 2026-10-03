@@ -5,7 +5,7 @@ gem 'rails', '~> 3.2.9.rc3'
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
-gem 'sqlite3'
+gem 'sqlite3', '~> 1.3.6'
 gem 'rabl', :path => File.expand_path(File.dirname(__FILE__) + "/../../")
 gem 'riot', :group => "test"
 
@@ -38,3 +38,4 @@ gem 'jquery-rails'
 # To use debugger
 # gem 'debugger'
 
+gem 'test-unit'
