@@ -96,7 +96,11 @@ module Rabl
       @cache_results.each do |key, value|
         engine = @cache_key_to_engine[key]
         builder = @engine_to_builder[engine]
-        builder.replace_engine(engine, value) if value && engine && builder
+        next unless value && engine && builder
+
+        # a child is stored as { name => #<Engine> }; the cache holds only its rendered body
+        value = { engine.keys.first => value } if engine.is_a?(Hash)
+        builder.replace_engine(engine, value)
       end
     end
   end
