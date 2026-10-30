@@ -141,6 +141,8 @@ module Rabl
     # Returns an xml representation of the data object
     # to_xml(:root => true)
     def to_xml(options = {})
+      load_xml_support!
+
       options = {
         :root       => (include_root = Rabl.configuration.include_xml_root),
         :child_root => include_root && Rabl.configuration.include_child_root
@@ -482,6 +484,21 @@ module Rabl
         end
 
         send msg, locals, &block
+      end
+
+      # Hash#to_xml and Array#to_xml come from ActiveSupport (which uses the builder gem);
+      # Rails loads them, but other apps may not have.
+      def load_xml_support!
+        return if defined?(::Builder::XmlMarkup) && {}.respond_to?(:to_xml) && [].respond_to?(:to_xml)
+
+        require 'active_support/core_ext/array/conversions'
+        require 'active_support/core_ext/hash/conversions'
+
+        begin
+          require 'builder' unless defined?(::Builder::XmlMarkup)
+        rescue LoadError
+          raise LoadError, "rabl needs the builder gem to render XML; add `gem 'builder'` to your Gemfile"
+        end
       end
 
       # attribute, node, child, glue and extends build the template's settings, which are read while

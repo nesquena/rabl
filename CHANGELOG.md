@@ -11,6 +11,7 @@
 * Fix `object @foo => 'foo'` (a String alias) naming the root "string" instead of "foo" (#619, reported by @aripollak)
 * Raise a clear error when `extends` is called while a template renders, e.g. inside a `node` block, instead of writing rabl's internal settings (including the view path) into the response, and warn when `attribute`, `node`, `child` or `glue` are; use `partial` there (#477, reported by @barmstrong)
 * Fix the `:root` (and `:child_root`) option of `Rabl::Renderer` being ignored in favour of the global `include_*_root` setting, a regression since 0.11 (#486, reported by @ninkibah)
+* Fix XML rendering outside Rails raising `NoMethodError` for `to_xml` unless the app had loaded ActiveSupport's XML conversions; rabl now loads them, and explains when the `builder` gem is missing (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 
