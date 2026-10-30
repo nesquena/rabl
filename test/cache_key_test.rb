@@ -146,5 +146,38 @@ context 'Rabl cache keys' do
     teardown { @dirs.each { |dir| FileUtils.rm_rf(dir) } }
   end
 
+  context 'with the application in a new directory' do
+    setup do
+      Rabl.configuration.cache_engine = memory_cache
+      @dirs = [File.realpath(Dir.mktmpdir), File.realpath(Dir.mktmpdir)]
+      @dirs.each do |dir|
+        FileUtils.mkdir_p(File.join(dir, 'views'))
+        File.open(File.join(dir, 'views', 'show.rabl'), 'w') { |f| f.write("object @item\ncache @item\nattributes :id\n") }
+        File.open(File.join(dir, 'views', 'owner.rabl'), 'w') { |f| f.write("object @item\nchild(:owner => :owner) { cache root_object; attributes :id }\n") }
+      end
+      @dirs
+    end
+
+    helper(:render_in) do |dir, template, object|
+      Dir.chdir(dir) { Rabl::Renderer.json(object, template, :view_path => File.join(dir, 'views'), :scope => Object.new) }
+    end
+
+    asserts('a template reads entries cached before the move') do
+      a = item(19)
+      first = render_in(topic[0], 'show', a)
+      a.id = 190
+      [first, render_in(topic[1], 'show', a)]
+    end.equals ['{"id":19}', '{"id":19}']
+
+    asserts('a child block reads entries cached before the move') do
+      owner = item(20)
+      first = render_in(topic[0], 'owner', item(21, owner))
+      owner.id = 200
+      [first, render_in(topic[1], 'owner', item(21, owner))]
+    end.equals ['{"owner":{"id":20}}', '{"owner":{"id":20}}']
+
+    teardown { @dirs.each { |dir| FileUtils.rm_rf(dir) } }
+  end
+
   teardown { Rabl.reset_configuration! }
 end

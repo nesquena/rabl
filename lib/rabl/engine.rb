@@ -329,7 +329,10 @@ module Rabl
     # Identifies the template for cache keys: a digest of its location, the view path its
     # partials resolve from, its source and its block
     def template_identity
-      @_template_identity ||= cache_digest([@_options[:source_location], view_path, @_source, block_identity])
+      @_template_identity ||= begin
+        view_paths = Array(view_path).map { |path| cache_path(path) }
+        cache_digest([cache_path(@_options[:source_location]), view_paths, @_source, block_identity])
+      end
     end
 
     protected
@@ -341,7 +344,20 @@ module Rabl
       # template that defined it
       def block_identity
         location, parent = @_block_identity
-        [location, parent && parent.template_identity] if @_block_identity
+        [location && [cache_path(location[0]), location[1]], parent && parent.template_identity] if @_block_identity
+      end
+
+      # Returns a path for cache keys that stays the same when the application moves:
+      # relative to the working directory when inside it, and nil for "(eval)" locations
+      # (the template identity of the parent tells evaluated sources apart).
+      # ceiling: paths outside the working directory stay absolute, so moving them changes
+      # the keys; a configurable root would let those move too.
+      def cache_path(path)
+        path = path.to_s
+        return if path.empty? || path.start_with?("(eval")
+
+        root = (File.join(Dir.pwd, "") rescue nil)
+        root && path.start_with?(root) ? path[root.length..-1] : path
       end
 
       # Returns a guess at the default object for this template
@@ -495,7 +511,8 @@ module Rabl
       def eval_source(locals, &block)
         return unless @_source.present?
 
-        msg = "cached_source_#{@_source.hash.abs}"
+        # One method per source and location, so blocks report the file that defined them
+        msg = "cached_source_#{[@_source, @_options[:source_location]].hash.abs}"
 
         unless self.respond_to? msg then
           src = "def #{msg} locals, &block\n#{@_source}\nend"
