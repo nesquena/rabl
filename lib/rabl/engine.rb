@@ -210,7 +210,10 @@ module Rabl
     # collection @users => :people
     # collection @users, :root => :person
     # collection @users, :object_root => :person
+    # collection @users => :people, :object_root => false
     def collection(data, options = {})
+      data, options = split_folded_options(data, options, [:root, :object_root])
+
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.is_a?(Hash)
 
@@ -257,19 +260,28 @@ module Rabl
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options = {}, &block)
+      if name.is_a?(Hash) && name.present? && options.blank? && (name.keys - [:if, :unless]).empty?
+        name, options = nil, name # node(:if => lambda { ... }) { ... } has conditions but no name
+      end
+
       @_settings[:node] << { :name => name, :options => options, :block => block }
     end
     alias_method :code, :node
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
+    # child(:posts => :items, :if => lambda { ... }) { attribute :title }
     def child(data, options = {}, &block)
+      data, options = split_folded_options(data, options, [:if, :unless, :root, :object_root])
+
       @_settings[:child] << { :data => data, :options => options, :block => block }
     end
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
     def glue(data, options = {}, &block)
+      data, options = split_folded_options(data, options, [:if, :unless])
+
       @_settings[:glue] << { :data => data, :options => options, :block => block }
     end
 
@@ -450,6 +462,20 @@ module Rabl
         end
 
         send msg, locals, &block
+      end
+
+      # Ruby folds `child :posts => :items, :if => cond` into a single hash, so the options
+      # arrive inside the data. They are split out only when no options were given separately
+      # and what remains is a single alias (`data => name`); any other hash is left as data.
+      # split_folded_options({ :posts => :items, :if => true }, {}, [:if]) => [{ :posts => :items }, { :if => true }]
+      def split_folded_options(data, options, option_keys)
+        return [data, options] unless data.is_a?(Hash) && options.blank?
+
+        found = data.keys & option_keys
+        alias_data = data.except(*found)
+        return [data, options] unless found.any? && alias_data.size == 1 && is_name_value?(alias_data.values.first)
+
+        [alias_data, data.slice(*found)]
       end
   end
 end

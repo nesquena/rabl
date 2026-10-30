@@ -271,6 +271,15 @@ context "Rabl::Engine" do
        template.render(scope)
       end.equals "{\"people\":[{\"user\":{}},{\"user\":{}}]}"
 
+      asserts "that it applies options given with a key alias" do
+       template = rabl %{
+         collection @users => :people, :object_root => false
+       }
+       scope = Object.new
+       scope.instance_variable_set :@users, [User.new, User.new]
+       template.render(scope)
+      end.equals "{\"people\":[{},{}]}"
+
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
           object @others
@@ -354,6 +363,18 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"user\":{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}}")
+
+      asserts "that it can be passed conditionals given no name" do
+        template = rabl %{
+          collection @users
+          code(:if => lambda { |u| u.name == 'a' }) do |user|
+            {:city => user.city}
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'a', :city => 'LA'), User.new(:name => 'b', :city => 'NY')]
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("[{\"user\":{\"city\":\"LA\"}},{\"user\":{}}]")
     end
 
     context "#child" do
@@ -462,9 +483,71 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"people\":[{\"item\":{\"city\":\"UNO\"}},{\"item\":{\"city\":\"DOS\"}}]}}"
+
+      asserts "that it applies a false condition given with a key alias" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child :hobbies => :interests, :if => lambda { |u| false } do
+            attribute :name
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo')
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\"}}"
+
+      asserts "that it renders a child given a key alias and a true condition" do
+        template = rabl %{
+          object @user
+          child :hobbies => :interests, :unless => lambda { |u| false } do
+            attribute :name
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :hobbies => ['Photography'])
+        template.render(scope)
+      end.equals "{\"user\":{\"interests\":[{\"interest\":{\"name\":\"Photography\"}}]}}"
+
+      asserts "that it applies root options given with a key alias" do
+        template = rabl %{
+          object @user
+          child :hobbies => :interests, :object_root => false do
+            attribute :name
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :hobbies => ['Photography'])
+        template.render(scope)
+      end.equals "{\"user\":{\"interests\":[{\"name\":\"Photography\"}]}}"
+
+      asserts "that it keeps a hash that is not a single key alias as the data" do
+        template = rabl %{
+          object @user
+          child(@pairs) { node(:key) { |pair| pair.first } }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        scope.instance_variable_set :@pairs, { :name => :pairs, :if => false, :age => 'x' }
+        template.render(scope)
+      end.equals "{\"user\":{\"pairs\":[{\"pair\":{\"key\":\"name\"}},{\"pair\":{\"key\":\"if\"}},{\"pair\":{\"key\":\"age\"}}]}}"
     end
 
     context "#glue" do
+      asserts "that it applies a condition given with a key alias" do
+        template = rabl %{
+          collection @users
+          attribute :name
+          glue @home => :home, :if => lambda { |u| u.name == 'leo' } do
+            attribute :city
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@home, User.new(:city => 'LA')
+        scope.instance_variable_set :@users, [User.new(:name => 'leo'), User.new(:name => 'max')]
+        template.render(scope)
+      end.equals "[{\"user\":{\"name\":\"leo\",\"city\":\"LA\"}},{\"user\":{\"name\":\"max\"}}]"
+
       asserts "that it glues data from a child node" do
         template = rabl %{
           object @user
