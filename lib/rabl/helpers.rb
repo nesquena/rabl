@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/inflector' # for the sake of pluralizing
+require 'erb' # ERB::Util.h for escape_all_output
 
 module Rabl
   module Helpers
@@ -162,12 +163,13 @@ module Rabl
     end
 
     module Escaper
+      # Returns escaped copies; the response may be shared with the cache, so it is never changed in place.
       def escape_output(response)
         case response
         when Hash
-          response.each{|k,v| response[k] = escape_value(v) }
+          response.each_with_object({}) { |(k, v), escaped| escaped[k] = escape_value(v) }
         when Array
-          response.map!{|v| escape_value(v) }
+          response.map { |v| escape_value(v) }
         else
           response
         end
