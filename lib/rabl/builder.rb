@@ -203,6 +203,7 @@ module Rabl
         return unless resolve_condition(options)
 
         options = @options.slice(:child_root).merge!(:object => @_object).merge!(options)
+        options[:data_item] = @_object if @_object.is_a?(Hash) # a Hash item is data, not alias syntax (#396)
         engines << partial_as_engine(file, options, &block)
       end
 

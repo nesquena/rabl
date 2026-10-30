@@ -19,6 +19,7 @@ module Rabl
 
       @_view_path     = options[:view_path]
       @_context_scope = options[:scope]
+      @_data_item     = options[:data_item]
 
       @_cache_read_on_render = true
     end
