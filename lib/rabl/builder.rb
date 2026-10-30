@@ -181,6 +181,7 @@ module Rabl
         engine_options[:object_root_name] = options[:object_root] if is_name_value?(options[:object_root])
 
         object = { object => name } if data.is_a?(Hash) && object # child :users => :people
+        object = { object => data } if data.is_a?(Symbol) && is_collection?(object) # child :units: items are "unit" (#394)
 
         engines << { create_key(name) => object_to_engine(object, engine_options, &block) }
       end

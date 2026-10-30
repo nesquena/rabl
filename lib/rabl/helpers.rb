@@ -36,6 +36,7 @@ module Rabl
 
       if is_collection?(data) # data is a collection
         object_name = collection_root_name if collection_root_name
+        object_name ||= data_token if data_token.is_a?(Symbol) # child :units => "units", whatever the table (#394)
         object_name ||= data.table_name if data.respond_to?(:table_name)
 
         if object_name.nil? && data.respond_to?(:first)
@@ -43,7 +44,6 @@ module Rabl
           object_name = data_name(first).to_s.pluralize if first.present?
         end
 
-        object_name ||= data_token if data_token.is_a?(Symbol)
         object_name
       elsif is_object?(data) # data is an object
         object_name = object_root_name if object_root_name

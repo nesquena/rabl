@@ -6,6 +6,7 @@
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
+* `child :name` on a collection is now keyed by the name you wrote, the same as `child :name => :name`. Before, rabl used the relation's table name or the first item's class, so `child :units` on `has_many :units, through: ..., source: :product_unit` rendered `"product_units": [{"product_unit": ...}]` and two associations on one table overwrote each other. Existing apps whose association or method name differs from its table or item class get the new key and item root (`"units": [{"unit": ...}]`); with `:root => :other`, the key is `other` and items are still named after the symbol. `child @collection` without a name is unchanged (#394, reported by @jifka)
 
 ## 0.17.0 (Nov 26, 2024)
 
