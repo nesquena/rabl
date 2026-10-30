@@ -21,6 +21,7 @@ module Rabl
       @_context_scope = options[:scope]
 
       @_cache_read_on_render = true
+      @_rendering = false
     end
 
     def source=(source)
@@ -88,6 +89,7 @@ module Rabl
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
+      @_rendering = true
       result =
         if is_object?(data) || !data # object @user
           Builder.new(data, @_settings, options).to_hash
@@ -98,6 +100,8 @@ module Rabl
       result = escape_output(result) if Rabl.configuration.escape_all_output
 
       result
+    ensure
+      @_rendering = false
     end
 
     def to_dumpable(options = {})
@@ -253,6 +257,8 @@ module Rabl
           attribute(key, conditions.merge(:as => as))
         end
       else # array of attributes i.e :foo, :bar, :baz
+        check_render_time_call!(:attribute)
+
         options = args.extract_options!
         args.each do |name|
           @_settings[:attributes] << { :name => name, :options => options }
@@ -265,6 +271,8 @@ module Rabl
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options = {}, &block)
+      check_render_time_call!(:node)
+
       if name.is_a?(Hash) && name.present? && options.blank? && (name.keys - [:if, :unless]).empty?
         name, options = nil, name # node(:if => lambda { ... }) { ... } has conditions but no name
       end
@@ -277,6 +285,8 @@ module Rabl
     # child(@user) { attribute :full_name }
     # child(:posts => :items, :if => lambda { ... }) { attribute :title }
     def child(data, options = {}, &block)
+      check_render_time_call!(:child)
+
       data, options = split_folded_options(data, options, [:if, :unless, :root, :object_root])
 
       @_settings[:child] << { :data => data, :options => options, :block => block }
@@ -285,6 +295,8 @@ module Rabl
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
     def glue(data, options = {}, &block)
+      check_render_time_call!(:glue)
+
       data, options = split_folded_options(data, options, [:if, :unless])
 
       @_settings[:glue] << { :data => data, :options => options, :block => block }
@@ -293,6 +305,8 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options = {}, &block)
+      check_render_time_call!(:extends)
+
       options.reverse_merge!({ :view_path => options[:view_path] || view_path })
 
       @_settings[:extends] << { :file => file, :options => options, :block => block }
@@ -467,6 +481,22 @@ module Rabl
         end
 
         send msg, locals, &block
+      end
+
+      # attribute, node, child, glue and extends build the template's settings, which are read while
+      # it renders (#477). Called then (e.g. inside a node block), extends would put those settings,
+      # including the view path, into the output, so it raises; the others warn and work as before.
+      # ceiling: warns on every call, so a misuse inside a large collection repeats the warning;
+      # dedupe by call site if that turns out to be noisy.
+      def check_render_time_call!(method_name)
+        return unless @_rendering
+
+        advice = "to render another template there, use partial(\"template\", :object => object)"
+        raise "extends can't be called while the template renders (e.g. inside a node block); #{advice}" if method_name == :extends
+
+        site = caller.find { |line| !line.start_with?(__FILE__) }.to_s.sub(/:in .*\z/m, '')
+        Kernel.warn "rabl: #{method_name} called while the template renders (e.g. inside a node block) at #{site} " \
+                    "changes the template for the rest of the render; #{advice}"
       end
 
       # Ruby folds `child :posts => :items, :if => cond` into a single hash, so the options
