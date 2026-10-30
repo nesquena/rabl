@@ -94,13 +94,13 @@ module Rabl
 
           cache_key << digest
           # The digest covers the template source, but not the block that defines this engine
-          cache_key << cache_digest(block_identity) if @_block_identity
+          cache_key << CacheKey.digest(rabl_block_identity) if @_block_identity
         else
-          cache_key << template_identity
+          cache_key << rabl_template_identity
         end
 
         cache_key << "collection" if is_collection?(root_object)
-        cache_key.concat(cache_shape(@_options))
+        cache_key.concat(CacheKey.shape(@_options))
 
         cache_key
       end
@@ -337,36 +337,23 @@ module Rabl
 
     # Identifies the template for cache keys: a digest of its location, the view path its
     # partials resolve from, its source and its block
-    def template_identity
+    def rabl_template_identity
       @_template_identity ||= begin
-        view_paths = Array(view_path).map { |path| cache_path(path) }
-        cache_digest([cache_path(@_options[:source_location]), view_paths, @_source, block_identity])
+        view_paths = Array(view_path).map { |path| CacheKey.path(path) }
+        CacheKey.digest([CacheKey.path(@_options[:source_location]), view_paths, @_source, rabl_block_identity])
       end
     end
 
     protected
-      def template_engine
+      def rabl_template_engine
         self
       end
 
       # Identifies the block that defines this engine, if any: its location and the
       # template that defined it
-      def block_identity
+      def rabl_block_identity
         location, parent = @_block_identity
-        [location && [cache_path(location[0]), location[1]], parent && parent.template_identity] if @_block_identity
-      end
-
-      # Returns a path for cache keys that stays the same when the application moves:
-      # relative to the working directory when inside it, and nil for "(eval)" locations
-      # (the template identity of the parent tells evaluated sources apart).
-      # ceiling: paths outside the working directory stay absolute, so moving them changes
-      # the keys; a configurable root would let those move too.
-      def cache_path(path)
-        path = path.to_s.dup.force_encoding(Encoding::BINARY) # paths may differ in encoding
-        return if path.empty? || path.start_with?("(eval")
-
-        root = (File.join(Dir.pwd, "").force_encoding(Encoding::BINARY) rescue nil)
-        root && path.start_with?(root) ? path.byteslice(root.bytesize..-1) : path
+        [location && [CacheKey.path(location[0]), location[1]], parent && parent.rabl_template_identity] if @_block_identity
       end
 
       # Returns a guess at the default object for this template

@@ -893,6 +893,21 @@ context "Rabl::Engine" do
     end
   end
 
+  context "with scope helpers" do
+    asserts "that templates call scope helpers named like rabl's cache key methods" do
+      scope = Object.new
+      names = [:cache_path, :cache_digest, :cache_shape, :block_identity, :template_engine, :template_identity]
+      names.each { |name| scope.define_singleton_method(name) { |*args| "helper #{name}" } }
+      scope.instance_variable_set :@user, User.new
+      template = "object @user => :user\n" + names.map { |name| "node(:#{name}) { #{name}('x') }" }.join("\n")
+      JSON.parse(Rabl::Engine.new(template, :format => 'json').render(scope))
+    end.equals("user" => {
+      "cache_path" => "helper cache_path", "cache_digest" => "helper cache_digest", "cache_shape" => "helper cache_shape",
+      "block_identity" => "helper block_identity", "template_engine" => "helper template_engine",
+      "template_identity" => "helper template_identity"
+    })
+  end
+
   context "with json callbacks" do
     helper(:render_with_params) do |source, params, *user|
       scope = Object.new

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'active_support/inflector' # for the sake of pluralizing
-require 'digest/sha1'
 
 module Rabl
   module Helpers
@@ -135,7 +134,7 @@ module Rabl
         :view_path  => view_path,
         :root       => (options[:root] || false)
       })
-      options[:parent_engine] = template_engine if block_given?
+      options[:parent_engine] = rabl_template_engine if block_given?
 
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end
@@ -154,28 +153,6 @@ module Rabl
       result
     end
 
-    # Returns a digest of the given parts, for cache keys
-    # cache_digest(["/path/to/show.rabl", "object @user"]) => "4a1b..."
-    def cache_digest(parts)
-      digest = Digest::SHA1.new
-      Array(parts).flatten.each { |part| digest << part.to_s << "\0" }
-      digest.hexdigest
-    end
-
-    # Returns the options that change the shape of a nested (hash format) rendering, for
-    # cache keys; with the default configuration a JSON rendering has none
-    # cache_shape(:root => true, :child_root => false) => ["root", "no_child_root"]
-    def cache_shape(options)
-      return [] unless options[:format].to_s == "hash"
-
-      shape = []
-      shape << "root" if options[:root]
-      shape << "no_child_root" unless options[:child_root]
-      shape << "object_root=#{options[:object_root_name]}" if options[:object_root_name]
-      shape << "except=#{Array(options[:except]).join(',')}" if options[:except]
-      shape
-    end
-
     # Returns true if the cache has been enabled for the application
     def template_cache_configured?
       if defined?(Rails)
@@ -186,8 +163,8 @@ module Rabl
     end
 
     protected
-      # Returns the engine of the template being rendered, if any (see Engine#template_identity)
-      def template_engine
+      # Returns the engine of the template being rendered, if any (see Engine#rabl_template_identity)
+      def rabl_template_engine
         nil
       end
 
