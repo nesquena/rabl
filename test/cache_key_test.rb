@@ -123,5 +123,28 @@ context 'Rabl cache keys' do
     teardown { FileUtils.rm_rf(@dir) }
   end
 
+  context 'with the same template source in two view paths' do
+    setup do
+      Rabl.configuration.cache_engine = memory_cache
+      @dirs = [Dir.mktmpdir, Dir.mktmpdir]
+      @dirs.each { |dir| File.open(File.join(dir, 'show.rabl'), 'w') { |f| f.write("object @item\ncache @item\nextends 'base'\n") } }
+      File.open(File.join(@dirs[0], 'base.rabl'), 'w') { |f| f.write("attributes :id\n") }
+      File.open(File.join(@dirs[1], 'base.rabl'), 'w') { |f| f.write("attributes :name\n") }
+      @dirs
+    end
+
+    asserts('Rabl::Renderer renders each view path\'s partials') do
+      a = item(17)
+      topic.map { |dir| Rabl::Renderer.json(a, 'show', :view_path => dir, :scope => Object.new) }
+    end.equals ['{"id":17}', '{"name":"item17"}']
+
+    asserts('an inline template renders each view path\'s partials') do
+      a = item(18)
+      topic.map { |dir| render("object @item\ncache @item\nextends 'base'", a, :view_path => dir) }
+    end.equals ['{"id":18}', '{"name":"item18"}']
+
+    teardown { @dirs.each { |dir| FileUtils.rm_rf(dir) } }
+  end
+
   teardown { Rabl.reset_configuration! }
 end

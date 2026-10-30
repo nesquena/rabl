@@ -326,9 +326,10 @@ module Rabl
       @_cache_read_on_render
     end
 
-    # Identifies the template for cache keys: a digest of its location, source and block
+    # Identifies the template for cache keys: a digest of its location, the view path its
+    # partials resolve from, its source and its block
     def template_identity
-      @_template_identity ||= cache_digest([@_options[:source_location], @_source, block_identity])
+      @_template_identity ||= cache_digest([@_options[:source_location], view_path, @_source, block_identity])
     end
 
     protected
