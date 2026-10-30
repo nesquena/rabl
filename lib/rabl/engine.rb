@@ -60,6 +60,8 @@ module Rabl
 
       @_full_cache_key ||= begin
         cache_key = Array(@_cache_key) + [@_options[:root_name], @_options[:format]]
+        # a nested engine caches its output before it is escaped, so it gets its own key
+        cache_key << 'nested' if @_options[:nested]
 
         if digestor_available? && respond_to?(:lookup_context) && lookup_context
           template = @_options[:template] || @virtual_path

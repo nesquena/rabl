@@ -748,6 +748,47 @@ context "Rabl::Engine" do
     end
   end
 
+  context "with escape_all_output and caching" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    helper(:cached_post) do |id|
+      post = User.new(:name => '<b>')
+      post.define_singleton_method(:cache_key) { "cached_post/#{id}" }
+      post
+    end
+    # the post as a nested template (child + extends), and as a top level :format => 'hash' render
+    helper(:render_post) do |kind, post|
+      if kind == :nested
+        holder = User.new(:first => post)
+        Rabl::Renderer.new("object @holder\nchild(:first => :post) { extends 'cached_post' }\n", holder, :format => 'json', :view_path => tmp_path, :scope => Object.new).render
+      else
+        Rabl::Renderer.new('cached_post', post, :format => 'hash', :view_path => tmp_path).render
+      end
+    end
+    setup do
+      Rabl.configure do |config|
+        config.perform_caching   = true
+        config.escape_all_output = true
+        config.include_json_root = false
+        config.cache_engine      = Rabl::CacheEngine.new
+      end
+      File.open(tmp_path + "cached_post.rabl", "w") { |f| f.puts "object @user\ncache root_object\nattributes :name" }
+    end
+
+    asserts "that a top level hash render after a nested one is escaped" do
+      post = cached_post(1)
+      [render_post(:nested, post), render_post(:hash, post)]
+    end.equals ["{\"post\":{\"name\":\"&lt;b&gt;\"}}", { :name => "&lt;b&gt;" }]
+
+    asserts "that a nested render after a top level hash one is escaped once" do
+      post = cached_post(2)
+      [render_post(:hash, post), render_post(:nested, post)]
+    end.equals [{ :name => "&lt;b&gt;" }, "{\"post\":{\"name\":\"&lt;b&gt;\"}}"]
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
+
   context "without json root" do
     setup do
       Rabl.configure do |config|
