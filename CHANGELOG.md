@@ -2,6 +2,7 @@
 
 ## 0.18.0 (unreleased)
 
+* Require Ruby 2.7 or newer. rabl hasn't loaded on Ruby 1.9 since 0.16.0, and 2.0–2.6 are long past end of life (@nesquena)
 * Allow BSON >= 2.0 (@tagliala)
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)

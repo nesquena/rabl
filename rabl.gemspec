@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
 
   s.files         = `git ls-files -z`.split("\x0").grep(%r{\A(?:[^./][^/]*\.md|MIT-LICENSE|lib/.+)\z}).sort
   s.require_paths = ["lib"]
+  s.required_ruby_version = '>= 2.7'
 
 
   if RUBY_VERSION < "1.9"
