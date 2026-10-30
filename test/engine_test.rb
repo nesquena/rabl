@@ -477,6 +477,20 @@ context "Rabl::Engine" do
         end
       end.equals [["{\"user\":{\"name\":\"leo\",\"people\":[]}}"] * 2, ["{\"user\":{\"name\":\"leo\",\"people\":null}}"] * 2]
 
+      asserts "it still skips a child named by :root when its data is false or an empty string" do
+        [false, ''].map do |data|
+          template = rabl %{
+            object @user
+            attribute :name
+            child(@data, :root => "stats") { node(:total) { |s| s.total } }
+          }
+          scope = Object.new
+          scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+          scope.instance_variable_set :@data, data
+          template.render(scope)
+        end
+      end.equals ["{\"user\":{\"name\":\"leo\"}}"] * 2
+
       asserts "it still skips a child named by :root when its condition is false" do
         template = rabl %{
           object @user
