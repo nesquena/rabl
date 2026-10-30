@@ -6,7 +6,8 @@
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
-* Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached fragments were never read back (@nesquena)
+* Fix cached `child` nodes in a collection being flattened (or dropped, for a child collection) on a cache hit (@nesquena)
+* Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 

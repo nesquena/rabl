@@ -52,4 +52,37 @@ context 'Rabl::CacheEngine' do
       Rabl.reset_configuration!
     end
   end
+
+  context 'rendering cached children in a collection' do
+    helper(:owner) do |name|
+      Class.new do
+        attr_reader :name, :cache_key
+        def initialize(name); @name, @cache_key = name, "owner/#{name}"; end
+      end.new(name)
+    end
+
+    helper(:render_twice) do |template|
+      items = [1, 2].map { |id| Struct.new(:id, :owner, :owners).new(id, owner("o#{id}"), [owner("p#{id}")]) }
+      2.times.map { Rabl::Engine.new(template, :format => 'json').render(Object.new, :object => items) }
+    end
+
+    setup do
+      Rabl.configure do |config|
+        config.perform_caching = true
+        config.include_json_root = false
+        config.include_child_root = false
+        config.cache_engine = Rabl::CacheEngine.new
+      end
+    end
+
+    asserts('keeps a cached child under its key') do
+      render_twice("collection @items\nattributes :id\nchild(:owner => :owner) { cache root_object; attributes :name }")
+    end.equals ['[{"id":1,"owner":{"name":"o1"}},{"id":2,"owner":{"name":"o2"}}]'] * 2
+
+    asserts('keeps a cached child collection under its key') do
+      render_twice("collection @items\nattributes :id\nchild(:owners => :owners) { cache root_object.map(&:cache_key); attributes :name }")
+    end.equals ['[{"id":1,"owners":[{"name":"p1"}]},{"id":2,"owners":[{"name":"p2"}]}]'] * 2
+
+    teardown { Rabl.reset_configuration! }
+  end
 end
