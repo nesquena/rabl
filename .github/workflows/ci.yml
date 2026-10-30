@@ -18,14 +18,6 @@ jobs:
         os: ['ubuntu-latest']
 
         include:
-          # NOTE: Ruby 1.9.3 fails to install on ubuntu-24.04 despite being listed as
-          # supported in ruby/setup-ruby docs at https://github.com/ruby/setup-ruby?tab=readme-ov-file#supported-versions:
-          #
-          #     Error: Unavailable version 1.9.3-p551 for ruby on ubuntu-24.04.
-          - ruby-version: '1.9.3'
-            channel: 'stable'
-            os: 'ubuntu-22.04'
-
           - ruby-version: 'head'
             channel: 'experimental'
             os: 'ubuntu-latest'
