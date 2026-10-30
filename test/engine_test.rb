@@ -892,4 +892,78 @@ context "Rabl::Engine" do
       Rabl.reset_configuration!
     end
   end
+
+  context "with json callbacks" do
+    helper(:render_with_params) do |source, params, *user|
+      scope = Object.new
+      scope.define_singleton_method(:params) { params }
+      scope.instance_variable_set :@user, user.first || User.new(:name => 'leo', :age => 12)
+      Rabl::Engine.new(source, :format => 'json').render(scope)
+    end
+
+    setup do
+      Rabl.configure do |config|
+        config.include_json_root     = false
+        config.enable_json_callbacks = true
+      end
+    end
+
+    asserts "that it wraps the json in a valid callback" do
+      render_with_params("object @user\nattribute :name", :callback => 'handle_user')
+    end.equals '/**/handle_user({"name":"leo"})'
+
+    asserts "that it accepts a dotted callback name" do
+      render_with_params("object @user\nattribute :name", :callback => 'App.callbacks._1')
+    end.equals '/**/App.callbacks._1({"name":"leo"})'
+
+    asserts "that it renders plain json for invalid callback names" do
+      ['alert(1)', 'a b', "a\nb", '<b>', '1abc', 'a.', 'a..b', 'x' * 129, ["cb"]].map do |name|
+        render_with_params("object @user\nattribute :name", :callback => name)
+      end.uniq
+    end.equals ['{"name":"leo"}']
+
+    asserts "that it renders plain json for a callback with invalid encoding" do
+      render_with_params("object @user\nattribute :name", :callback => "cb\xFF".dup.force_encoding('UTF-8'))
+    end.equals '{"name":"leo"}'
+
+    asserts "that it renders plain json for an empty callback" do
+      render_with_params("object @user\nattribute :name", :callback => '')
+    end.equals '{"name":"leo"}'
+
+    asserts "that it accepts a callback name at the maximum length" do
+      render_with_params("object @user\nattribute :name", :callback => 'x' * 128)
+    end.equals "/**/#{'x' * 128}({\"name\":\"leo\"})"
+
+    asserts "that it ignores the callback when callbacks are disabled" do
+      Rabl.configuration.enable_json_callbacks = false
+      result = render_with_params("object @user\nattribute :name", :callback => 'handle_user')
+      Rabl.configuration.enable_json_callbacks = true
+      result
+    end.equals '{"name":"leo"}'
+
+    context "and caching" do
+      setup do
+        Rabl.configuration.perform_caching = true
+        Rabl.configuration.cache_engine = Rabl::CacheEngine.new
+      end
+
+      asserts "that each request gets its own callback around the cached json" do
+        user = User.new(:name => 'leo')
+        [{ :callback => 'first' }, {}, { :callback => 'second' }].map do |params|
+          result = render_with_params("object @user\ncache 'user'\nattribute :name", params, user)
+          user.name = 'changed' # later renders must come from the cache
+          result
+        end
+      end.equals ['/**/first({"name":"leo"})', '{"name":"leo"}', '/**/second({"name":"leo"})']
+
+      teardown do
+        Rabl.configuration.perform_caching = false
+        Rabl.configuration.cache_engine = Rabl::CacheEngine.new
+      end
+    end
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
 end

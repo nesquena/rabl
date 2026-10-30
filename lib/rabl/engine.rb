@@ -10,6 +10,10 @@ module Rabl
     FORMATS = [:json, :xml, :plist, :bson, :msgpack]
     SAFE_FORMATS = FORMATS + [:mpac, :dumpable, :hash]
 
+    # JSONP callback names that are accepted: identifiers, optionally dotted (e.g. "jQuery_1.cb")
+    JSON_CALLBACK_NAME = /\A[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\z/
+    JSON_CALLBACK_MAX_LENGTH = 128
+
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options = {})
@@ -48,6 +52,11 @@ module Rabl
     # Rabl::Engine.new("...source...", { :format => "xml" }).apply(context_scope, { :foo => "bar", :object => @user }).render
     def render(context_scope = nil, locals = nil, &block)
       apply(context_scope, locals, &block) if context_scope || locals || block
+
+      # The JSONP callback comes from the request, so it is added after the cache.
+      if @_options[:format].to_s == "json"
+        return wrap_json_callback(cache_results { json_without_callback })
+      end
 
       cache_results do
         send("to_#{@_options[:format]}")
@@ -111,9 +120,7 @@ module Rabl
     # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options = {})
-      options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
-      result = to_dumpable(options)
-      format_json(result)
+      wrap_json_callback(json_without_callback(options))
     end
 
     # Returns a msgpack representation of the data object
@@ -340,9 +347,15 @@ module Rabl
         (context_scope.params if context_scope.respond_to?(:params)) || {}
       end
 
-      # Returns data as json embraced with callback when detected
-      # format_json({ :foo => "bar" }) => "test({ foo : 'bar' })"
-      # format_json("{ foo : "bar" }") => "test({ foo : 'bar' })"
+      # Returns a json representation of the data object, without a JSONP callback
+      def json_without_callback(options = {})
+        options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
+        result = to_dumpable(options)
+        format_json(result)
+      end
+
+      # Returns data as json
+      # format_json({ :foo => "bar" }) => "{\"foo\":\"bar\"}"
       def format_json(json_output)
         unless json_output.is_a?(String)
           json_engine = Rabl.configuration.json_engine
@@ -353,10 +366,26 @@ module Rabl
           end
         end
 
-        use_callback = Rabl.configuration.enable_json_callbacks && request_params[:callback].present?
-        json_output = "#{request_params[:callback]}(#{json_output})" if use_callback
-
         json_output
+      end
+
+      # Returns json embraced with the request's callback when callbacks are enabled
+      # and the callback name is valid, otherwise the json unchanged
+      # wrap_json_callback("{}") => "/**/test({})"
+      def wrap_json_callback(json)
+        callback = json_callback_name
+        callback ? "/**/#{callback}(#{json})" : json
+      end
+
+      # Returns the request's callback parameter if callbacks are enabled and it is a valid name
+      def json_callback_name
+        return unless Rabl.configuration.enable_json_callbacks
+
+        callback = request_params[:callback]
+        return unless callback.is_a?(String) && callback.length <= JSON_CALLBACK_MAX_LENGTH
+        return unless callback.ascii_only? && callback =~ JSON_CALLBACK_NAME
+
+        callback
       end
 
       # Augments respond to supporting context_scope methods

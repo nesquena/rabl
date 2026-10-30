@@ -6,6 +6,7 @@
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
+* Validate JSONP callback names, write callbacks as `/**/name(...)`, and apply them after the cache so cached output never includes a callback (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 

@@ -154,7 +154,8 @@ end
 Each option specifies behavior related to RABL's output.
 
 If `include_json_root` is disabled that removes the root node for each root object in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
-output if the incoming request has a 'callback' parameter.
+output if the incoming request has a 'callback' parameter. The callback must be a JavaScript function name (letters, digits, `_` and `$`,
+optionally dotted, up to 128 characters) and the output is written as `/**/callback(...)`; any other value renders plain JSON.
 
 If `include_child_root` is set to false then child objects in the response will not include
 a root node by default. This allows you to further fine-tune your desired response structure.
