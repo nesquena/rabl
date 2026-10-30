@@ -7,6 +7,7 @@
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
 * Fix options passed with an alias, as in `child :posts => :items, :if => ...`, being ignored (Ruby folds them into the data hash); the same for `collection` and `glue`, and allow conditions on a `node` without a name (#455, #395; reported by @vimutter and @jfeust)
+* Fix `attributes :format` (or any name of a private Kernel method) on objects backed by `method_missing`, such as Hashie::Mash or Mongoid dynamic fields, calling the Kernel method (#533, reported by @johnvoloski)
 
 ## 0.17.0 (Nov 26, 2024)
 

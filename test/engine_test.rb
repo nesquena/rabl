@@ -301,6 +301,26 @@ context "Rabl::Engine" do
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"user\":{\"name\":\"irvine\"}}")
 
+      asserts "that it reads a method_missing attribute named like a private Kernel method" do
+        template = rabl %{
+          object @doc => :doc
+          attributes :id, :format
+        }
+        scope = Object.new
+        scope.instance_variable_set :@doc, Hashie::Mash.new(:id => 1, :format => 'pdf')
+        template.render(scope)
+      end.equals "{\"doc\":{\"id\":1,\"format\":\"pdf\"}}"
+
+      asserts "that it reads a method_missing child named like a private Kernel method" do
+        template = rabl %{
+          object @doc => :doc
+          child(:format => :fmt) { attributes :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@doc, Hashie::Mash.new(:format => { :name => 'pdf' })
+        template.render(scope)
+      end.equals "{\"doc\":{\"fmt\":{\"name\":\"pdf\"}}}"
+
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
           object @user
