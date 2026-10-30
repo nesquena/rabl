@@ -176,7 +176,12 @@ module Rabl
       current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
       @_data_object = data_object(current_data)
       @_root_name_data = template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data
-      @_root_name_data = @_root_name_data.values.first if @_root_name_data.is_a?(Hash)
+      if @_root_name_data.is_a?(Hash)
+        alias_form = @_root_name_data.size == 1 # object @user => :person
+        @_root_name_data = @_root_name_data.values.first
+        # object @user => "person" names the root the same way
+        @_root_name_data = @_root_name_data.to_sym if alias_form && @_root_name_data.is_a?(String)
+      end
 
       # If we turn this around, `@_root_name_date ==` may trigger data to be loaded unnecessarily.
       # TODO: is nil a different semantic? otherwise don't use `false ==`, use !

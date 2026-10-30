@@ -180,6 +180,25 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":{}}"
 
+      asserts "that it can set root node with a string" do
+        template = rabl %q{
+          object @user => 'person'
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        template.render(scope)
+      end.equals "{\"person\":{}}"
+
+      asserts "that it names collection elements after a string root node" do
+        template = rabl %q{
+          object @users => 'people'
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'a')]
+        template.render(scope)
+      end.equals "[{\"person\":{\"name\":\"a\"}}]"
+
       asserts "that it can set root node with a nil object and explicit name" do
         template = rabl %q{
           object @user => :person
