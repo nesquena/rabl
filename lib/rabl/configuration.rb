@@ -57,16 +57,30 @@ module Rabl
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
-    # rabl used to set these as Oj.default_options when loaded. It now passes them to each
-    # Oj.dump instead (see #oj_dump_options), so the app's own defaults are left alone (#744).
-    # :nan => :word keeps NaN/Infinity as before: a global :compat mode wrote them as words.
+    # The Oj options rabl renders with. rabl passes them to each Oj.dump (see #oj_dump_options),
+    # so its output does not depend on Oj.default_options (#744). :nan => :word keeps
+    # NaN/Infinity as they were when these were global (a global :compat writes them as words).
     OJ_OPTIONS = { :mode => :compat, :time_format => :ruby, :use_to_json => true, :nan => :word }.freeze
+
+    # What Oj 3.x ships for the options rabl sets globally (Oj 2.x has :unix_zone, so it counts
+    # as customized and is left alone)
+    OJ_SHIPPED_OPTIONS = { :mode => :object, :time_format => :unix, :use_to_json => false }.freeze
+
+    # When rabl is loaded before the app has chosen any of these, it sets them globally as it
+    # always did (mode :compat, time_format :ruby, use_to_json true), so a json_engine wrapper
+    # or app code calling Oj.dump(obj) without options keeps rabl's settings. If the app (or a
+    # library loaded earlier) has already set one of them, its Oj.default_options are left
+    # alone (#744). An app that sets exactly Oj's shipped values cannot be told apart from
+    # one that set nothing, and gets rabl's settings as before.
+    if defined?(::Oj) && ::Oj.default_options.values_at(*OJ_SHIPPED_OPTIONS.keys) == OJ_SHIPPED_OPTIONS.values
+      ::Oj.default_options = OJ_OPTIONS.reject { |key, _| key == :nan }
+    end
 
     # Oj modes an app can switch to after loading rabl that rabl's output follows, as it did
     # when rabl's settings were global (e.g. :rails, which escapes "<", ">" and "&")
     OJ_APP_MODES = [:compat, :rails, :custom].freeze
 
-    # Oj.default_options when rabl was loaded, to tell which ones the app changed afterwards
+    # Oj.default_options once rabl was loaded, to tell which ones the app changed afterwards
     OJ_DEFAULTS_AT_LOAD = (::Oj.default_options.freeze if defined?(::Oj))
 
     def initialize
@@ -108,7 +122,8 @@ module Rabl
     # settings were global: a new :time_format or :use_to_json, and a new mode if it is one
     # of OJ_APP_MODES (then :nan follows that mode too). Another new mode (:strict, :null,
     # :object, ...) is ignored, since rabl's output would raise on or drop plain objects.
-    # Changes made before rabl was loaded were overwritten then, so they are ignored too.
+    # Options the app set before rabl was loaded are ignored too: rabl's output stays as it
+    # was when rabl overwrote them.
     def oj_dump_options
       current = ::Oj.default_options
       changed = lambda { |key| OJ_DEFAULTS_AT_LOAD && current[key] != OJ_DEFAULTS_AT_LOAD[key] }

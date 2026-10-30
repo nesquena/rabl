@@ -80,6 +80,25 @@ context 'Rabl::Configuration' do
                       ":format => 'json', :locals => { :price => price }).render")
     end.equals '{"price":"$5","nan":NaN}'
 
+    # A json_engine wrapper that calls Oj.dump without options sees Oj.default_options
+    helper(:wrapper_script) do |before_rabl|
+      "require 'oj'; #{before_rabl}; require 'rabl'; " \
+      "price = Class.new { def to_json(*); %q(\"$5\"); end }.new; " \
+      "src = %Q(object false\\nnode(:price) { @price }\\nnode(:nan) { 0.0/0 }\\n); " \
+      "render = lambda { Rabl::Renderer.new(src, nil, :format => 'json', :locals => { :price => price }).render }; " \
+      "default_engine = render.call; " \
+      "Rabl.configure { |c| c.json_engine = Class.new { def self.dump(o); Oj.dump(o); end } }; " \
+      "print [Oj.default_options[:mode], default_engine, (render.call rescue $!.class.name)].inspect"
+    end
+
+    asserts('without app options, rabl sets its Oj defaults as before, so wrappers keep its output') do
+      eval(rabl_subprocess(wrapper_script('')))
+    end.equals [:compat, '{"price":"$5","nan":NaN}', '{"price":"$5","nan":NaN}']
+
+    asserts('with app options set before rabl, wrappers follow the app and rabl keeps its output') do
+      eval(rabl_subprocess(wrapper_script('Oj.default_options = { :mode => :strict }')))
+    end.equals [:strict, '{"price":"$5","nan":NaN}', 'TypeError']
+
     asserts('NaN and Infinity render as before') do
       render_with_oj({}, "object false\nnode(:x) { 0.0/0 }\nnode(:y) { 1.0/0 }\nnode(:z) { -1.0/0 }\n", nil)
     end.equals '{"x":NaN,"y":Infinity,"z":-Infinity}'
