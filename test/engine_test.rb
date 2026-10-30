@@ -51,7 +51,7 @@ context "Rabl::Engine" do
     asserts "that it can call method in block with positional and keyword arguments" do
       template = RablTemplate.new("code") { 'node(:foo) { func("bar", kw: "baz") }' }
       obj = Object.new
-      def obj.func(arg, kw:)
+      def obj.func(arg, kw: nil) # optional, not required: Ruby 2.0 can't parse `kw:`
         "#{arg}-#{kw}"
       end
       template.render(obj)
