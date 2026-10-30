@@ -44,8 +44,9 @@ module Rabl
 
       # A block (child, glue, or extends/partial with a block) is identified by its
       # location and the engine of the template that defined it
-      @_block_identity    = block && [block.source_location, @_options[:parent_engine]]
+      @_block_identity    = block && [block, @_options[:parent_engine]]
       @_template_identity = nil
+      @_identity_memo     = nil
 
       eval_source(locals, &block)
 
@@ -94,7 +95,11 @@ module Rabl
 
           cache_key << digest
           # The digest covers the template source, but not the block that defines this engine
-          cache_key << CacheKey.digest(rabl_block_identity) if @_block_identity
+          if @_block_identity
+            block, parent = @_block_identity
+            key = [:block, block, parent && parent.rabl_template_identity]
+            cache_key << rabl_memoized_digest(key) { CacheKey.digest(rabl_block_identity) }
+          end
         else
           cache_key << rabl_template_identity
         end
@@ -339,13 +344,44 @@ module Rabl
     # partials resolve from, its source and its block
     def rabl_template_identity
       @_template_identity ||= begin
-        root = CacheKey.root
-        view_paths = Array(view_path).map { |path| CacheKey.path(path, root) }
-        CacheKey.digest([CacheKey.path(@_options[:source_location], root), view_paths, @_source, rabl_block_identity(root)])
+        location = @_options[:source_location]
+
+        if @_options[:parent_engine] && (location || !@_source)
+          # Within one render, a template's location determines its source
+          # (nested lookups rather than an Array key, as this runs for every item)
+          memo = (rabl_identity_memo[location] ||= {})
+          memo = (memo[view_path] ||= {})
+
+          if @_block_identity
+            block, parent = @_block_identity
+            memo = (memo[block] ||= {})
+            memo[parent && parent.rabl_template_identity] ||= rabl_template_digest
+          else
+            memo[:template] ||= rabl_template_digest
+          end
+        else
+          rabl_template_digest
+        end
       end
     end
 
     protected
+      def rabl_template_digest
+        root = CacheKey.root
+        view_paths = Array(view_path).map { |path| CacheKey.path(path, root) }
+        CacheKey.digest([CacheKey.path(@_options[:source_location], root), view_paths, @_source, rabl_block_identity(root)])
+      end
+
+      # Returns the digest for key, computing it once per render: the memo is kept by the
+      # top-level engine, so the items of a collection share their sub-templates' digests
+      def rabl_memoized_digest(key)
+        rabl_identity_memo[key] ||= yield
+      end
+
+      def rabl_identity_memo
+        @_identity_memo ||= (parent = @_options[:parent_engine]) ? parent.rabl_identity_memo : {}
+      end
+
       def rabl_template_engine
         self
       end
@@ -353,8 +389,11 @@ module Rabl
       # Identifies the block that defines this engine, if any: its location and the
       # template that defined it
       def rabl_block_identity(root = CacheKey.root)
-        location, parent = @_block_identity
-        [location && [CacheKey.path(location[0], root), location[1]], parent && parent.rabl_template_identity] if @_block_identity
+        return unless @_block_identity
+
+        block, parent = @_block_identity
+        location = block.source_location
+        [location && [CacheKey.path(location[0], root), location[1]], parent && parent.rabl_template_identity]
       end
 
       # Returns a guess at the default object for this template

@@ -134,7 +134,7 @@ module Rabl
         :view_path  => view_path,
         :root       => (options[:root] || false)
       })
-      options[:parent_engine] = rabl_template_engine if block_given?
+      options[:parent_engine] = rabl_template_engine
 
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end

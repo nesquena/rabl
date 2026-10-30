@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'tmpdir'
+require 'json'
 require 'active_support/core_ext/hash/conversions'
 require File.expand_path('../teststrap', __FILE__)
 
@@ -120,6 +121,18 @@ context 'Rabl cache keys' do
       a.id = 160
       [first, render("object @item\nextends 'item_id'\nattributes :name", a, :view_path => topic)]
     end.equals ['{"id":16}', '{"name":"item16","id":16}']
+
+    asserts('the items of a collection share the digests of their blocks and partials') do
+      Rabl.configuration.cache_engine = memory_cache
+      digests = 0
+      stub.proxy(Rabl::CacheKey).digest { |digest| digests += 1; digest }
+      items = (30..35).map { |id| item(id, item(id + 100)) }
+      template = "collection @items\nextends 'item_id'\n" \
+        "child(:owner => :a) { cache root_object; attributes :id }\nchild(:owner => :b) { cache root_object; attributes :name }"
+      output = render(template, items, :view_path => topic)
+      # the template (as the blocks' parent), the two blocks and the partial
+      [digests, Rabl.configuration.cache_engine.store.size, JSON.parse(output).first]
+    end.equals [4, 18, { "id" => 30, "a" => { "id" => 130 }, "b" => { "name" => "item130" } }]
 
     teardown { FileUtils.rm_rf(@dir) }
   end
