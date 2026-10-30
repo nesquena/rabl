@@ -135,7 +135,7 @@ module Rabl
         :view_path  => view_path,
         :root       => (options[:root] || false)
       })
-      options[:parent_template] = template_identity if block_given?
+      options[:parent_engine] = template_engine if block_given?
 
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end
@@ -170,6 +170,12 @@ module Rabl
         Rabl.configuration.perform_caching
       end
     end
+
+    protected
+      # Returns the engine of the template being rendered, if any (see Engine#template_identity)
+      def template_engine
+        nil
+      end
 
     module Escaper
       def escape_output(response)
