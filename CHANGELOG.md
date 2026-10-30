@@ -2,6 +2,7 @@
 
 ## 0.18.0 (unreleased)
 
+* Require Ruby 2.7 or newer. rabl hasn't loaded on Ruby 1.9 since 0.16.0, and 2.0–2.6 are long past end of life (@nesquena)
 * Allow BSON >= 2.0 (@tagliala)
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
@@ -9,6 +10,9 @@
 * Validate JSONP callback names, write callbacks as `/**/name(...)`, and apply them after the cache so cached output never includes a callback (@nesquena)
 * Include the template's identity (its source, location and view path, or the Rails template digest) and the options that shape nested renderings in cache keys, so different templates, child blocks, formats, or an object and a collection caching the same key no longer share cached output (@nesquena)
 * Cache keys change, so entries cached by earlier versions are not reused after upgrading. Outside Rails every key changes. On Rails, keys of object templates (`cache` at the top of the rendered template) and, with the default configuration, of `extends` partials rendered as JSON stay the same; keys of collections, of `cache` inside child and glue blocks or blocks passed to `extends`/`partial`, of `partial(...)` calls, of `extends` partials rendered as XML or with `include_child_root = false`, of anything rendered with `:except` or an explicit `:root`/`:child_root`, and all `cache_all_output` keys change. Template paths in keys are relative to the working directory, so only templates outside it get new keys when the application moves (@nesquena)
+* Fix cached `child` nodes in a collection being flattened (or dropped, for a child collection) on a cache hit (@nesquena)
+* Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back (@nesquena)
+* Fix `escape_all_output` changing the app's own arrays and hashes in place (and re-escaping cached fragments outside Rails on every render), raising `FrozenError` on frozen values, and raising `NameError` for `ERB` outside Rails (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 

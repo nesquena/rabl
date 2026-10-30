@@ -2,6 +2,7 @@
 
 require 'tmpdir'
 require 'pathname'
+require 'active_support/hash_with_indifferent_access'
 require File.expand_path('../teststrap', __FILE__)
 
 class TestHelperMethods
@@ -145,4 +146,22 @@ context "Rabl::Helpers" do
     end.equals(false)
 
   end # is_collection method
+  context "Escaper#escape_output" do
+    helper(:escaper) { Object.new.extend(Rabl::Helpers::Escaper) }
+
+    asserts "escapes strings nested in hashes and arrays" do
+      escaper.escape_output({ 'a' => ['x&y', { 'b' => '<i>' }], 'n' => 1 })
+    end.equals({ 'a' => ['x&amp;y', { 'b' => '&lt;i&gt;' }], 'n' => 1 })
+
+    asserts "leaves its input unchanged, even when frozen" do
+      input = { 'a' => ['x&y'.freeze].freeze }.freeze
+      escaper.escape_output(input)
+      input
+    end.equals({ 'a' => ['x&y'] })
+
+    asserts "keeps the hash class" do
+      escaped = escaper.escape_output(ActiveSupport::HashWithIndifferentAccess.new('a' => 'x&y'))
+      [escaped.class, escaped[:a]]
+    end.equals([ActiveSupport::HashWithIndifferentAccess, 'x&amp;y'])
+  end
 end
