@@ -359,11 +359,11 @@ module Rabl
       # ceiling: paths outside the working directory stay absolute, so moving them changes
       # the keys; a configurable root would let those move too.
       def cache_path(path)
-        path = path.to_s
+        path = path.to_s.dup.force_encoding(Encoding::BINARY) # paths may differ in encoding
         return if path.empty? || path.start_with?("(eval")
 
-        root = (File.join(Dir.pwd, "") rescue nil)
-        root && path.start_with?(root) ? path[root.length..-1] : path
+        root = (File.join(Dir.pwd, "").force_encoding(Encoding::BINARY) rescue nil)
+        root && path.start_with?(root) ? path.byteslice(root.bytesize..-1) : path
       end
 
       # Returns a guess at the default object for this template

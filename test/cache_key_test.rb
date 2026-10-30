@@ -206,5 +206,13 @@ context 'Rabl cache keys' do
     teardown { FileUtils.rm_rf(@dir) }
   end
 
+  asserts('a template under a non-ASCII directory renders with a binary working directory') do
+    stub(Dir).pwd { "/x/caf\xC3\xA9".dup.force_encoding(Encoding::BINARY) }
+    render("object @item\ncache @item\nattributes :id", item(25),
+      :source_location => "/x/caf\u00e9/views/show.rabl", :view_path => "/x/caf\u00e9/views")
+  end.equals '{"id":25}'
+
+  asserts('Dir.pwd is restored after the stub') { Dir.pwd == Dir.getwd }
+
   teardown { Rabl.reset_configuration! }
 end
