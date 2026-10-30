@@ -300,6 +300,27 @@ context "Rabl::Engine" do
     end
   end
 
+  context "with escape_all_output" do
+    setup do
+      Rabl.configure { |config| config.escape_all_output = true }
+    end
+
+    asserts "that it escapes child values once, like top level values" do
+      template = rabl %{
+        object @user
+        attribute :name
+        child(@user => :person) { attribute :city }
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new(:name => 'a&b', :city => 'c&d')
+      template.render(scope)
+    end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>a&amp;amp;b</name>\n  <person>\n    <city>c&amp;amp;d</city>\n  </person>\n</user>\n"
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
+
   # A fresh process, since this suite loads ActiveSupport's XML conversions itself
   context "outside Rails" do
     helper(:render_xml_in_new_process) do |load_path|

@@ -98,7 +98,8 @@ module Rabl
           MultiBuilder.new(data, @_settings, options).to_a
         end
 
-      result = escape_output(result) if Rabl.configuration.escape_all_output
+      # A nested engine (child, glue, extends, partial) is escaped with the engine it is part of
+      result = escape_output(result) if Rabl.configuration.escape_all_output && !@_options[:nested]
 
       result
     ensure

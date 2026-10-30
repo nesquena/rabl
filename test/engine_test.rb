@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+require 'erb'
 require 'json'
 require 'stringio'
+require 'pathname'
+require 'tmpdir'
 require File.expand_path('../teststrap', __FILE__)
 require 'rabl/template'
 require File.expand_path('../models/ormless', __FILE__)
@@ -704,6 +707,46 @@ context "Rabl::Engine" do
       Rabl.reset_configuration!
     end
   end # with json root
+
+  context "with escape_all_output" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    setup do
+      Rabl.configure do |config|
+        config.include_json_root = false
+        config.escape_all_output = true
+        config.view_paths        = tmp_path
+      end
+      File.open(tmp_path + "city.rabl", "w") { |f| f.puts "attributes :city" }
+    end
+
+    asserts "that it escapes values rendered by child, glue, extends and partial once" do
+      template = rabl %{
+        object @user
+        attribute :name
+        child(@user => :person) { attribute :city }
+        glue(@user) { attribute :twitter }
+        extends 'city'
+        node(:partial) { |user| partial('city', :object => user) }
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new(:name => 'a&b', :city => 'c<d', :twitter => '"e"')
+      JSON.parse(template.render(scope))
+    end.equals JSON.parse(%q{{"name":"a&amp;b","person":{"city":"c&lt;d"},"twitter":"&quot;e&quot;","city":"c&lt;d","partial":{"city":"c&lt;d"}}})
+
+    asserts "that it escapes values rendered by a child in a collection once" do
+      template = rabl %{
+        collection @users
+        child(:hobbies) { attribute :name }
+      }
+      scope = Object.new
+      scope.instance_variable_set :@users, [User.new(:hobbies => ['a&b'])]
+      template.render(scope)
+    end.equals %q{[{"hobbies":[{"hobby":{"name":"a&amp;b"}}]}]}
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
 
   context "without json root" do
     setup do

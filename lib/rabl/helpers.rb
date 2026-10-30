@@ -133,6 +133,7 @@ module Rabl
       options.reverse_merge!({
         :format     => "hash",
         :view_path  => view_path,
+        :nested     => true,
         :root       => (options[:root] || false)
       })
 
