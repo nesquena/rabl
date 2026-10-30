@@ -59,13 +59,13 @@ module Rabl
       apply(context_scope, locals, &block) if context_scope || locals || block
 
       # The JSONP callback comes from the request, so it is added after the cache.
-      if @_options[:format].to_s == "json"
-        return wrap_json_callback(cache_results { json_without_callback })
+      json = @_options[:format].to_s == "json"
+
+      result = cache_results do
+        json ? to_json(:callback => false) : send("to_#{@_options[:format]}")
       end
 
-      cache_results do
-        send("to_#{@_options[:format]}")
-      end
+      json ? wrap_json_callback(result) : result
     end
 
     def cache_key
@@ -130,10 +130,15 @@ module Rabl
       result
     end
 
-    # Returns a json representation of the data object
+    # Returns a json representation of the data object, wrapped in the request's JSONP
+    # callback unless :callback => false
     # to_json(:root => true)
     def to_json(options = {})
-      wrap_json_callback(json_without_callback(options))
+      callback = options.delete(:callback)
+      options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
+      result = to_dumpable(options)
+      json = format_json(result)
+      callback == false ? json : wrap_json_callback(json)
     end
 
     # Returns a msgpack representation of the data object
@@ -391,13 +396,6 @@ module Rabl
       # request_params => { :foo => "bar" }
       def request_params
         (context_scope.params if context_scope.respond_to?(:params)) || {}
-      end
-
-      # Returns a json representation of the data object, without a JSONP callback
-      def json_without_callback(options = {})
-        options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
-        result = to_dumpable(options)
-        format_json(result)
       end
 
       # Returns data as json

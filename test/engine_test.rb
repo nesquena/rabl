@@ -941,6 +941,14 @@ context "Rabl::Engine" do
       result
     end.equals '{"name":"leo"}'
 
+    asserts "that render uses to_json and adds the callback once" do
+      klass = Class.new(Rabl::Engine) { def to_json(options = {}); super.sub('leo', 'LEO'); end }
+      scope = Object.new
+      scope.define_singleton_method(:params) { { :callback => 'cb' } }
+      scope.instance_variable_set :@user, User.new(:name => 'leo')
+      klass.new("object @user\nattribute :name", :format => 'json').render(scope)
+    end.equals '/**/cb({"name":"LEO"})'
+
     context "and caching" do
       setup do
         Rabl.configuration.perform_caching = true
