@@ -949,6 +949,14 @@ context "Rabl::Engine" do
       klass.new("object @user\nattribute :name", :format => 'json').render(scope)
     end.equals '/**/cb({"name":"LEO"})'
 
+    asserts "that render adds the callback once when to_json is overridden without options" do
+      klass = Class.new(Rabl::Engine) { def to_json(options = {}); super(); end }
+      scope = Object.new
+      scope.define_singleton_method(:params) { { :callback => 'cb' } }
+      scope.instance_variable_set :@user, User.new(:name => 'leo')
+      klass.new("object @user\nattribute :name", :format => 'json').render(scope)
+    end.equals '/**/cb({"name":"leo"})'
+
     context "and caching" do
       setup do
         Rabl.configuration.perform_caching = true

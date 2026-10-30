@@ -25,6 +25,7 @@ module Rabl
       @_context_scope = options[:scope]
 
       @_cache_read_on_render = true
+      @_skip_json_callback   = false
     end
 
     def source=(source)
@@ -58,14 +59,19 @@ module Rabl
     def render(context_scope = nil, locals = nil, &block)
       apply(context_scope, locals, &block) if context_scope || locals || block
 
-      # The JSONP callback comes from the request, so it is added after the cache.
-      json = @_options[:format].to_s == "json"
+      return cache_results { send("to_#{@_options[:format]}") } unless @_options[:format].to_s == "json"
 
+      # The JSONP callback comes from the request, so it is added after the cache.
       result = cache_results do
-        json ? to_json(:callback => false) : send("to_#{@_options[:format]}")
+        begin
+          @_skip_json_callback = true
+          to_json
+        ensure
+          @_skip_json_callback = false
+        end
       end
 
-      json ? wrap_json_callback(result) : result
+      wrap_json_callback(result)
     end
 
     def cache_key
@@ -130,15 +136,12 @@ module Rabl
       result
     end
 
-    # Returns a json representation of the data object, wrapped in the request's JSONP
-    # callback unless :callback => false
+    # Returns a json representation of the data object
     # to_json(:root => true)
     def to_json(options = {})
-      callback = options.delete(:callback)
       options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
       result = to_dumpable(options)
-      json = format_json(result)
-      callback == false ? json : wrap_json_callback(json)
+      wrap_json_callback(format_json(result))
     end
 
     # Returns a msgpack representation of the data object
@@ -417,7 +420,7 @@ module Rabl
       # and the callback name is valid, otherwise the json unchanged
       # wrap_json_callback("{}") => "/**/test({})"
       def wrap_json_callback(json)
-        callback = json_callback_name
+        callback = json_callback_name unless @_skip_json_callback
         callback ? "/**/#{callback}(#{json})" : json
       end
 
