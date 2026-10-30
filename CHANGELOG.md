@@ -2,6 +2,7 @@
 
 ## 0.18.0 (unreleased)
 
+* Require Ruby 2.7 or newer. rabl hasn't loaded on Ruby 1.9 since 0.16.0, and 2.0–2.6 are long past end of life (@nesquena)
 * Allow BSON >= 2.0 (@tagliala)
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
@@ -13,6 +14,9 @@
 * Fix `:root` and `:child_root` given to the engine being ignored in favour of the global `include_*_root` setting, a regression since 0.11; they now win for every entry point, e.g. `Rabl::Renderer.new(..., :root => true)` and Sinatra/Padrino `rabl :template, :root => false` (#486, reported by @ninkibah)
 * Fix XML rendering outside Rails raising `NoMethodError` for `to_xml` unless the app had loaded ActiveSupport's XML conversions; rabl now loads them, and explains when the `builder` gem is missing (@nesquena)
 * Fix `escape_all_output` escaping values twice outside Rails (`a&amp;amp;b`) when they are rendered through `child`, `glue`, `extends` or `partial`; nested templates are now escaped once, with the template they are part of. Under Rails, a node that turns `partial` output into a string (e.g. `partial(...).to_json`) was escaped twice too and is now escaped once. Cached nested fragments now have their own cache keys, so they are cached afresh once after upgrading (@nesquena)
+* Fix cached `child` nodes in a collection being flattened (or dropped, for a child collection) on a cache hit (@nesquena)
+* Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back (@nesquena)
+* Fix `escape_all_output` changing the app's own arrays and hashes in place (and re-escaping cached fragments outside Rails on every render), raising `FrozenError` on frozen values, and raising `NameError` for `ERB` outside Rails (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 
