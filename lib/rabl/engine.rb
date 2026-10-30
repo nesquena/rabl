@@ -145,6 +145,13 @@ module Rabl
 
       result = to_hash(options)
 
+      # Name the items after the object root and unwrap them, or Array#to_xml wraps each
+      # { object_root => ... } item again in the singular collection root (#581)
+      if result.is_a?(Array) && is_name_value?(object_root_name)
+        xml_options[:children] = object_root_name.to_s
+        result = result.map { |item| item.is_a?(Hash) && item.key?(object_root_name) ? item[object_root_name] : item }
+      end
+
       result.to_xml(xml_options)
     end
 
