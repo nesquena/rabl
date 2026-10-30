@@ -562,7 +562,7 @@ attribute :title
 ```
 
 The full cache key also includes the format and identifies the template (the Rails template digest when available, otherwise a digest of
-the template's source and location), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
+the template's source, location and view path), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
 As with Rails fragment caching, anything else the output depends on must be part of the key: a block that runs several times with different
 data (for example inside a loop), locals, or the current user.
 

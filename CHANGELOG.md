@@ -7,7 +7,8 @@
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
 * Validate JSONP callback names, write callbacks as `/**/name(...)`, and apply them after the cache so cached output never includes a callback (@nesquena)
-* Include the template's identity in cache keys, so different templates, child blocks, or an object and a collection caching the same key no longer share cached output. Cache keys change, so entries cached by earlier versions are not reused after upgrading (@nesquena)
+* Include the template's identity (its source, location and view path, or the Rails template digest) and the options that shape nested renderings in cache keys, so different templates, child blocks, formats, or an object and a collection caching the same key no longer share cached output (@nesquena)
+* Cache keys change, so entries cached by earlier versions are not reused after upgrading: outside Rails every key changes; on Rails, keys of collections, of `cache` inside child and glue blocks, of nested renderings in XML or with `:except`, and all `cache_all_output` keys change, while object templates and partials rendered as JSON keep their keys. Template paths in keys are relative to the working directory, so only templates outside it get new keys when the application moves (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 
