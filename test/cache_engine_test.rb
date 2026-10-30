@@ -89,7 +89,8 @@ context 'Rabl::CacheEngine' do
   context 'escaping cached output' do
     helper(:render) do |items, caching|
       Rabl.configuration.perform_caching = caching
-      template = "collection @items\nattributes :id\nchild(:owner => :owner) { cache root_object; attributes :name }"
+      template = "collection @items\nattributes :id\nchild(:owner => :owner) { cache root_object; attributes :name }\n" \
+                 "child(:owners => :owners) { cache root_object.map(&:cache_key); attributes :name }"
       Rabl::Engine.new(template, :format => 'json').render(Object.new, :object => items)
     end
 
@@ -101,7 +102,7 @@ context 'Rabl::CacheEngine' do
         config.cache_engine = Rabl::CacheEngine.new
       end
       owner = Struct.new(:name, :cache_key).new('a&b', 'owner/a&b')
-      [Struct.new(:id, :owner).new(1, owner)]
+      [Struct.new(:id, :owner, :owners).new(1, owner, [owner])]
     end
 
     asserts('renders cached fragments the same as uncached ones, every time') do

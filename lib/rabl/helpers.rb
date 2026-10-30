@@ -167,9 +167,11 @@ module Rabl
       def escape_output(response)
         case response
         when Hash
-          response.each_with_object({}) { |(k, v), escaped| escaped[k] = escape_value(v) }
+          escaped = response.dup
+          response.each { |k, v| escaped[k] = escape_value(v) }
+          escaped
         when Array
-          response.map { |v| escape_value(v) }
+          response.dup.map! { |v| escape_value(v) }
         else
           response
         end
