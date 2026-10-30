@@ -339,8 +339,9 @@ module Rabl
     # partials resolve from, its source and its block
     def rabl_template_identity
       @_template_identity ||= begin
-        view_paths = Array(view_path).map { |path| CacheKey.path(path) }
-        CacheKey.digest([CacheKey.path(@_options[:source_location]), view_paths, @_source, rabl_block_identity])
+        root = CacheKey.root
+        view_paths = Array(view_path).map { |path| CacheKey.path(path, root) }
+        CacheKey.digest([CacheKey.path(@_options[:source_location], root), view_paths, @_source, rabl_block_identity(root)])
       end
     end
 
@@ -351,9 +352,9 @@ module Rabl
 
       # Identifies the block that defines this engine, if any: its location and the
       # template that defined it
-      def rabl_block_identity
+      def rabl_block_identity(root = CacheKey.root)
         location, parent = @_block_identity
-        [location && [CacheKey.path(location[0]), location[1]], parent && parent.rabl_template_identity] if @_block_identity
+        [location && [CacheKey.path(location[0], root), location[1]], parent && parent.rabl_template_identity] if @_block_identity
       end
 
       # Returns a guess at the default object for this template

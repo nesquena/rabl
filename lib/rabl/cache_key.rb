@@ -21,12 +21,19 @@ module Rabl
     # the parent template tells evaluated sources apart).
     # ceiling: paths outside the working directory stay absolute, so moving them changes
     # the keys; a configurable root would let those move too.
-    def path(path)
+    # CacheKey.path("/app/views/show.rabl", "/app/") => "views/show.rabl"
+    def path(path, root = self.root)
       path = path.to_s.dup.force_encoding(Encoding::BINARY) # paths may differ in encoding
       return if path.empty? || path.start_with?("(eval")
 
-      root = (File.join(Dir.pwd, "").force_encoding(Encoding::BINARY) rescue nil)
       root && path.start_with?(root) ? path.byteslice(root.bytesize..-1) : path
+    end
+
+    # Returns the working directory with a trailing separator, as bytes, or nil if it is gone
+    def root
+      File.join(Dir.pwd, "").force_encoding(Encoding::BINARY)
+    rescue SystemCallError
+      nil
     end
 
     # Returns the options that change the shape of a rendering. A nested (hash format)
