@@ -131,6 +131,21 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <person>\n    <city>LA</city>\n  </person>\n</user>\n"
+
+      # #725: the :root form keeps its key like the hash form does
+      asserts "that it keeps a child named by :root when the collection is empty or nil" do
+        [[], nil].map do |users|
+          [%{child(@users, :root => :people) { attribute :city }},
+           %{child(@users => :people) { attribute :city }}].map do |child_line|
+            template = rabl "object @user\nattribute :name\n#{child_line}\n"
+            scope = Object.new
+            scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+            scope.instance_variable_set :@users, users
+            template.render(scope)
+          end
+        end
+      end.equals [["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <people type=\"array\"/>\n</user>\n"] * 2,
+                  ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <people nil=\"true\"/>\n</user>\n"] * 2]
     end
 
     context "#glue" do

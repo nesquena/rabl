@@ -462,6 +462,32 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"people\":[{\"item\":{\"city\":\"UNO\"}},{\"item\":{\"city\":\"DOS\"}}]}}"
+
+      # #725: the :root form keeps its key like the hash form does
+      asserts "it keeps a child named by :root when the collection is empty or nil" do
+        [[], nil].map do |users|
+          [%{child(@users, :root => "people", :object_root => false) { attribute :city }},
+           %{child({ @users => :people }, :object_root => false) { attribute :city }}].map do |child_line|
+            template = rabl "object @user\nattribute :name\n#{child_line}\n"
+            scope = Object.new
+            scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+            scope.instance_variable_set :@users, users
+            template.render(scope)
+          end
+        end
+      end.equals [["{\"user\":{\"name\":\"leo\",\"people\":[]}}"] * 2, ["{\"user\":{\"name\":\"leo\",\"people\":null}}"] * 2]
+
+      asserts "it still skips a child named by :root when its condition is false" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@users, :root => "people", :if => lambda { |u| false }) { attribute :city }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        scope.instance_variable_set :@users, []
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\"}}"
     end
 
     context "#glue" do

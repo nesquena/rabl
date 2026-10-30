@@ -171,7 +171,8 @@ module Rabl
       # child(@user => :person) { ... }
       # child(@users => :people) { ... }
       def child(data, options = {}, &block)
-        return unless data.present? && resolve_condition(options)
+        # A child named by :root keeps its key for [] or nil, like child(@users => :people) (#725)
+        return unless (data.present? || is_name_value?(options[:root])) && resolve_condition(options)
 
         name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
         object = data_object(data)
