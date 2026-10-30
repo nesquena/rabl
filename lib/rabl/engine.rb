@@ -94,6 +94,7 @@ module Rabl
         end
 
         cache_key << "collection" if is_collection?(root_object)
+        cache_key.concat(cache_shape(@_options))
 
         cache_key
       end

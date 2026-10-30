@@ -255,6 +255,7 @@ module Rabl
         if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
           cache_key = [@_object, @options[:root_name], @options[:format]]
           cache_key << template_engine.template_identity if template_engine
+          cache_key.concat(cache_shape(@options))
 
           fetch_result_from_cache(cache_key, &block)
         else # skip cache

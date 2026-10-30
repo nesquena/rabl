@@ -162,6 +162,20 @@ module Rabl
       digest.hexdigest
     end
 
+    # Returns the options that change the shape of a nested (hash format) rendering, for
+    # cache keys; with the default configuration a JSON rendering has none
+    # cache_shape(:root => true, :child_root => false) => ["root", "no_child_root"]
+    def cache_shape(options)
+      return [] unless options[:format].to_s == "hash"
+
+      shape = []
+      shape << "root" if options[:root]
+      shape << "no_child_root" unless options[:child_root]
+      shape << "object_root=#{options[:object_root_name]}" if options[:object_root_name]
+      shape << "except=#{Array(options[:except]).join(',')}" if options[:except]
+      shape
+    end
+
     # Returns true if the cache has been enabled for the application
     def template_cache_configured?
       if defined?(Rails)

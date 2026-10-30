@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'tmpdir'
+require 'active_support/core_ext/hash/conversions'
 require File.expand_path('../teststrap', __FILE__)
 
 context 'Rabl cache keys' do
@@ -177,6 +178,32 @@ context 'Rabl cache keys' do
     end.equals ['{"owner":{"id":20}}', '{"owner":{"id":20}}']
 
     teardown { @dirs.each { |dir| FileUtils.rm_rf(dir) } }
+  end
+
+  context 'with nested renderings' do
+    setup do
+      Rabl.configuration.cache_engine = memory_cache
+      @dir = Dir.mktmpdir
+      File.open(File.join(@dir, 'nodes.rabl'), 'w') { |f| f.write("object @item\ncache root_object\nnode(:a) { 1 }\nnode(:b) { 2 }\n") }
+      @dir
+    end
+
+    asserts('a cached child collection renders each format\'s shape') do
+      a = item(22, [item(23)])
+      source = "object @item\nattributes :id\nchild(:owner => :owners) { cache 'owners'; attributes :name }"
+      Rabl.configuration.cache_engine = memory_cache
+      xml = render(source, a, :format => 'xml')
+      Rabl.configuration.cache_engine = memory_cache
+      [render(source, a), render(source, a, :format => 'xml') == xml]
+    end.equals ['{"id":22,"owners":[{"owner":{"name":"item23"}}]}', true]
+
+    asserts('a cached partial renders each extends option') do
+      a = item(24)
+      [render("object @item\nextends 'nodes'", a, :view_path => topic),
+       render("object @item\nextends 'nodes', :except => :b", a, :view_path => topic)]
+    end.equals ['{"a":1,"b":2}', '{"a":1}']
+
+    teardown { FileUtils.rm_rf(@dir) }
   end
 
   teardown { Rabl.reset_configuration! }
