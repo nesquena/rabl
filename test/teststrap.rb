@@ -15,8 +15,28 @@ module Kernel
   end
 end unless Kernel.respond_to? :silence_warnings
 
+silence_warnings { require 'riot' }
+
+# Riot's own at_exit hook calls `exit(run.success?)` (or exits with the
+# status of the last child process), which replaces the status of an
+# exception raised while loading the test files: a test file that fails to
+# load (LoadError, SyntaxError, a gem that doesn't parse on this Ruby) would
+# leave the run green with its tests silently skipped. Run Riot ourselves
+# instead, so a load failure keeps its non-zero status and a run that found
+# no tests fails too.
+Riot.alone!
+at_exit do
+  if $!.nil? || ($!.is_a?(SystemExit) && $!.success?)
+    reporter = Riot.run
+    if reporter.passes + reporter.failures + reporter.errors == 0
+      $stderr.puts "No tests ran"
+      exit(false)
+    end
+    exit(reporter.success?)
+  end
+end
+
 silence_warnings do
-  require 'riot'
   require 'riot/rr'
   require 'tilt'
   require 'rabl'
