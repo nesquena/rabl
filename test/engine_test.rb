@@ -635,72 +635,76 @@ context "Rabl::Engine" do
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{ \"foo\" : {\"name\":\"leo\",\"city\":\"LA\",\"age\":12} }")
 
-      asserts "that extends inside a node raises instead of rendering template settings" do
-        template = rabl %{
-          object false
-          node :foo do
-            extends("foo/bar", :object => @user)
-          end
-        }
+      # Templates that call attribute, node, child, glue or extends inside a node block (#477)
+      helper(:node_scope) do
         scope = Object.new
-        scope.instance_variable_set :@user, User.new
-        template.render(scope)
-      end.raises(RuntimeError, /extends can't be called while the template renders.*partial/)
+        scope.instance_variable_set :@user, User.new(:name => 'leo')
+        scope.instance_variable_set :@users, [User.new(:name => 'a'), User.new(:name => 'b')]
+        scope
+      end
 
-      # [output, warnings] of a render; the output is what earlier versions rendered too
-      helper(:render_capturing_warnings) do |template, scope|
+      # [output, number of warnings about method_name] of rendering source
+      helper(:render_capturing_warnings) do |source, method_name|
         stderr, verbose = $stderr, $VERBOSE
         $stderr, $VERBOSE = StringIO.new, false
         begin
-          [template.render(scope), $stderr.string]
+          output = rabl(source).render(node_scope)
+          [output, $stderr.string.scan(/^rabl: #{method_name} called while the template renders .*use partial/).size]
         ensure
           $stderr, $VERBOSE = stderr, verbose
         end
       end
 
-      asserts "that attribute inside a node warns and renders as before" do
-        template = rabl %{
+      asserts "that extends inside a node warns and leaves out the template settings" do
+        render_capturing_warnings(%{
+          object false
+          node(:foo) { extends("foo/bar", :object => @user) }
+        }, :extends)
+      end.equals { [rabl("object false\nnode(:foo) { nil }").render(node_scope), 1] }
+
+      asserts "that extends inside a nameless node warns and renders as without it" do
+        render_capturing_warnings(%{
+          object @user
+          attribute :name
+          node { |u| extends 'foo/bar'; { :x => 1 } }
+        }, :extends)
+      end.equals { [rabl("object @user\nattribute :name\nnode { |u| { :x => 1 } }").render(node_scope), 1] }
+
+      asserts "that extends inside a node of a collection doesn't change the template" do
+        render_capturing_warnings(%{
           collection @users
+          attribute :name
+          node(false) { |u| extends 'foo/bar' }
+        }, :extends)
+      end.equals { [rabl("collection @users\nattribute :name").render(node_scope), 2] }
+
+      asserts "that attribute inside a node warns and renders as before" do
+        render_capturing_warnings(%{
+          object @user
           node(:foo) { attribute :name }
-        }
-        scope = Object.new
-        scope.instance_variable_set :@users, [User.new(:name => 'a'), User.new(:name => 'b')]
-        output, warnings = render_capturing_warnings(template, scope)
-        [output, warnings.scan(/rabl: attribute called while the template renders .*use partial/).size]
-      end.equals ["[{\"user\":{\"foo\":[\"name\"]}},{\"user\":{\"name\":\"b\",\"foo\":[\"name\"]}}]", 2]
+        }, :attribute)
+      end.equals { [rabl("object @user\nnode(:foo) { [:name] }").render(node_scope), 1] }
 
       asserts "that child inside a node warns and renders as before" do
-        template = rabl %{
-          collection @users
-          node(:foo) { child :city }
-        }
-        scope = Object.new
-        scope.instance_variable_set :@users, [User.new(:name => 'a'), User.new(:name => 'b')]
-        output, warnings = render_capturing_warnings(template, scope)
-        [output, warnings.scan(/rabl: child called while the template renders/).size]
-      end.equals ["[{\"user\":{\"foo\":[{\"data\":\"city\",\"options\":{},\"block\":null},{\"data\":\"city\",\"options\":{},\"block\":null}]}},{\"user\":{\"string\":{},\"foo\":[{\"data\":\"city\",\"options\":{},\"block\":null},{\"data\":\"city\",\"options\":{},\"block\":null}]}}]", 2]
+        render_capturing_warnings(%{
+          object @user
+          node(:foo) { child(:city); 1 }
+        }, :child)
+      end.equals { [rabl("object @user\nnode(:foo) { 1 }").render(node_scope), 1] }
 
       asserts "that glue inside a node warns and renders as before" do
-        template = rabl %{
+        render_capturing_warnings(%{
           object @user
-          node(:foo) { glue :city }
-        }
-        scope = Object.new
-        scope.instance_variable_set :@user, User.new
-        output, warnings = render_capturing_warnings(template, scope)
-        [output, warnings.scan(/rabl: glue called while the template renders/).size]
-      end.equals ["{\"user\":{\"foo\":[{\"data\":\"city\",\"options\":{},\"block\":null}]}}", 1]
+          node(:foo) { glue(:city); 1 }
+        }, :glue)
+      end.equals { [rabl("object @user\nnode(:foo) { 1 }").render(node_scope), 1] }
 
       asserts "that node inside a node warns and renders as before" do
-        template = rabl %{
+        render_capturing_warnings(%{
           object @user
           node(:foo) { node(:bar) { 1 }; 2 }
-        }
-        scope = Object.new
-        scope.instance_variable_set :@user, User.new
-        output, warnings = render_capturing_warnings(template, scope)
-        [output, warnings.scan(/rabl: node called while the template renders/).size]
-      end.equals ["{\"user\":{\"foo\":2,\"bar\":1}}", 1]
+        }, :node)
+      end.equals { [rabl("object @user\nnode(:foo) { 2 }\nnode(:bar) { 1 }").render(node_scope), 1] }
     end
 
     teardown do

@@ -263,7 +263,7 @@ module Rabl
           attribute(key, conditions.merge(:as => as))
         end
       else # array of attributes i.e :foo, :bar, :baz
-        check_render_time_call!(:attribute)
+        warn_if_rendering(:attribute)
 
         options = args.extract_options!
         args.each do |name|
@@ -277,7 +277,7 @@ module Rabl
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options = {}, &block)
-      check_render_time_call!(:node)
+      warn_if_rendering(:node)
 
       if name.is_a?(Hash) && name.present? && options.blank? && (name.keys - [:if, :unless]).empty?
         name, options = nil, name # node(:if => lambda { ... }) { ... } has conditions but no name
@@ -291,7 +291,7 @@ module Rabl
     # child(@user) { attribute :full_name }
     # child(:posts => :items, :if => lambda { ... }) { attribute :title }
     def child(data, options = {}, &block)
-      check_render_time_call!(:child)
+      warn_if_rendering(:child)
 
       data, options = split_folded_options(data, options, [:if, :unless, :root, :object_root])
 
@@ -301,7 +301,7 @@ module Rabl
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
     def glue(data, options = {}, &block)
-      check_render_time_call!(:glue)
+      warn_if_rendering(:glue)
 
       data, options = split_folded_options(data, options, [:if, :unless])
 
@@ -311,7 +311,7 @@ module Rabl
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options = {}, &block)
-      check_render_time_call!(:extends)
+      return if warn_if_rendering(:extends)
 
       options.reverse_merge!({ :view_path => options[:view_path] || view_path })
 
@@ -505,19 +505,19 @@ module Rabl
       end
 
       # attribute, node, child, glue and extends build the template's settings, which are read while
-      # it renders (#477). Called then (e.g. inside a node block), extends would put those settings,
-      # including the view path, into the output, so it raises; the others warn and work as before.
+      # it renders (#477). Called then (e.g. inside a node block), they warn; attribute, node, child
+      # and glue work as before, and extends is ignored, since its settings (view path included)
+      # would otherwise be the node's value. Returns true when the template is rendering.
       # ceiling: warns on every call, so a misuse inside a large collection repeats the warning;
       # dedupe by call site if that turns out to be noisy.
-      def check_render_time_call!(method_name)
-        return unless @_rendering
+      def warn_if_rendering(method_name)
+        return false unless @_rendering
 
-        advice = "to render another template there, use partial(\"template\", :object => object)"
-        raise "extends can't be called while the template renders (e.g. inside a node block); #{advice}" if method_name == :extends
-
+        effect = method_name == :extends ? "is ignored" : "changes the template for the rest of the render"
         site = caller.find { |line| !line.start_with?(__FILE__) }.to_s.sub(/:in .*\z/m, '')
         Kernel.warn "rabl: #{method_name} called while the template renders (e.g. inside a node block) at #{site} " \
-                    "changes the template for the rest of the render; #{advice}"
+                    "#{effect}; to render another template there, use partial(\"template\", :object => object)"
+        true
       end
 
       # Ruby folds `child :posts => :items, :if => cond` into a single hash, so the options
