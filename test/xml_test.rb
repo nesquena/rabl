@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'erb'
 require 'active_support/core_ext/hash/conversions'
 require 'active_support/time'
 require 'tmpdir'
