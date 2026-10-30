@@ -346,6 +346,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'ivan')
       JSON.parse(Rabl.render({ user => :person }, 'test5', :view_path => tmp_path, :scope => sc))
     end.equals JSON.parse("{\"person\":{\"age\":24,\"name\":\"ivan\"} }")
+
+    teardown { Rabl.reset_configuration! }
   end # render
 
   context '.json' do
