@@ -54,7 +54,7 @@ module Rabl
       if defined?(Rails)
         Rails.cache.write(key, value, options)
       else
-        @cache[key] = yield
+        @cache[key] = value
       end
     end
 
@@ -63,7 +63,7 @@ module Rabl
       if defined?(Rails)
         Rails.cache.read_multi(*keys, options)
       else
-        keys.inject({}) { |hash, key| hash[key] = nil; hash }
+        keys.inject({}) { |hash, key| hash[key] = @cache[key]; hash }
       end
     end
   end
