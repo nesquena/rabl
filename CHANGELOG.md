@@ -7,6 +7,7 @@
 * Fix extract_options! not being available (@A1bi)
 * Improve caching lookup performance (@pharris2411)
 * Validate JSONP callback names, write callbacks as `/**/name(...)`, and apply them after the cache so cached output never includes a callback (@nesquena)
+* Include the template's identity in cache keys, so different templates, child blocks, or an object and a collection caching the same key no longer share cached output. Cache keys change, so entries cached by earlier versions are not reused after upgrading (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 

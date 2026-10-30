@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/inflector' # for the sake of pluralizing
+require 'digest/sha1'
 
 module Rabl
   module Helpers
@@ -134,6 +135,7 @@ module Rabl
         :view_path  => view_path,
         :root       => (options[:root] || false)
       })
+      options[:parent_template] = template_identity if block_given?
 
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end
@@ -150,6 +152,14 @@ module Rabl
       result = yield
       Rabl.configuration.cache_engine.write(expanded_cache_key, result, cache_options)
       result
+    end
+
+    # Returns a digest of the given parts, for cache keys
+    # cache_digest(["/path/to/show.rabl", "object @user"]) => "4a1b..."
+    def cache_digest(parts)
+      digest = Digest::SHA1.new
+      Array(parts).flatten.each { |part| digest << part.to_s << "\0" }
+      digest.hexdigest
     end
 
     # Returns true if the cache has been enabled for the application

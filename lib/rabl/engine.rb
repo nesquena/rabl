@@ -41,6 +41,11 @@ module Rabl
       reset_settings!
       reset_options!
 
+      # A block (child, glue, or extends/partial with a block) is identified by its
+      # location and the template that defined it
+      @_block_identity    = block && [block.source_location, @_options[:parent_template]]
+      @_template_identity = nil
+
       eval_source(locals, &block)
 
       instance_exec(root_object, &block) if block_given?
@@ -82,7 +87,13 @@ module Rabl
             end
 
           cache_key << digest
+          # The digest covers the template source, but not the block that defines this engine
+          cache_key << cache_digest(@_block_identity) if @_block_identity
+        else
+          cache_key << template_identity
         end
+
+        cache_key << "collection" if is_collection?(root_object)
 
         cache_key
       end
@@ -96,6 +107,7 @@ module Rabl
       data = root_object
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
+      options[:template_identity] = template_identity if template_cache_configured?
 
       result =
         if is_object?(data) || !data # object @user
@@ -315,6 +327,11 @@ module Rabl
     end
 
     protected
+      # Identifies the template for cache keys: a digest of its location, source and block
+      def template_identity
+        @_template_identity ||= cache_digest([@_options[:source_location], @_source, @_block_identity])
+      end
+
       # Returns a guess at the default object for this template
       # default_object => @user
       def default_object

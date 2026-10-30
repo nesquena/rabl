@@ -72,6 +72,11 @@ module Rabl
     end
 
     protected
+      # Identifies the template whose settings this builder renders (see Engine#template_identity)
+      def template_identity
+        @options[:template_identity]
+      end
+
       def replace_nil_values
         @_result = deep_replace_nil_values(@_result)
       end
@@ -249,6 +254,7 @@ module Rabl
       def cache_results(&block)
         if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
           cache_key = [@_object, @options[:root_name], @options[:format]]
+          cache_key << template_identity if template_identity
 
           fetch_result_from_cache(cache_key, &block)
         else # skip cache

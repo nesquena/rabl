@@ -561,6 +561,9 @@ cache @quiz # key = rabl/quiz/[cache_key]
 attribute :title
 ```
 
+The full cache key also includes the format and identifies the template (the Rails template digest when available, otherwise a digest of
+the template's source and location), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
+
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
 ### Rendering Templates Directly ###
