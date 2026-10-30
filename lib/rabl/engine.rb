@@ -83,7 +83,8 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options = {})
-      options.reverse_merge!(@_options)
+      # options given to the engine (e.g. Rabl::Renderer's :root) win over the format defaults
+      options.merge!(@_options)
 
       data = root_object
 
