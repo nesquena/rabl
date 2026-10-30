@@ -18,10 +18,9 @@ begin
 rescue LoadError
 end
 
-# Set default options for Oj json parser (if exists)
+# We load the oj library if it is available (it becomes the default json_engine).
 begin
   require 'oj'
-  Oj.default_options =  { :mode => :compat, :time_format => :ruby, :use_to_json => true }
 rescue LoadError
 end
 
@@ -57,6 +56,9 @@ module Rabl
     attr_accessor :camelize_keys
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
+
+    # Passed to Oj.dump on every render, so rabl never changes the app's Oj.default_options (#744)
+    OJ_OPTIONS = { :mode => :compat, :time_format => :ruby, :use_to_json => true }.freeze
 
     def initialize
       @include_json_root                            = true

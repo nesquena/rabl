@@ -353,7 +353,9 @@ module Rabl
       def format_json(json_output)
         unless json_output.is_a?(String)
           json_engine = Rabl.configuration.json_engine
-          json_output = if json_engine.respond_to?(:dump)
+          json_output = if defined?(::Oj) && json_engine.equal?(::Oj)
+            ::Oj.dump(json_output, Configuration::OJ_OPTIONS)
+          elsif json_engine.respond_to?(:dump)
             json_engine.dump(json_output)
           else
             json_engine.encode(json_output)

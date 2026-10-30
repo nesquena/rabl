@@ -52,7 +52,7 @@ or add to your Gemfile:
 # Gemfile
 gem 'rabl'
 # Also add either `oj` or `yajl-ruby` as the JSON parser
-# If using `oj`, Rabl will set the mode to :compat
+# If using `oj`, Rabl renders with Oj's :compat mode (passed on each call; Oj.default_options are left alone)
 gem 'oj'
 ```
 
