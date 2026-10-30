@@ -62,9 +62,13 @@ module Rabl
     # NaN/Infinity as they were when these were global (a global :compat writes them as words).
     OJ_OPTIONS = { :mode => :compat, :time_format => :ruby, :use_to_json => true, :nan => :word }.freeze
 
-    # What Oj 3.x ships for the options rabl sets globally (Oj 2.x has :unix_zone, so it counts
-    # as customized and is left alone)
-    OJ_SHIPPED_OPTIONS = { :mode => :object, :time_format => :unix, :use_to_json => false }.freeze
+    # What Oj ships for the options rabl sets globally: Oj 3.2+ has mode :object, Oj 3.0/3.1
+    # mode :custom. Oj 2.x ships time_format :unix_zone, so it counts as customized and is left alone.
+    OJ_SHIPPED_OPTIONS = {
+      :mode        => (defined?(::Oj::VERSION) && ::Oj::VERSION.start_with?('3.0.', '3.1.') ? :custom : :object),
+      :time_format => :unix,
+      :use_to_json => false
+    }.freeze
 
     # When rabl is loaded before the app has chosen any of these, it sets them globally as it
     # always did (mode :compat, time_format :ruby, use_to_json true), so a json_engine wrapper
@@ -124,14 +128,25 @@ module Rabl
     # :object, ...) is ignored, since rabl's output would raise on or drop plain objects.
     # Options the app set before rabl was loaded are ignored too: rabl's output stays as it
     # was when rabl overwrote them.
+    #
+    # Only options that differ from the current global ones are returned, so with rabl's
+    # globals in place the hash is empty and Oj.dump gets no options, as before: Oj before
+    # 3.17.7 hands the options of Oj.dump to to_json, which json 3.x rejects (ArgumentError).
+    # :nan is only needed with an explicit :mode (a global :compat already writes NaN as words).
+    # ceiling: when the app configured Oj before loading rabl, options are still passed, so
+    # Oj < 3.17.7 with json 3.x can raise on objects with to_json; upgrading Oj avoids it.
+    # ceiling: Oj.default_options builds a new Hash on each render (a few microseconds);
+    # caching it would miss changes the app makes later.
     def oj_dump_options
       current = ::Oj.default_options
       changed = lambda { |key| OJ_DEFAULTS_AT_LOAD && current[key] != OJ_DEFAULTS_AT_LOAD[key] }
       app_mode = changed.call(:mode) && OJ_APP_MODES.include?(current[:mode])
 
-      OJ_OPTIONS.reject do |key, _|
-        [:mode, :nan].include?(key) ? app_mode : changed.call(key)
+      options = OJ_OPTIONS.reject do |key, value|
+        ([:mode, :nan].include?(key) ? app_mode : changed.call(key)) || current[key] == value
       end
+      options.delete(:nan) unless options.key?(:mode)
+      options
     end
 
     ##

@@ -92,12 +92,29 @@ context 'Rabl::Configuration' do
     end
 
     asserts('without app options, rabl sets its Oj defaults as before, so wrappers keep its output') do
-      eval(rabl_subprocess(wrapper_script('')))
-    end.equals [:compat, '{"price":"$5","nan":NaN}', '{"price":"$5","nan":NaN}']
+      rabl_subprocess(wrapper_script(''))
+    end.equals [:compat, '{"price":"$5","nan":NaN}', '{"price":"$5","nan":NaN}'].inspect
 
     asserts('with app options set before rabl, wrappers follow the app and rabl keeps its output') do
-      eval(rabl_subprocess(wrapper_script('Oj.default_options = { :mode => :strict }')))
-    end.equals [:strict, '{"price":"$5","nan":NaN}', 'TypeError']
+      rabl_subprocess(wrapper_script('Oj.default_options = { :mode => :strict }'))
+    end.equals [:strict, '{"price":"$5","nan":NaN}', 'TypeError'].inspect
+
+    # Oj before 3.17.7 hands the options given to Oj.dump on to to_json, which json 3.x
+    # rejects, so rabl passes none when Oj's global options already match its own
+    helper(:oj_dump_arity_script) do |after_rabl|
+      "require 'oj'; require 'rabl'; #{after_rabl}; $arity = []; " \
+      "class << Oj; alias_method :rabl_test_dump, :dump; def dump(*a); $arity << a.size; rabl_test_dump(*a); end; end; " \
+      "Rabl::Renderer.new(%Q(object false\\nnode(:t) { Time.utc(2020) }\\n), nil, :format => 'json').render; " \
+      "print $arity.inspect"
+    end
+
+    asserts('without app options, rabl calls Oj.dump with no options') do
+      rabl_subprocess(oj_dump_arity_script(''))
+    end.equals '[1]'
+
+    asserts('with a :rails mode the app sets after rabl, rabl calls Oj.dump with no options') do
+      rabl_subprocess(oj_dump_arity_script('Oj.default_options = { :mode => :rails }'))
+    end.equals '[1]'
 
     asserts('NaN and Infinity render as before') do
       render_with_oj({}, "object false\nnode(:x) { 0.0/0 }\nnode(:y) { 1.0/0 }\nnode(:z) { -1.0/0 }\n", nil)
