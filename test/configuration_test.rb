@@ -48,39 +48,58 @@ context 'Rabl::Configuration' do
       Class.new { def to_json(*); '"$5"'; end }.new
     end
 
-    setup do
-      @oj_defaults = Oj.default_options
-      Rabl.reset_configuration!
-      Rabl.configuration
+    # Renders with the app's Oj.default_options changed after rabl was loaded, then restores them
+    helper(:render_with_oj) do |oj_options, source, json_engine|
+      saved = Oj.default_options
+      begin
+        Oj.default_options = oj_options
+        Rabl.configuration.json_engine = json_engine
+        Rabl::Renderer.new(source, nil, :format => 'json', :locals => { :price => money }).render
+      ensure
+        Oj.default_options = saved
+        Rabl.reset_configuration!
+      end
     end
 
-    teardown do
-      Oj.default_options = @oj_defaults
-      Rabl.reset_configuration!
+    helper(:rabl_subprocess) do |script|
+      IO.popen([RbConfig.ruby, '-I', File.expand_path('../../lib', __FILE__), '-e', script, { :err => [:child, :out] }], &:read)
     end
+
+    setup { Rabl.reset_configuration! }
+    teardown { Rabl.reset_configuration! }
 
     asserts('requiring rabl keeps options the app set before') do
-      script = "require 'oj'; Oj.default_options = { :mode => :strict, :time_format => :unix, :use_to_json => false }; " \
-               "require 'rabl'; print Oj.default_options.values_at(:mode, :time_format, :use_to_json).inspect"
-      IO.popen([RbConfig.ruby, '-I', File.expand_path('../../lib', __FILE__), '-e', script], &:read)
+      rabl_subprocess("require 'oj'; Oj.default_options = { :mode => :strict, :time_format => :unix, :use_to_json => false }; " \
+                      "require 'rabl'; print Oj.default_options.values_at(:mode, :time_format, :use_to_json).inspect")
     end.equals '[:strict, :unix, false]'
 
-    asserts('rendering ignores options the app sets after') do
-      Oj.default_options = { :mode => :strict, :use_to_json => false }
-      Rabl::Renderer.new("object false\nnode(:price) { @price }\n", nil, :format => 'json', :locals => { :price => money }).render
+    asserts('options the app set before loading rabl do not change its output') do
+      rabl_subprocess("require 'oj'; Oj.default_options = { :mode => :strict, :use_to_json => false }; require 'rabl'; " \
+                      "price = Class.new { def to_json(*); %q(\"$5\"); end }.new; " \
+                      "print Rabl::Renderer.new(%Q(object false\nnode(:price) { @price }\nnode(:nan) { 0.0/0 }\n), nil, " \
+                      ":format => 'json', :locals => { :price => price }).render")
+    end.equals '{"price":"$5","nan":NaN}'
+
+    asserts('NaN and Infinity render as before') do
+      render_with_oj({}, "object false\nnode(:x) { 0.0/0 }\nnode(:y) { 1.0/0 }\nnode(:z) { -1.0/0 }\n", nil)
+    end.equals '{"x":NaN,"y":Infinity,"z":-Infinity}'
+
+    asserts('rendering ignores a :strict mode the app sets after') do
+      render_with_oj({ :mode => :strict, :use_to_json => false }, "object false\nnode(:price) { @price }\n", nil)
     end.equals '{"price":"$5"}'
 
     asserts('an explicitly configured Oj gets the same options') do
-      Oj.default_options = { :mode => :strict, :use_to_json => false }
-      topic.json_engine = Oj
-      Rabl::Renderer.new("object false\nnode(:price) { @price }\n", nil, :format => 'json', :locals => { :price => money }).render
+      render_with_oj({ :mode => :strict, :use_to_json => false }, "object false\nnode(:price) { @price }\n", Oj)
     end.equals '{"price":"$5"}'
+
+    asserts('a :rails mode the app sets after loading rabl is followed, as before') do
+      render_with_oj({ :mode => :rails }, "object false\nnode(:html) { '</script>&' }\nnode(:nan) { 0.0/0 }\n", nil)
+    end.equals '{"html":"\\u003c/script\\u003e\\u0026","nan":null}'
 
     asserts('a custom engine with dump is still used') do
       engine = Object.new
       def engine.dump(hash); "custom:#{hash.keys.join(',')}"; end
-      topic.json_engine = engine
-      Rabl::Renderer.new("object false\nnode(:price) { 1 }\n", nil, :format => 'json').render
+      render_with_oj({}, "object false\nnode(:price) { 1 }\n", engine)
     end.equals 'custom:price'
   end # Oj default options
 

@@ -355,7 +355,7 @@ module Rabl
         unless json_output.is_a?(String)
           json_engine = Rabl.configuration.json_engine
           json_output = if defined?(::Oj) && json_engine.equal?(::Oj)
-            ::Oj.dump(json_output, Configuration::OJ_OPTIONS)
+            ::Oj.dump(json_output, Rabl.configuration.oj_dump_options)
           elsif json_engine.respond_to?(:dump)
             json_engine.dump(json_output)
           else

@@ -57,8 +57,17 @@ module Rabl
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
-    # Passed to Oj.dump on every render, so rabl never changes the app's Oj.default_options (#744)
-    OJ_OPTIONS = { :mode => :compat, :time_format => :ruby, :use_to_json => true }.freeze
+    # rabl used to set these as Oj.default_options when loaded. It now passes them to each
+    # Oj.dump instead (see #oj_dump_options), so the app's own defaults are left alone (#744).
+    # :nan => :word keeps NaN/Infinity as before: a global :compat mode wrote them as words.
+    OJ_OPTIONS = { :mode => :compat, :time_format => :ruby, :use_to_json => true, :nan => :word }.freeze
+
+    # Oj modes an app can switch to after loading rabl that rabl's output follows, as it did
+    # when rabl's settings were global (e.g. :rails, which escapes "<", ">" and "&")
+    OJ_APP_MODES = [:compat, :rails, :custom].freeze
+
+    # Oj.default_options when rabl was loaded, to tell which ones the app changed afterwards
+    OJ_DEFAULTS_AT_LOAD = (::Oj.default_options.freeze if defined?(::Oj))
 
     def initialize
       @include_json_root                            = true
@@ -92,6 +101,22 @@ module Rabl
     # @return The JSON engine used to encode Rabl templates into JSON
     def json_engine
       @json_engine || (defined?(::Oj) ? ::Oj : ::JSON)
+    end
+
+    # The options rabl passes to Oj.dump (#744): OJ_OPTIONS, except where the app changed
+    # Oj.default_options after rabl was loaded. Those changes win, as they did when rabl's
+    # settings were global: a new :time_format or :use_to_json, and a new mode if it is one
+    # of OJ_APP_MODES (then :nan follows that mode too). Another new mode (:strict, :null,
+    # :object, ...) is ignored, since rabl's output would raise on or drop plain objects.
+    # Changes made before rabl was loaded were overwritten then, so they are ignored too.
+    def oj_dump_options
+      current = ::Oj.default_options
+      changed = lambda { |key| OJ_DEFAULTS_AT_LOAD && current[key] != OJ_DEFAULTS_AT_LOAD[key] }
+      app_mode = changed.call(:mode) && OJ_APP_MODES.include?(current[:mode])
+
+      OJ_OPTIONS.reject do |key, _|
+        [:mode, :nan].include?(key) ? app_mode : changed.call(key)
+      end
     end
 
     ##
