@@ -203,6 +203,26 @@ context 'Rabl cache keys' do
        render("object @item\nextends 'nodes', :except => :b", a, :view_path => topic)]
     end.equals ['{"a":1,"b":2}', '{"a":1}']
 
+    asserts('a cached partial tells :except symbols and strings apart') do
+      a = item(26)
+      [render("object @item\nextends 'nodes', :except => :b", a, :view_path => topic),
+       render("object @item\nextends 'nodes', :except => 'b'", a, :view_path => topic)]
+    end.equals ['{"a":1}', '{"a":1,"b":2}']
+
+    asserts('a cached template renders each :except given to the renderer') do
+      a = item(27)
+      [{}, { :except => :b }].map { |options| Rabl::Renderer.json(a, 'nodes', { :view_path => topic, :scope => Object.new }.merge(options)) }
+    end.equals ['{"a":1,"b":2}', '{"a":1}']
+
+    asserts('a cached template is keyed by :root and :child_root given to the renderer') do
+      Rabl.configuration.cache_engine = memory_cache
+      a = item(28)
+      [{}, { :root => false }, { :child_root => false }].each do |options|
+        Rabl::Renderer.json(a, 'nodes', { :view_path => topic, :scope => Object.new }.merge(options))
+      end
+      Rabl.configuration.cache_engine.store.size
+    end.equals 3
+
     teardown { FileUtils.rm_rf(@dir) }
   end
 

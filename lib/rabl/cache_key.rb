@@ -29,17 +29,24 @@ module Rabl
       root && path.start_with?(root) ? path.byteslice(root.bytesize..-1) : path
     end
 
-    # Returns the options that change the shape of a nested (hash format) rendering;
-    # with the default configuration a JSON rendering has none
+    # Returns the options that change the shape of a rendering. A nested (hash format)
+    # rendering gets its root options from its parent; for other formats only root
+    # options given explicitly are added, so default keys have none.
     # CacheKey.shape(:format => "hash", :root => true) => ["root", "no_child_root"]
+    # CacheKey.shape(:format => "json", :except => :b) => ["except=:b"]
     def shape(options)
-      return [] unless options[:format].to_s == "hash"
-
       shape = []
-      shape << "root" if options[:root]
-      shape << "no_child_root" unless options[:child_root]
-      shape << "object_root=#{options[:object_root_name]}" if options[:object_root_name]
-      shape << "except=#{Array(options[:except]).join(',')}" if options[:except]
+
+      if options[:format].to_s == "hash"
+        shape << "root" if options[:root]
+        shape << "no_child_root" unless options[:child_root]
+        shape << "object_root=#{options[:object_root_name].inspect}" if options[:object_root_name]
+      else
+        shape << "root=#{options[:root].inspect}" if options.key?(:root)
+        shape << "child_root=#{options[:child_root].inspect}" if options.key?(:child_root)
+      end
+
+      shape << "except=#{Array(options[:except]).map { |name| name.inspect }.join(',')}" if options[:except]
       shape
     end
   end
