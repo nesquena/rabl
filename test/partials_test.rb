@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'tmpdir'
+require 'delegate'
 require 'pathname'
 require File.expand_path('../teststrap', __FILE__)
 

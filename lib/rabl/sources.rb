@@ -111,10 +111,11 @@ module Rabl
       def rails_details_id
         lookup_context = context_scope.lookup_context if context_scope.respond_to?(:lookup_context)
         return unless lookup_context
-        # Rails 7.0 and higher keep the registered details on ActionView::LookupContext itself, so a
-        # subclass's own are nil. Module#=== checks the object itself, not what a delegator forwards to.
-        names = lookup_context.class.registered_details if lookup_context.class.respond_to?(:registered_details)
-        names ||= ActionView::LookupContext.registered_details if defined?(ActionView::LookupContext) && ActionView::LookupContext === lookup_context
+        # Rails reads the registered details from ActionView::LookupContext itself (7.0 and higher keep
+        # them there only, so a subclass's own are nil). Module#=== checks the object itself, not what
+        # a delegator forwards to.
+        names = ActionView::LookupContext.registered_details if defined?(ActionView::LookupContext) && ActionView::LookupContext === lookup_context
+        names ||= lookup_context.class.registered_details if lookup_context.class.respond_to?(:registered_details)
         return false unless names # what the lookup depends on can't be told, so it isn't cached
 
         # Rails' details_key is the same object for the same details until Rails clears them
