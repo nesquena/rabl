@@ -61,19 +61,30 @@ module Rabl
     # Used to cache the contents and paths to various rabl templates, keyed by
     # everything the lookup depends on (the file, the view path and the lookup details)
     # source_cache("users/index", ["path/to/view"], [:json]) { "/full/path/to/template/users/index" }
-    def source_cache(file, view_path, lookup = nil, &block)
+    def source_cache(file, view_path, lookup = nil)
       return yield unless Rabl.configuration.cache_sources
-
-      cache_key = [file, view_path, lookup]
 
       @_source_cache ||= {}
 
-      @_source_cache[cache_key] ||= yield
+      # stores a frozen copy of the key, so later changes to the caller's strings don't reach it
+      @_source_cache.fetch([file, view_path, lookup]) do
+        @_source_cache[frozen_copy([file, view_path, lookup])] = yield
+      end
     end
 
     # Resets the RABL source cache
     def reset_source_cache!
       @_source_cache = {}
+    end
+
+    # Returns a copy of value whose Strings and Arrays are frozen, for cache keys that
+    # must not change when the caller's objects do
+    def frozen_copy(value)
+      case value
+      when Array  then value.map { |item| frozen_copy(item) }.freeze
+      when String then value.frozen? ? value : value.dup.freeze
+      else value
+      end
     end
 
     # Renders an object using a specified template within an application.

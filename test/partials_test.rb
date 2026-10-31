@@ -8,23 +8,29 @@ class TestPartial
   include Rabl::Partials
 end
 
+# A view path resolver, like a custom ActionView::Resolver: it has no name but its object
+class TestResolver
+  attr_reader :dir
+  def initialize(dir); @dir = dir; end
+end
+
+# A resolver named by its path, like ActionView::FileSystemResolver
+class TestPathResolver < TestResolver
+  alias_method :to_path, :dir
+end
+
 # Looks templates up the way ActionView's lookup context does: by name and the
-# requested format, locale and variant ("test.fr.json+mobile.rabl"). Like Rails,
-# details_key identifies the details, and is nil while its cache is disabled.
+# requested format, locale and variant ("test.fr.json+mobile.rabl")
 class TestLookupContext
   def self.registered_details
     [:locale, :formats, :variants]
   end
 
-  attr_accessor :locale, :formats, :variants, :cache, :lookups
+  attr_accessor :locale, :formats, :variants, :details_key, :lookups
 
   def initialize(view_path, details = {})
-    @view_path, @lookups, @cache = view_path, 0, true
+    @view_path, @lookups = view_path, 0
     @locale, @formats, @variants = details[:locale] || :en, details[:formats] || [:json], details[:variants] || []
-  end
-
-  def details_key
-    [locale, formats, variants] if cache
   end
 
   def find(name, prefixes = [], partial = false, keys = [], options = {})
@@ -243,7 +249,8 @@ context "Rabl::Partials" do
     helper(:rails_partial) do |format, details = {}, view_paths = []|
       partial = TestPartial.new
       scope = Object.new
-      lookup_context = TestLookupContext.new((view_paths.first || tmp_path).to_s, details)
+      view_path = view_paths.first || tmp_path
+      lookup_context = TestLookupContext.new((view_path.respond_to?(:dir) ? view_path.dir : view_path).to_s, details)
       request = Struct.new(:format).new(Struct.new(:to_sym).new(format))
       scope.define_singleton_method(:lookup_context) { lookup_context }
       scope.define_singleton_method(:view_paths) { view_paths }
@@ -283,13 +290,6 @@ context "Rabl::Partials" do
         [rails_partial(:json, :variants => [:mobile]).fetch_source("test")[0], rails_partial(:json).fetch_source("test")[0]]
       end.equals ["json mobile\n", "json\n"]
 
-      asserts("a variant gets its own template while the lookup context's cache is disabled") do
-        Rabl.reset_source_cache!
-        partials = [rails_partial(:json), rails_partial(:json, :variants => [:mobile])]
-        partials.each { |partial| partial.context_scope.lookup_context.cache = false }
-        partials.map { |partial| partial.fetch_source("test")[0] }
-      end.equals ["json\n", "json mobile\n"]
-
       asserts("each format gets its own template") do
         Rabl.reset_source_cache!
         [rails_partial(:json).fetch_source("test")[0], rails_partial(:xml).fetch_source("test")[0]]
@@ -307,6 +307,33 @@ context "Rabl::Partials" do
         write "other.json.rabl", "default"
         [rails_partial(:json, {}, [tmp_path.to_s]).fetch_source("other")[0], rails_partial(:json, {}, [other_path.to_s]).fetch_source("other")[0]]
       end.equals ["default\n", "other\n"]
+
+      asserts("a resolver without a name is looked up each time, without growing the cache") do
+        Rabl.reset_source_cache!
+        other_path = Pathname.new(Dir.mktmpdir)
+        File.open(other_path + "other.json.rabl", "w") { |f| f.puts "other" }
+        write "other.json.rabl", "default"
+        sources = [tmp_path, other_path, tmp_path, other_path].map do |path|
+          rails_partial(:json, {}, [TestResolver.new(path.to_s)]).fetch_source("other")[0]
+        end
+        [sources, Rabl.instance_variable_get(:@_source_cache).size]
+      end.equals [["default\n", "other\n", "default\n", "other\n"], 0]
+
+      asserts("resolvers with the same path share their cache entry") do
+        Rabl.reset_source_cache!
+        partials = Array.new(2) { rails_partial(:json, {}, [TestPathResolver.new(tmp_path.to_s)]) }
+        partials.each { |partial| partial.fetch_source("test") }
+        partials.map { |partial| partial.context_scope.lookup_context.lookups }
+      end.equals [1, 0]
+
+      asserts("details keys for the same details share their cache entry") do
+        Rabl.reset_source_cache!
+        # a new details key for the same details, as after Rails clears its details keys
+        partials = Array.new(2) { rails_partial(:json, :variants => [:mobile]) }
+        partials.each { |partial| partial.context_scope.lookup_context.details_key = Object.new }
+        partials.each { |partial| partial.fetch_source("test") }
+        partials.map { |partial| partial.context_scope.lookup_context.lookups }
+      end.equals [1, 0]
 
       asserts("a repeated lookup is served from the cache") do
         Rabl.reset_source_cache!
