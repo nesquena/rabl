@@ -58,6 +58,8 @@ class TestLookupContext
     locales = @locale.map { |l| ".#{l}" } + [""]
     variants = (self.variants.map { |v| "+#{v}" }) + [""]
     format = (options[:formats] || formats).first
+    # like Rails 7.0 and higher, which match formats given as Symbols only
+    raise "Missing template #{name}" unless format.is_a?(Symbol)
     candidates = locales.product(variants).map { |l, v| File.join(@view_path, "#{name}#{l}.#{format}#{v}.rabl") }
     path = candidates.find { |candidate| File.exist?(candidate) } or raise "Missing template #{name}"
     Struct.new(:identifier).new(path)
@@ -119,6 +121,115 @@ context "Rabl::Partials" do
       ["content2\n", (tmp_path + 'test.json.rabl').to_s]
     end
     teardown { Object.send(:remove_const, :Sinatra) }
+  end
+
+  context "fetch_source outside Rails" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    helper(:other_path) { @other_path ||= Pathname.new(Dir.mktmpdir) }
+    helper(:write) do |path, name|
+      File.open(path + "#{name}.rabl", "w") { |f| f.puts "object false", "node(:from) { #{name.inspect} }" }
+    end
+    # the template that renders "name" as the given format, from the given view paths
+    helper(:picked) do |name, format = :json, view_paths = [tmp_path.to_s]|
+      output = Rabl::Renderer.new(name, nil, :format => format, :view_path => view_paths).render
+      output[/(?:"from":"|<from>)([^"<]*)/, 1]
+    end
+
+    setup do
+      I18n.available_locales = [:en, :fr, :de]
+      write tmp_path, "show.json"
+      write tmp_path, "show.xml"
+      write tmp_path, "base.json"
+      write tmp_path, "base.fr.json"
+      write tmp_path, "plain"
+      write tmp_path, "plain.json"
+      write tmp_path, "only.json"
+    end
+
+    asserts("the template for the format being rendered") do
+      [picked("show", :json), picked("show", :xml)]
+    end.equals ["show.json", "show.xml"]
+
+    asserts("the template for the locale") do
+      [picked("base"), I18n.with_locale(:fr) { picked("base") }, I18n.with_locale(:de) { picked("base") }]
+    end.equals ["base.json", "base.fr.json", "base.json"]
+
+    asserts("a template without a format for another format") do
+      [picked("plain", :json), picked("plain", :xml)]
+    end.equals ["plain.json", "plain"]
+
+    asserts("the template for another format when there is no other") { picked("only", :xml) }.equals "only.json"
+
+    asserts("the template in the first view path that has one for the format") do
+      write other_path, "paths.xml"
+      write other_path, "paths.fr.json"
+      write tmp_path, "paths.json"
+      I18n.with_locale(:fr) { [picked("paths", :json, [other_path.to_s, tmp_path.to_s]), picked("paths", :xml, [tmp_path.to_s, other_path.to_s])] }
+    end.equals ["paths.fr.json", "paths.xml"]
+
+    asserts("each format and locale gets its own template with cache_sources") do
+      Rabl.configuration.cache_sources = true
+      Rabl.reset_source_cache!
+      [picked("show", :json), picked("show", :xml), picked("base"), I18n.with_locale(:fr) { picked("base") }, picked("base")]
+    ensure
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end.equals ["show.json", "show.xml", "base.json", "base.fr.json", "base.json"]
+
+    asserts("with cache_sources, the template for a locale's fallbacks once they are assigned") do
+      Rabl.configuration.cache_sources = true
+      Rabl.reset_source_cache!
+      fallbacks = I18n.fallbacks
+      before = I18n.with_locale(:de) { picked("base") }
+      I18n.fallbacks = I18n::Locale::Fallbacks.new(:de => :fr)
+      [before, I18n.with_locale(:de) { picked("base") }]
+    ensure
+      I18n.fallbacks = fallbacks
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end.equals ["base.json", "base.fr.json"]
+
+    asserts("with cache_sources, the fallbacks assigned for each request aren't kept") do
+      Rabl.configuration.cache_sources = true
+      Rabl.reset_source_cache!
+      fallbacks = I18n.fallbacks
+      20.times do
+        I18n.fallbacks = I18n::Locale::Fallbacks.new(:de => :fr)
+        I18n.with_locale(:de) { picked("base") }
+      end
+      # the Fallbacks objects the lookup memo still holds
+      held = lambda do |o|
+        case o
+        when I18n::Locale::Fallbacks then [o]
+        when Hash then o.keys.flat_map { |k| held.call(k) } + o.values.flat_map { |v| held.call(v) }
+        when Array then o.flat_map { |v| held.call(v) }
+        else []
+        end
+      end
+      held.call(Rabl::Sources::MANUAL_LOOKUP_IDS).uniq(&:object_id).size < 2
+    ensure
+      I18n.fallbacks = fallbacks
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end.equals true
+
+    asserts("templates nested in an XML rendering, in a child and in an extended template") do
+      [%w(inner.xml inner.json), %w(inner.xml inner)].map do |names|
+        path = Pathname.new(Dir.mktmpdir)
+        names.each { |name| write path, name }
+        File.open(path + "outer.rabl", "w") { |f| f.puts "object @user", "child(@user => :pal) { extends 'inner' }", "extends 'middle'" }
+        File.open(path + "middle.rabl", "w") { |f| f.puts "extends 'inner'" }
+        Rabl::Renderer.new("outer", User.new, :format => :xml, :view_path => path.to_s).render.scan(%r{<from>([^<]*)</from>}).flatten
+      end
+    end.equals [["inner.xml", "inner.xml"], ["inner.xml", "inner.xml"]]
+
+    asserts("the template before the partial") do
+      write tmp_path, "_partial.json"
+      write tmp_path, "partial.json"
+      picked("partial")
+    end.equals "partial.json"
+
+    teardown { I18n.available_locales = nil }
   end
 
   context "fetch source using configured view paths" do
@@ -425,6 +536,44 @@ context "Rabl::Partials" do
         partials.map { |partial| partial.context_scope.lookup_context.lookups }
       end.equals [1, 0]
 
+      asserts("an HTML request looks the template up in the lookup context, in request_format") do
+        Rabl.reset_source_cache!
+        partial = rails_partial(:html, { :variants => [:mobile] }, [tmp_path.to_s])
+        partial.singleton_class.send(:remove_method, :request_format)
+        partial.define_singleton_method(:request_format) { "json" } # as Engine#request_format for HTML
+        [partial.fetch_source("test")[0], partial.context_scope.lookup_context.lookups]
+      end.equals ["json mobile\n", 1]
+
+      asserts("a template Rails can't find is looked up in the request's format and locale") do
+        Rabl.reset_source_cache!
+        I18n.available_locales = [:en, :fr]
+        other_path = Pathname.new(Dir.mktmpdir)
+        %w(json xml fr.json).each { |details| File.open(other_path + "extra.#{details}.rabl", "w") { |f| f.puts details } }
+        # a request format Rails doesn't know (an unknown Accept header) is nil, and rabl renders json
+        [[:json, :en], [:xml, :en], [:json, :fr], [nil, :en]].map do |format, locale|
+          I18n.with_locale(locale) { rails_partial(format, :locale => locale).fetch_source("extra", :view_path => other_path.to_s)[0] }
+        end
+      ensure
+        I18n.available_locales = nil
+      end.equals ["json\n", "xml\n", "fr.json\n", "json\n"]
+
+      asserts("a template Rails can't find is looked up in the lookup context's locale, which the cache key holds") do
+        I18n.available_locales = [:en, :fr]
+        other_path = Pathname.new(Dir.mktmpdir)
+        %w(json fr.json).each { |details| File.open(other_path + "extra.#{details}.rabl", "w") { |f| f.puts details } }
+        # I18n's locale differs from the lookup context's, as outside a controller action
+        [[:en, :fr], [:fr, :en]].flat_map do |i18n_locale, context_locale|
+          [true, false].map do |cache|
+            Rabl.configuration.cache_sources = cache
+            Rabl.reset_source_cache!
+            I18n.with_locale(i18n_locale) { rails_partial(:json, :locale => context_locale).fetch_source("extra", :view_path => other_path.to_s)[0] }
+          end
+        end
+      ensure
+        I18n.available_locales = nil
+        Rabl.configuration.cache_sources = true
+      end.equals ["fr.json\n", "fr.json\n", "json\n", "json\n"]
+
       asserts("a view without a request falls back to the manual lookup") do
         Rabl.reset_source_cache!
         write "plain.json.rabl", "plain"
@@ -445,6 +594,30 @@ context "Rabl::Partials" do
         ::Sinatra = stub(Class.new)
         Rabl.configuration.cache_sources = true
       end
+
+      # a Sinatra view rendering in the given format
+      helper(:sinatra_partial) do |format|
+        partial = TestPartial.new
+        scope = Object.new
+        settings = Struct.new(:views).new(tmp_path.to_s)
+        scope.define_singleton_method(:settings) { settings }
+        partial.define_singleton_method(:context_scope) { scope }
+        partial.instance_variable_set(:@options, :format => format)
+        partial
+      end
+
+      asserts("each format and locale gets its own template") do
+        Rabl.reset_source_cache!
+        I18n.available_locales = [:en, :fr]
+        write "test.json.rabl", "json"
+        write "test.xml.rabl", "xml"
+        write "test.fr.json.rabl", "json fr"
+        sources = [:json, :xml].map { |format| sinatra_partial(format).fetch_source("test")[0] }
+        sources << I18n.with_locale(:fr) { sinatra_partial(:json).fetch_source("test")[0] }
+        sources << sinatra_partial(:json).fetch_source("test")[0]
+      ensure
+        I18n.available_locales = nil
+      end.equals ["json\n", "xml\n", "json fr\n", "json\n"]
 
       asserts("each app gets the template in its own views") do
         Rabl.reset_source_cache!

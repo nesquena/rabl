@@ -582,7 +582,7 @@ Simplest caching usage is:
 ```ruby
 # app/views/users/show.json.rabl
 object @quiz
-cache @quiz # key = rabl/quiz/[cache_key]
+cache @quiz # key = rabl-v2/quiz/[cache_key]
 attribute :title
 ```
 
@@ -610,7 +610,7 @@ template names in `object` but not the item, rabl adds the item to it, so `cache
 per item. When that variable is nil, any nil part of the key counts as it, so a key such as `cache ['v1', current_user]` gets the item
 added for an anonymous (nil) viewer. The other parts of the key are used as they are: any other instance variable keeps its outer value,
 and a helper such as `current_user` keeps the viewer, so `cache ['v1', current_user]` without `root_object` gives all the items one
-entry per signed-in viewer. Include `root_object` whenever the output depends on the item.
+entry per viewer, apart from the nil case above. Include `root_object` whenever the output depends on the item.
 
 Under Rails, keys include the Rails template digest when the template is rendered through a controller or view. `Rabl.render` and
 `Rabl::Renderer` used outside a request have no view context, so their keys identify the template differently and don't match the keys of

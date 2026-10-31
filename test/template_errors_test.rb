@@ -76,6 +76,14 @@ context "Template errors" do
     error_site { RablTemplate.new(template_path("tilt")).render(scope) }
   end.equals { "#{template_path('tilt')}:3" }
 
+  asserts "an error in an inline Tilt template, such as a Sinatra __END__ template" do
+    scope = Object.new
+    scope.instance_variable_set(:@user, User.new)
+    # the template's source starts at line 10 of the app's file
+    template = RablTemplate.new(template_path("app"), 10) { "object @user\n\nnode(:x) { |u| u.no_such_method }\n" }
+    [error_site { template.render(scope) }, error_site { RablTemplate.new(template_path("app"), 20) { template.data }.render(scope) }]
+  end.equals { ["#{template_path('app')}:12", "#{template_path('app')}:22"] }
+
   asserts "the warning for extends inside a node names the template line" do
     write_template("warns", "object @user\nattributes :name\nnode(:x) do |u|\n  extends 'broken'\nend\n")
     stderr = $stderr

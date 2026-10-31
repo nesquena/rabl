@@ -55,7 +55,7 @@ module Rabl
     # Maps a cache key to an engine
     def map_cache_key_to_engine(engine)
       if cache_key = cache_key_for(engine)
-        result_cache_key = ActiveSupport::Cache.expand_cache_key(cache_key, :rabl)
+        result_cache_key = TemplateCacheKey.expand(cache_key)
         @cache_key_to_engine[result_cache_key] = engine
         disable_cache_read_on_render(engine)
       end
