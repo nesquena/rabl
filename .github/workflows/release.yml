@@ -1,19 +1,21 @@
 # Publishes a rabl release to rubygems.org with trusted publishing, gated by the "release"
-# environment: the owner approves each publish. Generated from the steward's release-rubygems.yml
-# template; read the notes there before changing the security-relevant parts.
+# environment: the owner approves each publish.
 #
 # Usual path: merge the release PR (the version in lib/rabl/version.rb and the CHANGELOG.md heading
 # stamped with the date, e.g. "## 0.18.0 (Nov 1, 2026)"), then "Run workflow" on master with the
-# version. build checks the version, the changelog's first heading and the branch, and builds the gem
-# reproducibly; publish waits for approval, creates the tag vX.Y.Z on the built commit and pushes the
-# gem with short-lived trusted-publishing credentials. Pushing a vX.Y.Z tag on a master commit runs
-# the same checks. "Re-run failed jobs" resumes a release that stopped partway.
+# version. build checks the version, that the changelog's first heading is that version with a date,
+# and the branch, and builds the gem reproducibly; publish waits for approval, pushes the gem with
+# short-lived trusted-publishing credentials, then creates the tag vX.Y.Z on the built commit. Pushing
+# a vX.Y.Z tag on a master commit runs the same checks. "Re-run failed jobs" (not "Re-run all jobs",
+# which rebuilds) resumes a release that stopped partway.
 #
 # Dry run: tick dry_run to check the wiring. Everything runs except the changelog checks, the tag and
 # the push; the credential exchange fails unless the trusted publisher is set up.
 #
 # The "release" environment's protection rules are the ONLY gate on publishing (required reviewer, no
-# admin bypass, deployments only from master and v*.*.* tags). Before approving a deployment, check
+# admin bypass, deployments only from master and v*.*.* tags): RubyGems trusts any run of this file
+# that uses that environment, and a branch or tag can carry its own modified copy of it. The trusted
+# publisher on rubygems.org must name the environment. Before approving a deployment, check
 # who started the run, the event, that the commit is the release PR's merge commit, and the build
 # log's "is on master" line. Reject any run you won't approve: a waiting run blocks the next one.
 
@@ -87,9 +89,9 @@ jobs:
           else
             tag="$GITHUB_REF_NAME"
             version="${tag#"$TAG_PREFIX"}"
-            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::tag $tag is not ${TAG_PREFIX}X.Y.Z"; exit 1; }
+            [[ "$tag" == "$TAG_PREFIX"* && "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::tag $tag is not ${TAG_PREFIX}X.Y.Z"; exit 1; }
           fi
-          file_version=$(ruby -e 'puts File.read(ENV["VERSION_FILE"])[/\bVERSION\s*=\s*["\x27]([^"\x27]+)/, 1]')
+          file_version=$(ruby -e 'puts File.binread(ENV["VERSION_FILE"])[/\bVERSION\s*=\s*["\x27]([^"\x27]+)/, 1]')
           [ "$version" = "$file_version" ] || { echo "::error::version $version but $VERSION_FILE says $file_version"; exit 1; }
           if [ "$DRY_RUN" = true ]; then
             echo "::warning::dry run: not checking $CHANGELOG"
@@ -97,11 +99,13 @@ jobs:
             heading=$(grep -m1 -E "$CHANGELOG_HEADING" "$CHANGELOG") || { echo "::error::$CHANGELOG has no heading matching '$CHANGELOG_HEADING'"; exit 1; }
             top=$(echo "$heading" | sed -nE "s/$CHANGELOG_TOP.*/\1/p")
             [ "$top" = "$version" ] || { echo "::error::$CHANGELOG starts with '$heading', not release $version: merge the release PR first, and nothing after it"; exit 1; }
-            ! echo "$heading" | grep -qiE 'unreleased|tbd|tba' || { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
+            rest="${heading#*"$version"}"
+            [[ "$rest" =~ (19|20)[0-9][0-9] ]] && ! echo "$rest" | grep -qiE 'unreleased|tbd|tba' ||
+              { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
           fi
           series="${version%.*}-stable"
           on=""
-          for b in "$TRUNK" "$series"; do
+          for b in "$series" "$TRUNK"; do
             git merge-base --is-ancestor "$GITHUB_SHA" "origin/$b" 2>/dev/null && on="$b"
           done
           [ -n "$on" ] || { echo "::error::$version ($GITHUB_SHA) is not on $TRUNK or $series"; exit 1; }
@@ -113,7 +117,7 @@ jobs:
         env:
           VERSION: ${{ steps.check.outputs.version }}
         run: |
-          export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA")
+          SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA"); export SOURCE_DATE_EPOCH
           mkdir dist
           for spec in $GEMS; do
             g="${spec%%:*}"; dir="${spec#*:}"; [ "$dir" = "$spec" ] && dir=.
@@ -158,21 +162,6 @@ jobs:
       - name: Check the sums
         working-directory: dist
         run: sha256sum -c SHA256SUMS
-      - name: Create the tag
-        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
-        shell: bash -eo pipefail {0}
-        env:
-          TAG: ${{ needs.build.outputs.tag }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG" "refs/tags/$TAG^{}" | cut -f1)
-          if [ -z "$tagged" ]; then
-            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
-          elif echo "$tagged" | grep -qx "$GITHUB_SHA"; then
-            echo "tag $TAG is already at $GITHUB_SHA"
-          else
-            echo "::error::tag $TAG is not at $GITHUB_SHA (now: $tagged)"; exit 1
-          fi
       - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
         with:
           ruby-version: '3.3'
@@ -199,3 +188,18 @@ jobs:
               echo "::error::$g $VERSION is already on rubygems.org with sha256 $published, not this build's $sum"; exit 1
             fi
           done < ORDER
+      - name: Create the tag
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
+        shell: bash -eo pipefail {0}
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG" "refs/tags/$TAG^{}" | cut -f1)
+          if [ -z "$tagged" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
+          elif echo "$tagged" | grep -qx "$GITHUB_SHA"; then
+            echo "tag $TAG is already at $GITHUB_SHA"
+          else
+            echo "::error::tag $TAG is not at $GITHUB_SHA (now: $tagged)"; exit 1
+          fi
