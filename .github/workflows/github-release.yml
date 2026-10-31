@@ -2,8 +2,8 @@
 # PRs and new contributors since the previous release) after a link to that version's CHANGELOG.md.
 # release.yml runs it after it publishes; "Run workflow" here (with the tag) creates the page for an
 # earlier release. A tag that already has a release is left alone, so running it twice is harmless.
-# A tag older than the current "Latest" release is created with --latest=false; the API otherwise
-# marks every new release as Latest.
+# A tag that isn't the newest vX.Y.Z tag is created with --latest=false; the API otherwise marks every
+# new release as Latest.
 
 name: github-release
 run-name: github release ${{ inputs.tag }}
@@ -43,10 +43,13 @@ jobs:
             echo "$TAG already has a release; leaving it alone"
             exit 0
           fi
-          latest=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null) || latest=""
+          # Compare with the newest vX.Y.Z tag rather than the "Latest" release, so a failed lookup stops the
+          # step (pipefail) instead of letting an older tag become Latest
+          newest=$(gh api --paginate "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" --jq '.[].ref' |
+            sed 's#^refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           flags=()
-          if [ -n "$latest" ] && [ "$(printf '%s\n' "$latest" "$TAG" | sort -V | tail -n 1)" != "$TAG" ]; then
-            echo "$TAG is older than the latest release, $latest: not marking it as latest"
+          if [ "$newest" != "$TAG" ]; then
+            echo "$TAG is not the newest tag ($newest): not marking it as latest"
             flags=(--latest=false)
           fi
           # --verify-tag: refuse rather than create the tag. With --generate-notes, GitHub puts these notes
