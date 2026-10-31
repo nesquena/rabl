@@ -152,10 +152,11 @@ module Rabl
       end
 
       # Returns the format Rails 3.2 and higher look templates up in:
-      # the request's format, or request_format for HTML requests
+      # the request's format, or request_format for HTML requests (as a Symbol,
+      # the only form Rails 7.0 and higher match)
       def rails_source_format
         format = context_scope.request.format.to_sym
-        format == :html ? request_format : format
+        format == :html ? request_format.to_sym : format
       end
 
       # Returns the rabl template path for padrino views using configured views

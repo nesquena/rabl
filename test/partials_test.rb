@@ -58,6 +58,8 @@ class TestLookupContext
     locales = @locale.map { |l| ".#{l}" } + [""]
     variants = (self.variants.map { |v| "+#{v}" }) + [""]
     format = (options[:formats] || formats).first
+    # like Rails 7.0 and higher, which match formats given as Symbols only
+    raise "Missing template #{name}" unless format.is_a?(Symbol)
     candidates = locales.product(variants).map { |l, v| File.join(@view_path, "#{name}#{l}.#{format}#{v}.rabl") }
     path = candidates.find { |candidate| File.exist?(candidate) } or raise "Missing template #{name}"
     Struct.new(:identifier).new(path)
@@ -424,6 +426,14 @@ context "Rabl::Partials" do
         partials.each { |partial| partial.fetch_source("test") }
         partials.map { |partial| partial.context_scope.lookup_context.lookups }
       end.equals [1, 0]
+
+      asserts("an HTML request looks the template up in the lookup context, in request_format") do
+        Rabl.reset_source_cache!
+        partial = rails_partial(:html, { :variants => [:mobile] }, [tmp_path.to_s])
+        partial.singleton_class.send(:remove_method, :request_format)
+        partial.define_singleton_method(:request_format) { "json" } # as Engine#request_format for HTML
+        [partial.fetch_source("test")[0], partial.context_scope.lookup_context.lookups]
+      end.equals ["json mobile\n", 1]
 
       asserts("a view without a request falls back to the manual lookup") do
         Rabl.reset_source_cache!
