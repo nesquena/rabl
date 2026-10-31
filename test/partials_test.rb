@@ -176,6 +176,19 @@ context "Rabl::Partials" do
       Rabl.reset_source_cache!
     end.equals ["show.json", "show.xml", "base.json", "base.fr.json", "base.json"]
 
+    asserts("with cache_sources, the template for a locale's fallbacks once they are assigned") do
+      Rabl.configuration.cache_sources = true
+      Rabl.reset_source_cache!
+      fallbacks = I18n.fallbacks
+      before = I18n.with_locale(:de) { picked("base") }
+      I18n.fallbacks = I18n::Locale::Fallbacks.new(:de => :fr)
+      [before, I18n.with_locale(:de) { picked("base") }]
+    ensure
+      I18n.fallbacks = fallbacks
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end.equals ["base.json", "base.fr.json"]
+
     asserts("templates nested in an XML rendering, in a child and in an extended template") do
       [%w(inner.xml inner.json), %w(inner.xml inner)].map do |names|
         path = Pathname.new(Dir.mktmpdir)

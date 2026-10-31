@@ -15,6 +15,13 @@ module Rabl
     # each lookup. Upgrade path: enable it on an engine once its WeakMap holds keys weakly
     # without that cost.
     LOOKUP_IDS_BY_OBJECT = (ObjectSpace::WeakMap.new if RUBY_ENGINE == "ruby" && RUBY_VERSION >= "3.2")
+    # I18n's fallbacks (by identity) => locale => default locale => format => the number standing
+    # for the manual lookup's format and locale chain in source cache keys, worked out once for each.
+    # ceiling: the fallbacks are read once per locale, so fallbacks changed in place later
+    # (I18n.fallbacks.map) aren't seen by the cache until they are assigned anew
+    # (I18n.fallbacks = ...). Upgrade path: key by the fallbacks' contents.
+    MANUAL_LOOKUP_IDS = {}.compare_by_identity
+    MANUAL_LOOKUP_IDS_LOCK = Mutex.new
 
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
@@ -71,6 +78,9 @@ module Rabl
       # details such as versioncake's versions) and the view paths; elsewhere the format
       # and locales the manual lookup prefers, and under Sinatra the app's views. Returns
       # false when a view path has no stable name, so the lookup isn't cached.
+      # ceiling: outside Rails the cache (and MANUAL_LOOKUP_IDS) keeps an entry per locale looked
+      # up in, as Rails' details keys do, so it is bounded by I18n.available_locales only while
+      # I18n.enforce_available_locales is on (the default).
       def source_lookup(resolver)
         case resolver
         when :rails
@@ -79,9 +89,28 @@ module Rabl
           return false if details == false
           [rails_lookup_format, details, view_paths]
         when :sinatra
-          [context_scope.settings.views, manual_source_format, manual_source_locales]
+          [context_scope.settings.views, manual_lookup_id]
         else
-          [manual_source_format, manual_source_locales]
+          manual_lookup_id
+        end
+      end
+
+      # Returns the number standing for the format and locales the manual lookup prefers.
+      # Nested Hashes of what the locales come from, as this runs on every source cache hit.
+      def manual_lookup_id
+        format = manual_source_format
+        return lookup_id([:manual, format, []]) unless defined?(::I18n) && ::I18n.respond_to?(:config)
+
+        config = ::I18n.config
+        locale, default_locale = config.locale, config.default_locale
+        fallbacks = ::I18n.fallbacks if ::I18n.respond_to?(:fallbacks)
+        ids = MANUAL_LOOKUP_IDS[fallbacks]
+        ids &&= ids[locale]
+        ids &&= ids[default_locale]
+        (ids && ids[format]) || MANUAL_LOOKUP_IDS_LOCK.synchronize do
+          ids = ((MANUAL_LOOKUP_IDS[fallbacks] ||= {})[locale] ||= {})[default_locale] ||= {}
+          # lookup_id takes its own lock, never the other way round
+          ids[format] ||= lookup_id([:manual, format, manual_source_locales])
         end
       end
 
@@ -192,11 +221,12 @@ module Rabl
       # Returns the locales the manual lookup prefers, best first: like Rails' lookup,
       # I18n's locale, its fallbacks and the default locale
       def manual_source_locales
-        return [] unless defined?(::I18n) && ::I18n.respond_to?(:locale)
+        return [] unless defined?(::I18n) && ::I18n.respond_to?(:config)
 
-        locales = [::I18n.locale]
-        locales.concat(::I18n.fallbacks[::I18n.locale]) if ::I18n.respond_to?(:fallbacks)
-        locales << ::I18n.default_locale
+        config = ::I18n.config
+        locales = [config.locale]
+        locales.concat(::I18n.fallbacks[config.locale]) if ::I18n.respond_to?(:fallbacks)
+        locales << config.default_locale
         locales.uniq.map(&:to_s)
       end
 
