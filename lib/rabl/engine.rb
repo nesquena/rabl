@@ -682,7 +682,10 @@ module Rabl
         msg = "cached_source_#{[@_source, @_options[:source_location], line].hash.abs}"
 
         unless self.respond_to? msg then
-          src = "def #{msg} locals, &block\n#{@_source}\nend"
+          source = @_source
+          # A UTF-8 byte order mark (as some editors save files) isn't part of the template
+          source = source.byteslice(3..-1) if source.getbyte(0) == 0xEF && source.getbyte(1) == 0xBB && source.getbyte(2) == 0xBF
+          src = "def #{msg} locals, &block\n#{source}\nend"
 
           # The def line comes before the template's first line, so errors report the
           # template's own line numbers
