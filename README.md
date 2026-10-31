@@ -589,7 +589,9 @@ attribute :title
 The full cache key also includes the format and identifies the template (the Rails template digest when available, otherwise a digest of
 the template's source, location and view path), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
 As with Rails fragment caching, anything else the output depends on must be part of the key: a block that runs several times with different
-data (for example inside a loop), locals, or the current user.
+data (for example inside a loop), locals, or the current user. That includes the locale and the request variant when `extends` or `partial`
+picks a template for each (`base.fr.json.rabl`, `base.json+mobile.rabl`): the key has the format templates are looked up in, but not
+those, so add them, e.g. `cache ['v1', root_object, I18n.locale, request.variant]` under Rails.
 Blocks are told apart by where they start in the template, so a block written once in a method (a `def` in the template, or a helper)
 and called several times is the same block each time: give each call a distinct cache key, e.g. by adding the arguments the method was
 called with. On runtimes without `RubyVM::InstructionSequence` (such as JRuby) the start is the line only, so two caching blocks that

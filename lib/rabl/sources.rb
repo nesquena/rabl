@@ -73,6 +73,12 @@ module Rabl
         end
       end
 
+      # Returns the format fetch_source looks templates up in: under Rails' lookup the
+      # request's (see rails_lookup_format), elsewhere the one being rendered (json for hash)
+      def source_lookup_format
+        (source_resolver == :rails ? rails_lookup_format : manual_source_format).to_s
+      end
+
       # Returns what, besides the file and the :view_path option, the resolver's lookup
       # depends on, so the source cache keeps each lookup's result apart: under Rails the
       # format, the lookup details (formats, locale, variants, handlers, and registered

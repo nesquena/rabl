@@ -170,7 +170,7 @@ module Rabl
         end
 
         cache_key << "collection" if is_collection?(root_object)
-        cache_key.concat(TemplateCacheKey.shape(@_options))
+        cache_key.concat(TemplateCacheKey.shape(@_options, source_lookup_format))
 
         cache_key
       end
