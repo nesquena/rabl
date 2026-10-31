@@ -32,7 +32,7 @@ module Rabl
 
       def to_xml(options = {}, &block)
         root = options[:root].to_s
-        unless options[:children] || root.empty?
+        unless options[:children] || !options[:root] || root.empty?
           renamed = ActiveSupport::XmlMini.rename_key(root, options)
           children = @children_names.fetch([root, renamed]) do |key|
             @children_names[key] = children_name(root, renamed, options)
@@ -60,7 +60,9 @@ module Rabl
       # count when no rule matches.
       def singular_rule_rank(word)
         inflections = ActiveSupport::Inflector.inflections
-        return -1 if inflections.uncountables.uncountable?(word)
+        uncountables = inflections.uncountables
+        # ActiveSupport < 5 keeps them in a plain Array, checked by the last word
+        return -1 if uncountables.respond_to?(:uncountable?) ? uncountables.uncountable?(word) : uncountables.include?(word.downcase[/\b\w+\Z/])
 
         rules = inflections.singulars
         rules.index { |(rule, _)| rule.is_a?(Regexp) ? rule.match?(word) : word.include?(rule) } || rules.size

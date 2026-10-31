@@ -246,6 +246,14 @@ context "Rabl::Engine" do
         template.render(Object.new)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <lessons-progresses type=\"array\">\n    <lesson-progress>\n      <name>intro</name>\n    </lesson-progress>\n  </lessons-progresses>\n</hash>\n"
 
+      asserts "that it names the items of an array under a false key by their type" do
+        template = rabl %{
+          object false
+          node(:x) { { false => [1, 2] } }
+        }
+        template.render(Object.new)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <x>\n    <integers type=\"array\">\n      <integer type=\"integer\">1</integer>\n      <integer type=\"integer\">2</integer>\n    </integers>\n  </x>\n</hash>\n"
+
       asserts "that it names camelized items with it" do
         template = rabl %{
           collection @users => :lessons_progresses
