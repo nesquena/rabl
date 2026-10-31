@@ -168,6 +168,19 @@ context 'Rabl cache keys' do
       topic.map { |dir| render("object @item\ncache @item\nextends 'base'", a, :view_path => dir) }
     end.equals ['{"id":18}', '{"name":"item18"}']
 
+    asserts('one partial reached through two view paths in one render renders each') do
+      shared = Dir.mktmpdir
+      File.open(File.join(shared, 'leaf.rabl'), 'w') { |f| f.write("object @item\ncache root_object\nextends 'base'\n") }
+      paths = topic.map { |dir| [dir, shared].inspect }
+      template = "object @item\nnode(:a) { |i| partial('leaf', :object => i.owner, :view_path => #{paths[0]}) }\n" \
+        "node(:b) { |i| partial('leaf', :object => i.owner, :view_path => #{paths[1]}) }"
+      begin
+        render(template, item(40, item(41)))
+      ensure
+        FileUtils.rm_rf(shared)
+      end
+    end.equals '{"a":{"id":41},"b":{"name":"item41"}}'
+
     teardown { @dirs.each { |dir| FileUtils.rm_rf(dir) } }
   end
 
