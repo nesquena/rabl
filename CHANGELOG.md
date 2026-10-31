@@ -29,6 +29,7 @@
 
 * Ignore `extends` called while a template renders, e.g. inside a `node` block, with a warning, instead of writing rabl's internal settings (including the view path) into the response and adding the template to later elements of a collection; `attribute`, `node`, `child` and `glue` called there keep working but now warn too. Use `partial` there (@nesquena; reported by @barmstrong in #477)
 * Fix XML rendering outside Rails raising `NoMethodError` for `to_xml` unless the app had loaded ActiveSupport's XML conversions; rabl now loads them, and explains when the `builder` gem is missing (@nesquena)
+* Fix JSON rendering without Oj raising `NameError` (`uninitialized constant JSON`) unless the app had loaded the json library; rabl now loads it when Oj isn't available (@nesquena)
 * Fix `config.xml_options` being ignored when set after the first XML render: rabl kept the options it read on that render. Each XML render now uses the current `xml_options`; the defaults are unchanged (@nesquena)
 * Fix `extract_options!` being undefined (a `NoMethodError`) when nothing else had loaded ActiveSupport's Array extensions, e.g. in Sinatra apps (@A1bi)
 * Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back. Sinatra, Padrino and `Rabl::Renderer` cache with `config.perform_caching = true` (@nesquena; reported by @destroytoday in #582)
