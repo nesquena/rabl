@@ -326,6 +326,22 @@ context "Rabl::Partials" do
         [rails_partial(:json, :locale => [:de, :fr]).fetch_source("test")[0], rails_partial(:json, :locale => [:de, :en]).fetch_source("test")[0]]
       end.equals ["json fr\n", "json\n"]
 
+      asserts("a lookup context that isn't Rails' own is read through its own methods") do
+        Rabl.reset_source_cache!
+        duck = Class.new do
+          define_singleton_method(:registered_details) { TestLookupContext.registered_details }
+          define_method(:initialize) { |context| @context = context }
+          [:formats, :variants, :find].each { |name| define_method(name) { |*args| @context.public_send(name, *args) } }
+          define_method(:locale) { [@context.locale] }
+        end
+        [:fr, :en].map do |locale|
+          partial = rails_partial(:json, :locale => locale)
+          context = duck.new(partial.context_scope.lookup_context)
+          partial.context_scope.define_singleton_method(:lookup_context) { context }
+          partial.fetch_source("test")[0]
+        end
+      end.equals ["json fr\n", "json\n"]
+
       asserts("each set of view paths gets its own template") do
         Rabl.reset_source_cache!
         other_path = Pathname.new(Dir.mktmpdir)

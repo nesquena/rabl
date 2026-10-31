@@ -118,7 +118,7 @@ module Rabl
           # uses the whole chain (I18n.locale, its fallbacks and the default locale)
           accessors = ActionView::LookupContext::Accessors if defined?(ActionView::LookupContext::Accessors)
           details = lookup_context.class.registered_details.map do |name|
-            if accessors && accessors.method_defined?(name)
+            if accessors && lookup_context.is_a?(accessors) && accessors.method_defined?(name)
               accessors.instance_method(name).bind_call(lookup_context)
             else
               lookup_context.public_send(name)
