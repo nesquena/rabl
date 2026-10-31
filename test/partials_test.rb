@@ -176,6 +176,16 @@ context "Rabl::Partials" do
       Rabl.reset_source_cache!
     end.equals ["show.json", "show.xml", "base.json", "base.fr.json", "base.json"]
 
+    asserts("templates nested in an XML rendering, in a child and in an extended template") do
+      [%w(inner.xml inner.json), %w(inner.xml inner)].map do |names|
+        path = Pathname.new(Dir.mktmpdir)
+        names.each { |name| write path, name }
+        File.open(path + "outer.rabl", "w") { |f| f.puts "object @user", "child(@user => :pal) { extends 'inner' }", "extends 'middle'" }
+        File.open(path + "middle.rabl", "w") { |f| f.puts "extends 'inner'" }
+        Rabl::Renderer.new("outer", User.new, :format => :xml, :view_path => path.to_s).render.scan(%r{<from>([^<]*)</from>}).flatten
+      end
+    end.equals [["inner.xml", "inner.xml"], ["inner.xml", "inner.xml"]]
+
     asserts("the template before the partial") do
       write tmp_path, "_partial.json"
       write tmp_path, "partial.json"

@@ -148,6 +148,8 @@ module Rabl
         :root       => (options[:root] || false)
       })
       options[:parent_engine] = rabl_template_engine
+      # a nested template renders as a hash, but looks its templates up in the format being rendered
+      options[:source_format] ||= manual_source_format if respond_to?(:manual_source_format, true)
 
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end

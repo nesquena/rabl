@@ -166,11 +166,12 @@ module Rabl
         manual_source_format
       end
 
-      # Returns the format the manual lookup prefers: the format being rendered (json for hash)
+      # Returns the format the manual lookup prefers: the format being rendered (json for hash),
+      # which nested templates are given as :source_format
       def manual_source_format
         # Engine keeps its options in @_options, Builder in @options
         options = (@_options if defined?(@_options)) || (@options if defined?(@options))
-        format = options[:format] if options
+        format = options[:source_format] || options[:format] if options
         format ||= request_format if defined?(request_format)
         format = format.to_s
         format.empty? || format == "hash" ? "json" : format
