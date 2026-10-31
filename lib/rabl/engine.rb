@@ -430,7 +430,8 @@ module Rabl
 
         block, parent = @_block_identity
         location = block.source_location
-        [location && [CacheKey.path(location[0], root), location[1]], parent && parent.rabl_template_identity]
+        location &&= [CacheKey.path(location[0], root), location[1], location.size > 2 ? location[2] : CacheKey.column(block)]
+        [location, parent && parent.rabl_template_identity]
       end
 
       # Returns a guess at the default object for this template

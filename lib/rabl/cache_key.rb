@@ -29,6 +29,20 @@ module Rabl
       root && path.start_with?(root) ? path.byteslice(root.bytesize..-1) : path
     end
 
+    # Returns the column a block starts at, which tells apart blocks on one line, or nil when
+    # the runtime doesn't expose it.
+    # ceiling: without RubyVM::InstructionSequence (e.g. on JRuby), blocks that start on the
+    # same line of a template share an identity; put them on separate lines, or give them
+    # distinct cache keys.
+    def column(block)
+      return unless defined?(RubyVM::InstructionSequence)
+
+      iseq = RubyVM::InstructionSequence.of(block)
+      iseq && iseq.to_a[4][:code_location][1]
+    rescue StandardError
+      nil
+    end
+
     # Returns the working directory with a trailing separator, as bytes, or nil if it is gone
     def root
       File.join(Dir.pwd, "").force_encoding(Encoding::BINARY)

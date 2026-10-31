@@ -71,6 +71,10 @@ context 'Rabl cache keys' do
      render("object @item\nchild(:owner => :owner) { cache root_object; attributes :name }", item(8, owner))]
   end.equals ['{"owner":{"id":6}}', '{"owner":{"name":"item6"}}']
 
+  asserts('two child blocks on one line caching the same object are cached apart') do
+    render("object @item\nchild(:owner => :a) { cache root_object; attributes :id }; child(:owner => :b) { cache root_object; attributes :name }", item(36, item(37)))
+  end.equals '{"a":{"id":37},"b":{"name":"item37"}}'
+
   asserts('cached child blocks are read on the next render') do
     owner = item(9)
     template = "object @item\nchild(:owner => :owner) { cache root_object; attributes :id }"
@@ -114,6 +118,13 @@ context 'Rabl cache keys' do
       items.each { |i| i.id += 100 }
       [first, render("collection @items\nextends 'item_id'\nattributes :id => :fresh_id", items, :view_path => topic)]
     end.equals ['[{"id":14},{"id":15}]', '[{"fresh_id":114,"id":14},{"fresh_id":115,"id":15}]']
+
+    asserts('two child blocks on one line of a template file are cached apart') do
+      File.open(File.join(topic, 'same_line.rabl'), 'w') do |f|
+        f.write("object @item\nchild(:owner => :a) { cache root_object; attributes :name }; child(:owner => :b) { cache root_object; attributes :id }\n")
+      end
+      Rabl::Renderer.json(item(38, item(39)), 'same_line', :view_path => topic, :scope => Object.new)
+    end.equals '{"a":{"name":"item39"},"b":{"id":39}}'
 
     asserts('a partial is cached once for the templates that extend it') do
       a = item(16)

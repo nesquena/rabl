@@ -567,6 +567,8 @@ The full cache key also includes the format and identifies the template (the Rai
 the template's source, location and view path), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
 As with Rails fragment caching, anything else the output depends on must be part of the key: a block that runs several times with different
 data (for example inside a loop), locals, or the current user.
+Blocks are told apart by where they start in the template; on runtimes without `RubyVM::InstructionSequence` (such as JRuby) that is
+the line only, so two caching blocks that start on the same line need distinct cache keys there.
 
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
