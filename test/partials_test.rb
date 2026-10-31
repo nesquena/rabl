@@ -1,11 +1,67 @@
 # frozen_string_literal: true
 
 require 'tmpdir'
+require 'delegate'
 require 'pathname'
 require File.expand_path('../teststrap', __FILE__)
 
 class TestPartial
   include Rabl::Partials
+end
+
+# A view path resolver, like a custom ActionView::Resolver: it has no name but its object
+class TestResolver
+  attr_reader :dir
+  def initialize(dir); @dir = dir; end
+end
+
+# A resolver named by its path, like ActionView::FileSystemResolver
+class TestPathResolver < TestResolver
+  attr_reader :named
+  def to_path; @named = named.to_i + 1; dir; end
+end
+
+# A list of view paths that keeps them frozen, like a PathSet on Rails 7.1 and higher
+class TestPathSet
+  attr_reader :paths
+  def initialize(paths); @paths = paths.freeze; end
+  def to_a; paths.dup; end
+end
+
+# Looks templates up the way ActionView's lookup context does: by name and the
+# requested format, locale chain and variant ("test.fr.json+mobile.rabl")
+class TestLookupContext
+  # Like Rails' generated accessors, these return the whole detail
+  module Accessors
+    def locale; @locale; end
+  end
+  include Accessors
+
+  # Like Rails 7.0 and higher, on this class only (a subclass's are nil)
+  singleton_class.send(:attr_accessor, :registered_details)
+  self.registered_details = [:locale, :formats, :variants]
+
+  attr_accessor :formats, :variants, :details_key, :lookups
+
+  def initialize(view_path, details = {})
+    @view_path, @lookups = view_path, 0
+    @locale, @formats, @variants = Array(details[:locale] || :en), details[:formats] || [:json], details[:variants] || []
+  end
+
+  # Like Rails, the first locale of the chain the lookup uses
+  def locale
+    @locale.first
+  end
+
+  def find(name, prefixes = [], partial = false, keys = [], options = {})
+    @lookups += 1
+    locales = @locale.map { |l| ".#{l}" } + [""]
+    variants = (self.variants.map { |v| "+#{v}" }) + [""]
+    format = (options[:formats] || formats).first
+    candidates = locales.product(variants).map { |l, v| File.join(@view_path, "#{name}#{l}.#{format}#{v}.rabl") }
+    path = candidates.find { |candidate| File.exist?(candidate) } or raise "Missing template #{name}"
+    Struct.new(:identifier).new(path)
+  end
 end
 
 context "Rabl::Partials" do
@@ -204,4 +260,207 @@ context "Rabl::Partials" do
       end
     end
   end # Rails
+
+  context "fetch_source with cache_sources" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    helper(:write) { |name, content| File.open(tmp_path + name, "w") { |f| f.puts content } }
+
+    # A Rails view for a request in the given format with the given lookup details
+    helper(:rails_partial) do |format, details = {}, view_paths = []|
+      partial = TestPartial.new
+      scope = Object.new
+      view_path = (view_paths.respond_to?(:paths) ? view_paths.paths : view_paths).first || tmp_path
+      lookup_context = TestLookupContext.new((view_path.respond_to?(:dir) ? view_path.dir : view_path).to_s, details)
+      request = Struct.new(:format).new(Struct.new(:to_sym).new(format))
+      scope.define_singleton_method(:lookup_context) { lookup_context }
+      scope.define_singleton_method(:view_paths) { view_paths }
+      scope.define_singleton_method(:request) { request }
+      partial.define_singleton_method(:context_scope) { scope }
+      partial.define_singleton_method(:request_format) { format.to_s }
+      partial
+    end
+
+    teardown do
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end
+
+    context "under Rails" do
+      setup do
+        ::Rails = stub(Class.new)
+        ::ActionPack = Module.new
+        ::ActionPack::VERSION = Module.new
+        ::ActionPack::VERSION::MAJOR = 8
+        ::ActionPack::VERSION::MINOR = 1
+        ::ActionView = Module.new
+        ::ActionView::LookupContext = TestLookupContext
+        Rabl.configuration.cache_sources = true
+
+        write "test.json.rabl", "json"
+        write "test.json+mobile.rabl", "json mobile"
+        write "test.xml.rabl", "xml"
+        write "test.fr.json.rabl", "json fr"
+      end
+
+      asserts("a variant gets its own template after the plain one is cached") do
+        Rabl.reset_source_cache!
+        [rails_partial(:json).fetch_source("test")[0], rails_partial(:json, :variants => [:mobile]).fetch_source("test")[0]]
+      end.equals ["json\n", "json mobile\n"]
+
+      asserts("the plain template after a variant is cached") do
+        Rabl.reset_source_cache!
+        [rails_partial(:json, :variants => [:mobile]).fetch_source("test")[0], rails_partial(:json).fetch_source("test")[0]]
+      end.equals ["json mobile\n", "json\n"]
+
+      asserts("each format gets its own template") do
+        Rabl.reset_source_cache!
+        [rails_partial(:json).fetch_source("test")[0], rails_partial(:xml).fetch_source("test")[0]]
+      end.equals ["json\n", "xml\n"]
+
+      asserts("each locale gets its own template") do
+        Rabl.reset_source_cache!
+        [rails_partial(:json).fetch_source("test")[0], rails_partial(:json, :locale => :fr).fetch_source("test")[0]]
+      end.equals ["json\n", "json fr\n"]
+
+      asserts("each locale chain gets its own template, for the same first locale") do
+        Rabl.reset_source_cache!
+        [rails_partial(:json, :locale => [:de, :fr]).fetch_source("test")[0], rails_partial(:json, :locale => [:de, :en]).fetch_source("test")[0]]
+      end.equals ["json fr\n", "json\n"]
+
+      asserts("a lookup context that isn't Rails' own is read through its own methods") do
+        Rabl.reset_source_cache!
+        duck = Class.new do
+          define_singleton_method(:registered_details) { TestLookupContext.registered_details }
+          define_method(:initialize) { |context| @context = context }
+          [:formats, :variants, :find].each { |name| define_method(name) { |*args| @context.public_send(name, *args) } }
+          define_method(:locale) { [@context.locale] }
+        end
+        [:fr, :en].map do |locale|
+          partial = rails_partial(:json, :locale => locale)
+          context = duck.new(partial.context_scope.lookup_context)
+          partial.context_scope.singleton_class.send(:remove_method, :lookup_context)
+          partial.context_scope.define_singleton_method(:lookup_context) { context }
+          partial.fetch_source("test")[0]
+        end
+      end.equals ["json fr\n", "json\n"]
+
+      asserts("a subclass of the lookup context gets its own template per locale") do
+        Rabl.reset_source_cache!
+        subclass = Class.new(TestLookupContext)
+        [:fr, :en].map do |locale|
+          partial = rails_partial(:json, :locale => locale)
+          context = subclass.new(tmp_path.to_s, :locale => locale)
+          partial.context_scope.singleton_class.send(:remove_method, :lookup_context)
+          partial.context_scope.define_singleton_method(:lookup_context) { context }
+          partial.fetch_source("test")[0]
+        end
+      end.equals ["json fr\n", "json\n"]
+
+      asserts("a lookup context whose details can't be listed is looked up each time") do
+        Rabl.reset_source_cache!
+        sources = [:fr, :en].map do |locale|
+          partial = rails_partial(:json, :locale => locale)
+          context = SimpleDelegator.new(partial.context_scope.lookup_context)
+          partial.context_scope.singleton_class.send(:remove_method, :lookup_context)
+          partial.context_scope.define_singleton_method(:lookup_context) { context }
+          partial.fetch_source("test")[0]
+        end
+        [sources, Rabl.instance_variable_get(:@_source_cache).size]
+      end.equals [["json fr\n", "json\n"], 0]
+
+      asserts("each set of view paths gets its own template") do
+        Rabl.reset_source_cache!
+        other_path = Pathname.new(Dir.mktmpdir)
+        File.open(other_path + "other.json.rabl", "w") { |f| f.puts "other" }
+        write "other.json.rabl", "default"
+        [rails_partial(:json, {}, [tmp_path.to_s]).fetch_source("other")[0], rails_partial(:json, {}, [other_path.to_s]).fetch_source("other")[0]]
+      end.equals ["default\n", "other\n"]
+
+      asserts("a resolver without a name is looked up each time, without growing the cache") do
+        Rabl.reset_source_cache!
+        other_path = Pathname.new(Dir.mktmpdir)
+        File.open(other_path + "other.json.rabl", "w") { |f| f.puts "other" }
+        write "other.json.rabl", "default"
+        sources = [tmp_path, other_path, tmp_path, other_path].map do |path|
+          rails_partial(:json, {}, [TestResolver.new(path.to_s)]).fetch_source("other")[0]
+        end
+        [sources, Rabl.instance_variable_get(:@_source_cache).size]
+      end.equals [["default\n", "other\n", "default\n", "other\n"], 0]
+
+      asserts("resolvers with the same path share their cache entry") do
+        Rabl.reset_source_cache!
+        partials = Array.new(2) { rails_partial(:json, {}, [TestPathResolver.new(tmp_path.to_s)]) }
+        partials.each { |partial| partial.fetch_source("test") }
+        partials.map { |partial| partial.context_scope.lookup_context.lookups }
+      end.equals [1, 0]
+
+      asserts("details keys for the same details share their cache entry") do
+        Rabl.reset_source_cache!
+        # a new details key for the same details, as after Rails clears its details keys
+        partials = Array.new(2) { rails_partial(:json, :variants => [:mobile]) }
+        partials.each { |partial| partial.context_scope.lookup_context.details_key = Object.new }
+        partials.each { |partial| partial.fetch_source("test") }
+        partials.map { |partial| partial.context_scope.lookup_context.lookups }
+      end.equals [1, 0]
+
+      asserts("frozen lists of view paths are named once each, and apart") do
+        Rabl.reset_source_cache!
+        other_path = Pathname.new(Dir.mktmpdir)
+        File.open(other_path + "other.json.rabl", "w") { |f| f.puts "other" }
+        write "other.json.rabl", "default"
+        resolvers = [TestPathResolver.new(tmp_path.to_s), TestPathResolver.new(other_path.to_s)]
+        path_sets = resolvers.map { |resolver| TestPathSet.new([resolver]) }
+        sources = [0, 1, 0, 1].map { |i| rails_partial(:json, {}, path_sets[i]).fetch_source("other")[0] }
+        # named once per list where the memo exists (CRuby 3.2 and higher), on each lookup elsewhere
+        [sources, resolvers.map(&:named)]
+      end.equals do
+        named = defined?(Rabl::Sources::LOOKUP_IDS_BY_OBJECT) && Rabl::Sources::LOOKUP_IDS_BY_OBJECT ? 1 : 2
+        [["default\n", "other\n", "default\n", "other\n"], [named, named]]
+      end
+
+      asserts("a repeated lookup is served from the cache") do
+        Rabl.reset_source_cache!
+        partials = [rails_partial(:json, :variants => [:mobile]), rails_partial(:json, :variants => [:mobile])]
+        partials.each { |partial| partial.fetch_source("test") }
+        partials.map { |partial| partial.context_scope.lookup_context.lookups }
+      end.equals [1, 0]
+
+      asserts("a view without a request falls back to the manual lookup") do
+        Rabl.reset_source_cache!
+        write "plain.json.rabl", "plain"
+        partial = rails_partial(:json, {}, [tmp_path.to_s])
+        partial.context_scope.singleton_class.send(:remove_method, :request)
+        partial.fetch_source("plain")
+      end.equals { ["plain\n", (tmp_path + "plain.json.rabl").to_s] }
+
+      teardown do
+        Object.send(:remove_const, :Rails)
+        Object.send(:remove_const, :ActionPack)
+        Object.send(:remove_const, :ActionView)
+      end
+    end
+
+    context "under Sinatra" do
+      setup do
+        ::Sinatra = stub(Class.new)
+        Rabl.configuration.cache_sources = true
+      end
+
+      asserts("each app gets the template in its own views") do
+        Rabl.reset_source_cache!
+        %w(main admin).map do |app|
+          views = Pathname.new(Dir.mktmpdir)
+          File.open(views + "test.json.rabl", "w") { |f| f.puts app }
+          partial = TestPartial.new
+          scope = Object.new
+          settings = Struct.new(:views).new(views.to_s)
+          scope.define_singleton_method(:settings) { settings }
+          partial.define_singleton_method(:context_scope) { scope }
+          partial.fetch_source("test")[0]
+        end
+      end.equals ["main\n", "admin\n"]
+
+      teardown { Object.send(:remove_const, :Sinatra) }
+    end
+  end
 end # Rabl::Partials
