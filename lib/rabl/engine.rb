@@ -49,6 +49,10 @@ module Rabl
       @_template_identity = nil
       @_identity_memo     = nil
 
+      # A cache key belongs to one render; the template sets it again
+      remove_instance_variable(:@_cache_key) if defined?(@_cache_key)
+      @_full_cache_key = nil
+
       eval_source(locals, &block)
 
       instance_exec(root_object, &block) if block_given?

@@ -40,6 +40,11 @@ context 'Rabl cache keys' do
     end
   end
 
+  asserts('an engine rendered again with another object renders that object') do
+    engine = Rabl::Engine.new("object @item\ncache @item\nattributes :id", :format => 'json')
+    [item(42), item(43)].map { |object| engine.render(Object.new, :object => object) }
+  end.equals ['{"id":42}', '{"id":43}']
+
   asserts('two templates caching the same object render their own output') do
     a = item(1)
     [render("object @item\ncache @item\nattributes :id", a), render("object @item\ncache @item\nattributes :name", a)]
