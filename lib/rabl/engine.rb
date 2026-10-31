@@ -17,19 +17,31 @@ module Rabl
     # Array#to_xml names its items after the singular of the dasherized root, which misses
     # inflections the app defines in underscored form, e.g.
     # inflect.irregular 'lesson_progress', 'lessons_progresses' (#559). An XmlArray names them
-    # after the singular of the root as given, as rabl does for JSON item roots, and to_xml
-    # dasherizes that like any other key. When the dasherized root is its own singular, the
-    # name is left to Array#to_xml: ActiveSupport sees an uncountable word at the end of a name
-    # only after a dash, so "animal-species" stays as it is, while the singular of
-    # "animal_species" is "animal_specy".
+    # after the singular of the root as given, as rabl does for JSON item roots (to_xml then
+    # dasherizes it like any other key), when that singular comes from a newer inflection than
+    # the one ActiveSupport applies to the dasherized root. Otherwise the name is left to
+    # Array#to_xml, so names that no underscored inflection changes, inflections written with
+    # dashes (the workaround in #559) and uncountable words at the end of a name
+    # ("animal-species") are named as before.
     class XmlArray < Array
       def to_xml(options = {}, &block)
         root = options[:root].to_s
         unless options[:children] || root.empty?
           renamed = ActiveSupport::XmlMini.rename_key(root, options)
-          options = options.merge(:children => root.singularize) unless renamed.singularize == renamed
+          options = options.merge(:children => root.singularize) if singular_rule_rank(root) < singular_rule_rank(renamed)
         end
         super(options, &block)
+      end
+
+      private
+
+      # The position of the singular rule ActiveSupport applies to word. The rules are newest
+      # first, so a lower rank is a rule defined later; -1 when singularize leaves word as it
+      # is (an uncountable word, or a rule that changes nothing).
+      def singular_rule_rank(word)
+        rules = ActiveSupport::Inflector.inflections.singulars
+        return -1 if word.singularize == word
+        rules.index { |(rule, _)| rule.is_a?(Regexp) ? rule.match?(word) : word.include?(rule) } || rules.size
       end
     end
     private_constant :XmlArray
@@ -649,7 +661,8 @@ module Rabl
         end
       end
 
-      # Returns a copy of the data with each Array in it, at any depth, as an XmlArray
+      # Returns a copy of the data with each Array in it, at any depth, as an XmlArray; arrays
+      # with a to_xml of their own are left as they are
       def xml_arrays(data)
         case data
         when Hash
@@ -657,7 +670,7 @@ module Rabl
           data.each { |key, value| copy[key] = xml_arrays(value) }
           copy
         when Array
-          XmlArray.new(data.map { |value| xml_arrays(value) })
+          data.method(:to_xml).owner == Array ? XmlArray.new(data.map { |value| xml_arrays(value) }) : data
         else
           data
         end

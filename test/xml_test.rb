@@ -140,6 +140,16 @@ context "Rabl::Engine" do
         }
         template.render(Object.new)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n</hash>\n"
+
+      asserts "that it renders an array with its own to_xml with it" do
+        template = rabl %{
+          code(:tags) { @tags }
+        }
+        tags = Class.new(Array) { def to_xml(options = {}); options[:builder].tag!(options[:root], join(',')); end }
+        scope = Object.new
+        scope.instance_variable_set :@tags, tags.new(%w(a b))
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <tags>a,b</tags>\n</hash>\n"
     end
 
     context "#child" do
@@ -201,6 +211,7 @@ context "Rabl::Engine" do
       setup do
         @saved_rules = [inflections.plurals.dup, inflections.singulars.dup]
         inflections.irregular 'lesson_progress', 'lessons_progresses'
+        inflections.irregular 'lesson-note', 'lessons-notes' # the workaround in #559
       end
 
       asserts "that it names collection items with it" do
@@ -223,6 +234,39 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new(:name => 'intro')]
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <lessons-progresses type=\"array\">\n    <lesson-progress>\n      <name>intro</name>\n    </lesson-progress>\n  </lessons-progresses>\n</user>\n"
+
+      asserts "that it names the items of an array from a node with it" do
+        template = rabl %{
+          object false
+          node(:lessons_progresses) { [{ :name => 'intro' }] }
+        }
+        template.render(Object.new)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <lessons-progresses type=\"array\">\n    <lesson-progress>\n      <name>intro</name>\n    </lesson-progress>\n  </lessons-progresses>\n</hash>\n"
+
+      asserts "that it names camelized items with it" do
+        template = rabl %{
+          collection @users => :lessons_progresses
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        begin
+          Rabl.configuration.xml_options = { :camelize => :lower }
+          template.render(scope)
+        ensure
+          Rabl.configuration.xml_options = {}
+        end
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessonsProgresses type=\"array\">\n  <lessonProgress>\n    <name>intro</name>\n  </lessonProgress>\n</lessonsProgresses>\n"
+
+      asserts "that it keeps names from an inflection written with dashes" do
+        template = rabl %{
+          collection @users => :lessons_notes
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessons-notes type=\"array\">\n  <lesson-note>\n    <name>intro</name>\n  </lesson-note>\n</lessons-notes>\n"
 
       # ActiveSupport finds an uncountable word at the end of a name only after a dash
       asserts "that it keeps names that end in an uncountable word" do
@@ -448,6 +492,16 @@ context "Rabl::Engine" do
     asserts "that it loads what it needs to render XML" do
       render_xml_in_new_process(nil)
     end.matches %r{<post>\s*<title>a</title>\s*</post>}
+
+    # In a new process too, since an acronym can't be undone
+    asserts "that it keeps camelized names with an acronym" do
+      code = "require 'rabl'; Post = Struct.new(:title); " \
+             "ActiveSupport::Inflector.inflections(:en) { |inflect| inflect.acronym 'ID' }; " \
+             "Rabl.configuration.xml_options = { :camelize => :lower }; " \
+             "print Rabl::Renderer.xml([Post.new('a')], %{collection @posts => :user_ids\\nattribute :title\\n})"
+      args = [RbConfig.ruby, '-I', File.expand_path('../../lib', __FILE__), '-e', code, { :err => [:child, :out] }]
+      IO.popen(args) { |io| io.read }
+    end.matches %r{<userIds type="array">\s*<userId>\s*<title>a</title>\s*</userId>\s*</userIds>}
 
     asserts "that it explains a missing builder gem" do
       Dir.mktmpdir do |without_builder|
