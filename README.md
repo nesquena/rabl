@@ -577,6 +577,20 @@ data (for example inside a loop), locals, or the current user.
 Blocks are told apart by where they start in the template; on runtimes without `RubyVM::InstructionSequence` (such as JRuby) that is
 the line only, so two caching blocks that start on the same line need distinct cache keys there.
 
+In a template that is also rendered for each item (through `extends`, `partial` or `child`), key the cache on `root_object`, the item
+being rendered:
+
+```ruby
+# app/views/topics/base.json.rabl, used by `collection @topics` + `extends 'topics/base'`
+object @topic
+cache ['v1', root_object]
+attribute :id
+```
+
+There, `object @topic` takes the item, but `@topic` itself keeps the controller's value (or nil). rabl replaces the value the template
+names in `object` with the item in its cache key, so `cache @topic` and `cache ['v1', @topic]` also get one entry per item, but any other
+instance variable in the key keeps its outer value.
+
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
 ### Rendering Templates Directly ###

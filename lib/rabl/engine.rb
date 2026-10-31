@@ -52,6 +52,7 @@ module Rabl
 
       # A cache key belongs to one render; the template sets it again
       remove_instance_variable(:@_cache_key) if defined?(@_cache_key)
+      remove_instance_variable(:@_replaced_data) if defined?(@_replaced_data)
       @_full_cache_key = nil
 
       eval_source(locals, &block)
@@ -85,7 +86,7 @@ module Rabl
       return unless defined?(@_cache_key)
 
       @_full_cache_key ||= begin
-        cache_key = Array(@_cache_key) + [@_options[:root_name], @_options[:format]]
+        cache_key = rabl_cache_key_parts + [@_options[:root_name], @_options[:format]]
         # a nested engine caches its output before it is escaped, so it gets its own key
         cache_key << 'nested' if @_options[:nested]
 
@@ -229,6 +230,11 @@ module Rabl
     # object @users
     def object(template_data)
       current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
+      # Rendered for an item (extends, partial, child), the template gets the item instead of
+      # the data it names, e.g. the outer @user; cache keys use the item in its place
+      if !current_data.equal?(template_data)
+        @_replaced_data = template_data.is_a?(Hash) && template_data.size == 1 ? template_data.keys.first : template_data
+      end
       @_data_object = data_object(current_data)
       @_root_name_data = template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data
       if @_root_name_data.is_a?(Hash)
@@ -389,9 +395,16 @@ module Rabl
       @_cache_read_on_render
     end
 
-    # Returns the key given to `cache` in the template, if any
+    # Returns the key given to `cache` in the template, if any. When the template is rendered
+    # for an item (see #object), parts that are the data it names (`cache @user`, or the nil
+    # in `cache ['v1', @topic]`) are replaced by the item, so each item gets its own key.
+    # ceiling: only the key's own parts are compared, not those of an array nested in it;
+    # walk nested arrays too if such keys turn up.
     def rabl_cache_key_parts
-      defined?(@_cache_key) ? Array(@_cache_key) : []
+      return [] unless defined?(@_cache_key)
+      return Array(@_cache_key) unless defined?(@_replaced_data)
+
+      Array(@_cache_key).map { |part| part.equal?(@_replaced_data) ? root_object : part }
     end
 
     # Identifies the template for cache keys: a digest of its location, the view path its
