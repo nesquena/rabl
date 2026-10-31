@@ -1,0 +1,55 @@
+# Creates the GitHub release page for a tag that already exists, with GitHub's generated notes (merged
+# PRs and new contributors since the previous release) after a link to that version's CHANGELOG.md.
+# release.yml runs it after it publishes; "Run workflow" here (with the tag) creates the page for an
+# earlier release. A tag that already has a release is left alone, so running it twice is harmless.
+# A tag older than the current "Latest" release is created with --latest=false; the API otherwise
+# marks every new release as Latest.
+
+name: github-release
+run-name: github release ${{ inputs.tag }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'An existing tag, e.g. v1.2.0'
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release-page:
+    if: github.repository == 'nesquena/rabl'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # creates the release
+    steps:
+      - name: Create the GitHub release
+        shell: bash -eo pipefail {0}
+        env:
+          TAG: ${{ inputs.tag }}
+          CHANGELOG: CHANGELOG.md
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::'$TAG' is not a tag like v1.2.3"; exit 1; }
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "$TAG already has a release; leaving it alone"
+            exit 0
+          fi
+          latest=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null) || latest=""
+          flags=()
+          if [ -n "$latest" ] && [ "$(printf '%s\n' "$latest" "$TAG" | sort -V | tail -n 1)" != "$TAG" ]; then
+            echo "$TAG is older than the latest release, $latest: not marking it as latest"
+            flags=(--latest=false)
+          fi
+          # --verify-tag: refuse rather than create the tag. With --generate-notes, GitHub puts these notes
+          # before the generated ones.
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes "${flags[@]}" \
+            --notes "What changed, and what to do when upgrading: [$CHANGELOG](https://github.com/$GITHUB_REPOSITORY/blob/$TAG/$CHANGELOG)."
