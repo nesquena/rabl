@@ -40,7 +40,7 @@ module Rabl
             fetch_padrino_source(file, options)
           when :rails
             _view_paths = view_paths + Array(context_scope.view_paths.to_a)
-            fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file)
+            fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file, rails_lookup_format)
           when :sinatra
             fetch_sinatra_source(file, options)
           else # generic template resolution
@@ -68,22 +68,20 @@ module Rabl
       # Returns what, besides the file and the :view_path option, the resolver's lookup
       # depends on, so the source cache keeps each lookup's result apart: under Rails the
       # format, the lookup details (formats, locale, variants, handlers, and registered
-      # details such as versioncake's versions) and the view paths; under Sinatra the app's
-      # views. Returns false when a view path has no stable name, so the lookup isn't cached.
+      # details such as versioncake's versions) and the view paths; elsewhere the format
+      # and locales the manual lookup prefers, and under Sinatra the app's views. Returns
+      # false when a view path has no stable name, so the lookup isn't cached.
       def source_lookup(resolver)
         case resolver
         when :rails
           view_paths = rails_view_paths_id or return false
-          format = begin
-            rails_source_format
-          rescue StandardError
-            nil # fetch_rails_source's lookup fails the same way and falls back to the manual lookup
-          end
           details = rails_details_id
           return false if details == false
-          [format, details, view_paths]
+          [rails_lookup_format, details, view_paths]
         when :sinatra
-          context_scope.settings.views
+          [context_scope.settings.views, manual_source_format, manual_source_locales]
+        else
+          [manual_source_format, manual_source_locales]
         end
       end
 
@@ -159,6 +157,36 @@ module Rabl
         format == :html ? request_format.to_sym : format
       end
 
+      # Returns the format Rails looks the template up in or, when there is none (a view
+      # without a request, or a request format Rails doesn't know, where that lookup fails
+      # and the manual lookup is used), the format being rendered
+      def rails_lookup_format
+        rails_source_format || manual_source_format
+      rescue StandardError
+        manual_source_format
+      end
+
+      # Returns the format the manual lookup prefers: the format being rendered (json for hash)
+      def manual_source_format
+        # Engine keeps its options in @_options, Builder in @options
+        options = (@_options if defined?(@_options)) || (@options if defined?(@options))
+        format = options[:format] if options
+        format ||= request_format if defined?(request_format)
+        format = format.to_s
+        format.empty? || format == "hash" ? "json" : format
+      end
+
+      # Returns the locales the manual lookup prefers, best first: like Rails' lookup,
+      # I18n's locale, its fallbacks and the default locale
+      def manual_source_locales
+        return [] unless defined?(::I18n) && ::I18n.respond_to?(:locale)
+
+        locales = [::I18n.locale]
+        locales.concat(::I18n.fallbacks[::I18n.locale]) if ::I18n.respond_to?(:fallbacks)
+        locales << ::I18n.default_locale
+        locales.uniq.map(&:to_s)
+      end
+
       # Returns the rabl template path for padrino views using configured views
       def fetch_padrino_source(file, options = {})
         view_path = Array(options[:view_path] || context_scope.settings.views)
@@ -199,9 +227,41 @@ module Rabl
         fetch_manual_template(view_path, file)
       end
 
-      # Returns the rabl template by looking up files within the view_path and specified file path
-      def fetch_manual_template(view_path, file)
-        Dir[File.join("{#{view_path.join(",")}}", "{#{file},#{partialized(file)}}" + ".{*.,}rabl")].first
+      # Returns the rabl template by looking up files within the view_path and specified file path.
+      # Like Rails' lookup, it takes a template named for the format and locales it is given
+      # ("show.json.rabl", "show.fr.json.rabl", "show.fr.rabl" or "show.rabl"), the best named
+      # in the first view path, and the file before the partial, that has one; otherwise the
+      # first file found ("show.xml.rabl" for json), as it always has.
+      # ceiling: other details in a name, such as variants ("show.json+mobile.rabl"), never match
+      # here; Rails' own lookup handles those where it is used.
+      def fetch_manual_template(view_path, file, format = manual_source_format, locales = manual_source_locales)
+        found = Dir[File.join("{#{view_path.join(",")}}", "{#{file},#{partialized(file)}}" + ".{*.,}rabl")]
+        names = [File.basename(file), File.basename(partialized(file))]
+        best = best_rank = best_group = nil
+
+        # Dir returns the files of each view path and name together, in the order given
+        found.each do |path|
+          dir, base = File.split(path)
+          name = names.find { |n| base.start_with?("#{n}.") } or next
+          group = [dir, name]
+          break if best && group != best_group
+
+          rank = manual_template_rank(base[(name.size + 1)...-4].split("."), format.to_s, locales)
+          best, best_rank, best_group = path, rank, group if rank && (!best || (rank <=> best_rank) < 0)
+        end
+
+        best || found.first
+      end
+
+      # Ranks the details in a template's name ("fr.json" => ["fr", "json"]) the way Rails
+      # sorts them, the locale first: a smaller rank is better, nil means they don't match
+      def manual_template_rank(details, format, locales)
+        format_rank = details.last == format ? 1 : 2
+        details = details[0...-1] if format_rank == 1
+        return [locales.size, format_rank] if details.empty?
+
+        locale_rank = locales.index(details.first)
+        [locale_rank, format_rank] if locale_rank && details.size == 1
       end
 
       # Returns a partialized version of a file path
