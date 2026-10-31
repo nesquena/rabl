@@ -212,6 +212,9 @@ context "Rabl::Engine" do
         @saved_rules = [inflections.plurals.dup, inflections.singulars.dup]
         inflections.irregular 'lesson_progress', 'lessons_progresses'
         inflections.irregular 'lesson-note', 'lessons-notes' # the workaround in #559
+        inflections.irregular 'left_foot', 'left_feet'
+        inflections.singular 'lessons_quizzes', 'lesson_quiz'
+        inflections.uncountable 'user_settings'
       end
 
       asserts "that it names collection items with it" do
@@ -268,6 +271,36 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessons-notes type=\"array\">\n  <lesson-note>\n    <name>intro</name>\n  </lesson-note>\n</lessons-notes>\n"
 
+      asserts "that it names items with it when no rule matches the dasherized name" do
+        template = rabl %{
+          collection @users => :left_feet
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'l')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<left-feet type=\"array\">\n  <left-foot>\n    <name>l</name>\n  </left-foot>\n</left-feet>\n"
+
+      asserts "that it names items with a rule written as a String" do
+        template = rabl %{
+          collection @users => :my_lessons_quizzes
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'q')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<my-lessons-quizzes type=\"array\">\n  <my-lesson-quiz>\n    <name>q</name>\n  </my-lesson-quiz>\n</my-lessons-quizzes>\n"
+
+      asserts "that it keeps an uncountable name defined in underscored form" do
+        template = rabl %{
+          collection @users => :user_settings
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 's')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user-settings type=\"array\">\n  <user-settings>\n    <name>s</name>\n  </user-settings>\n</user-settings>\n"
+
       # ActiveSupport finds an uncountable word at the end of a name only after a dash
       asserts "that it keeps names that end in an uncountable word" do
         template = rabl %{
@@ -282,6 +315,7 @@ context "Rabl::Engine" do
       teardown do
         inflections.plurals.replace(@saved_rules[0])
         inflections.singulars.replace(@saved_rules[1])
+        inflections.uncountables.delete('user_settings')
       end
     end
 

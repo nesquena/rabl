@@ -15,15 +15,15 @@ module Rabl
     RABL_JSON_CALLBACK_MAX_LENGTH = 128
 
     # Array#to_xml names its items after the singular of the dasherized root, which misses
-    # inflections the app defines in underscored form, e.g.
-    # inflect.irregular 'lesson_progress', 'lessons_progresses' (#559). An XmlArray names them
-    # after the singular of the root as given, as rabl does for JSON item roots (to_xml then
-    # dasherizes it like any other key), when that singular comes from a newer inflection than
-    # the one ActiveSupport applies to the dasherized root. Otherwise the name is left to
-    # Array#to_xml, so names that no underscored inflection changes, inflections written with
-    # dashes (the workaround in #559) and uncountable words at the end of a name
-    # ("animal-species") are named as before. The arrays of one rendering share children_names,
-    # so each root's name is worked out once.
+    # inflections that match only the underscored name: rules written in underscored form
+    # (inflect.irregular 'lesson_progress', 'lessons_progresses', #559), underscored uncountable
+    # words (inflect.uncountable 'user_settings') and rules using \w (/^(\w+)ves$/). An XmlArray
+    # names them after the singular of the root as given, as rabl does for JSON item roots
+    # (to_xml then dasherizes it like any other key), when that singular comes from a newer rule
+    # than the one ActiveSupport applies to the dasherized root. Otherwise the name is left to
+    # Array#to_xml, so built-in inflections, inflections written with dashes (the workaround in
+    # #559) and uncountable words at the end of a name ("animal-species") are named as before.
+    # The arrays of one rendering share children_names, so each root's name is worked out once.
     class XmlArray < Array
       def initialize(items, children_names)
         super(items)
@@ -35,21 +35,34 @@ module Rabl
         unless options[:children] || root.empty?
           renamed = ActiveSupport::XmlMini.rename_key(root, options)
           children = @children_names.fetch([root, renamed]) do |key|
-            @children_names[key] = (root.singularize if singular_rule_rank(root) < singular_rule_rank(renamed))
+            @children_names[key] = children_name(root, renamed, options)
           end
-          options = options.merge(:children => children) if children
+          options = options.merge(:children => children)
         end
         super(options, &block)
       end
 
       private
 
+      # The singular of root when it comes from a newer rule than the one ActiveSupport applies
+      # to the renamed root, or else the singular of the renamed root, as Array#to_xml names items
+      def children_name(root, renamed, options)
+        singular = root.singularize
+        renamed_singular = renamed.singularize
+        xml_mini = ActiveSupport::XmlMini
+        return renamed_singular if xml_mini.rename_key(singular, options) == xml_mini.rename_key(renamed_singular, options)
+
+        singular_rule_rank(root) < singular_rule_rank(renamed) ? singular : renamed_singular
+      end
+
       # The position of the singular rule ActiveSupport applies to word. The rules are newest
-      # first, so a lower rank is a rule defined later; -1 when singularize leaves word as it
-      # is (an uncountable word, or a rule that changes nothing).
+      # first, so a lower rank is a rule defined later; -1 for an uncountable word, and the rule
+      # count when no rule matches.
       def singular_rule_rank(word)
-        rules = ActiveSupport::Inflector.inflections.singulars
-        return -1 if word.singularize == word
+        inflections = ActiveSupport::Inflector.inflections
+        return -1 if inflections.uncountables.uncountable?(word)
+
+        rules = inflections.singulars
         rules.index { |(rule, _)| rule.is_a?(Regexp) ? rule.match?(word) : word.include?(rule) } || rules.size
       end
     end
