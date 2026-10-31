@@ -30,6 +30,8 @@ context 'Rabl::Configuration' do
     end
 
     asserts('uses a custom JSON engine') { topic.json_engine.to_s =~ /oj/i }
+
+    teardown { Rabl.reset_configuration! }
   end # custom json, symbol
 
   context 'custom JSON engine configured as Class' do
@@ -40,6 +42,8 @@ context 'Rabl::Configuration' do
     end
 
     asserts('uses a custom JSON engine') { topic.json_engine.to_s == 'ActiveSupport::JSON' }
+
+    teardown { Rabl.reset_configuration! }
   end # custom JSON, class
 
   # #744: rabl leaves the app's Oj.default_options alone and passes its own per call
@@ -165,6 +169,8 @@ context 'Rabl::Configuration' do
     end
 
     asserts(:raise_on_missing_attribute).equals true
+
+    teardown { Rabl.reset_configuration! }
   end # raise on missing
 
   context 'replace nil values with empty strings' do
@@ -175,6 +181,8 @@ context 'Rabl::Configuration' do
     end
 
     asserts(:replace_nil_values_with_empty_strings).equals true
+
+    teardown { Rabl.reset_configuration! }
   end # replace nil values with empty strings
 
   context 'replace empty string values with nil values' do
@@ -185,6 +193,8 @@ context 'Rabl::Configuration' do
     end
 
     asserts(:replace_empty_string_values_with_nil_values).equals true
+
+    teardown { Rabl.reset_configuration! }
   end # replace empty string values with nil values
 
   context 'exclude nil values' do
@@ -195,6 +205,8 @@ context 'Rabl::Configuration' do
     end
 
     asserts(:exclude_nil_values).equals true
+
+    teardown { Rabl.reset_configuration! }
   end # exclude nil values
 
   context 'exclude empty values in collections' do
@@ -205,5 +217,7 @@ context 'Rabl::Configuration' do
     end
 
     asserts(:exclude_empty_values_in_collections).equals true
+
+    teardown { Rabl.reset_configuration! }
   end # exclude empty values in collections
 end

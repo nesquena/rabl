@@ -58,6 +58,8 @@ gem 'oj'
 
 and run `bundle install` to install the dependency.
 
+To render XML, also add `gem 'builder'` (Rails apps already include it); RABL loads ActiveSupport's XML conversions itself.
+
 If you are using **Rails 2.3.8 (and up), Rails 3.X or Padrino**, RABL works without configuration.
 
 **Important:** With Padrino, be sure that **the rabl gem is listed after the padrino gem in your Gemfile**, otherwise
