@@ -36,9 +36,9 @@ class TestLookupContext
   end
   include Accessors
 
-  def self.registered_details
-    [:locale, :formats, :variants]
-  end
+  # Like Rails 7.0 and higher, on this class only (a subclass's are nil)
+  singleton_class.send(:attr_accessor, :registered_details)
+  self.registered_details = [:locale, :formats, :variants]
 
   attr_accessor :formats, :variants, :details_key, :lookups
 
@@ -337,10 +337,35 @@ context "Rabl::Partials" do
         [:fr, :en].map do |locale|
           partial = rails_partial(:json, :locale => locale)
           context = duck.new(partial.context_scope.lookup_context)
+          partial.context_scope.singleton_class.send(:remove_method, :lookup_context)
           partial.context_scope.define_singleton_method(:lookup_context) { context }
           partial.fetch_source("test")[0]
         end
       end.equals ["json fr\n", "json\n"]
+
+      asserts("a subclass of the lookup context gets its own template per locale") do
+        Rabl.reset_source_cache!
+        subclass = Class.new(TestLookupContext)
+        [:fr, :en].map do |locale|
+          partial = rails_partial(:json, :locale => locale)
+          context = subclass.new(tmp_path.to_s, :locale => locale)
+          partial.context_scope.singleton_class.send(:remove_method, :lookup_context)
+          partial.context_scope.define_singleton_method(:lookup_context) { context }
+          partial.fetch_source("test")[0]
+        end
+      end.equals ["json fr\n", "json\n"]
+
+      asserts("a lookup context whose details can't be listed is looked up each time") do
+        Rabl.reset_source_cache!
+        sources = [:fr, :en].map do |locale|
+          partial = rails_partial(:json, :locale => locale)
+          context = SimpleDelegator.new(partial.context_scope.lookup_context)
+          partial.context_scope.singleton_class.send(:remove_method, :lookup_context)
+          partial.context_scope.define_singleton_method(:lookup_context) { context }
+          partial.fetch_source("test")[0]
+        end
+        [sources, Rabl.instance_variable_get(:@_source_cache).size]
+      end.equals [["json fr\n", "json\n"], 0]
 
       asserts("each set of view paths gets its own template") do
         Rabl.reset_source_cache!

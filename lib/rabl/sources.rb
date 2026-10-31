@@ -79,7 +79,9 @@ module Rabl
           rescue StandardError
             nil # fetch_rails_source's lookup fails the same way and falls back to the manual lookup
           end
-          [format, rails_details_id, view_paths]
+          details = rails_details_id
+          return false if details == false
+          [format, details, view_paths]
         when :sinatra
           context_scope.settings.views
         end
@@ -108,7 +110,12 @@ module Rabl
       # Returns the number standing for the Rails lookup context's details
       def rails_details_id
         lookup_context = context_scope.lookup_context if context_scope.respond_to?(:lookup_context)
-        return unless lookup_context.class.respond_to?(:registered_details)
+        return unless lookup_context
+        # Rails 7.0 and higher keep the registered details on ActionView::LookupContext itself, so a
+        # subclass's own are nil. Module#=== checks the object itself, not what a delegator forwards to.
+        names = lookup_context.class.registered_details if lookup_context.class.respond_to?(:registered_details)
+        names ||= ActionView::LookupContext.registered_details if defined?(ActionView::LookupContext) && ActionView::LookupContext === lookup_context
+        return false unless names # what the lookup depends on can't be told, so it isn't cached
 
         # Rails' details_key is the same object for the same details until Rails clears them
         # (in development, when templates change), and the details give the same number again then
@@ -117,8 +124,8 @@ module Rabl
           # Rails' own accessors: LookupContext#locale returns the first locale, the lookup
           # uses the whole chain (I18n.locale, its fallbacks and the default locale)
           accessors = ActionView::LookupContext::Accessors if defined?(ActionView::LookupContext::Accessors)
-          details = lookup_context.class.registered_details.map do |name|
-            if accessors && lookup_context.is_a?(accessors) && accessors.method_defined?(name)
+          details = names.map do |name|
+            if accessors && accessors === lookup_context && accessors.method_defined?(name)
               accessors.instance_method(name).bind_call(lookup_context)
             else
               lookup_context.public_send(name)
