@@ -53,7 +53,7 @@ if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rai
         def self.call(template)
           source = template.source
 
-          %{ ::Rabl::Engine.new(#{source.inspect}).
+          %{ ::Rabl::Engine.new(#{source.inspect}, :source_location => #{template.identifier.inspect}).
               apply(self, assigns.merge(local_assigns)).
               render }
         end # call
@@ -73,7 +73,7 @@ if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rai
         self.default_format = :json
 
         def self.call(template, source)
-          %{ ::Rabl::Engine.new(#{source.inspect}).
+          %{ ::Rabl::Engine.new(#{source.inspect}, :source_location => #{template.identifier.inspect}).
               apply(self, assigns.merge(local_assigns)).
               render }
         end # call
