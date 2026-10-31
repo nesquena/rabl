@@ -58,12 +58,13 @@ module Rabl
     end
 
     # Fetches from the source_cache, stores block result in cache if nil
-    # Used to cache the contents and paths to various rabl templates
-    # source_cache("users/index", "path/to/view") { "/full/path/to/template/users/index" }
-    def source_cache(file, view_path, &block)
+    # Used to cache the contents and paths to various rabl templates, keyed by
+    # everything the lookup depends on (the file, the view path and the lookup details)
+    # source_cache("users/index", ["path/to/view"], [:json]) { "/full/path/to/template/users/index" }
+    def source_cache(file, view_path, lookup = nil, &block)
       return yield unless Rabl.configuration.cache_sources
 
-      cache_key = [file, view_path].compact.join(":")
+      cache_key = [file, view_path, lookup]
 
       @_source_cache ||= {}
 

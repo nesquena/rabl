@@ -8,17 +8,20 @@ module Rabl
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options = {})
       custom_view_path = Array(options[:view_path])
+      resolver = source_resolver
+      lookup = source_lookup(resolver) if Rabl.configuration.cache_sources
 
-      Rabl.source_cache(file, custom_view_path) do
+      Rabl.source_cache(file, custom_view_path, lookup) do
         view_paths = custom_view_path + Array(Rabl.configuration.view_paths)
 
         file_path = \
-          if defined?(Padrino) && context_scope.respond_to?(:settings) && context_scope.respond_to?(:resolve_template)
+          case resolver
+          when :padrino
             fetch_padrino_source(file, options)
-          elsif defined?(Rails) && context_scope.respond_to?(:view_paths)
+          when :rails
             _view_paths = view_paths + Array(context_scope.view_paths.to_a)
             fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file)
-          elsif defined?(Sinatra) && context_scope.respond_to?(:settings) && context_scope.settings.respond_to?(:views)
+          when :sinatra
             fetch_sinatra_source(file, options)
           else # generic template resolution
             fetch_manual_template(view_paths, file)
@@ -33,6 +36,48 @@ module Rabl
     end
 
     private
+      # Returns which framework's template lookup fetch_source uses in this context_scope
+      def source_resolver
+        if defined?(Padrino) && context_scope.respond_to?(:settings) && context_scope.respond_to?(:resolve_template)
+          :padrino
+        elsif defined?(Rails) && context_scope.respond_to?(:view_paths)
+          :rails
+        elsif defined?(Sinatra) && context_scope.respond_to?(:settings) && context_scope.settings.respond_to?(:views)
+          :sinatra
+        end
+      end
+
+      # Returns what, besides the file and the :view_path option, the resolver's lookup
+      # depends on, so the source cache keeps each lookup's result apart: under Rails the
+      # format, the lookup details (formats, locale, variants, handlers, and registered
+      # details such as versioncake's versions) and the view paths; under Sinatra the app's views.
+      def source_lookup(resolver)
+        case resolver
+        when :rails
+          lookup_context = context_scope.lookup_context if context_scope.respond_to?(:lookup_context)
+          # Rails' own key for the details, the same object for the same details
+          details = lookup_context.details_key if lookup_context.respond_to?(:details_key)
+          if details.nil? && lookup_context.class.respond_to?(:registered_details)
+            details = lookup_context.class.registered_details.map { |name| lookup_context.public_send(name) }
+          end
+          format = begin
+            rails_source_format if defined?(request_format)
+          rescue StandardError
+            nil # fetch_rails_source's lookup fails the same way and falls back to the manual lookup
+          end
+          [format, details, context_scope.view_paths.map(&:to_s)]
+        when :sinatra
+          context_scope.settings.views
+        end
+      end
+
+      # Returns the format Rails 3.2 and higher look templates up in:
+      # the request's format, or request_format for HTML requests
+      def rails_source_format
+        format = context_scope.request.format.to_sym
+        format == :html ? request_format : format
+      end
+
       # Returns the rabl template path for padrino views using configured views
       def fetch_padrino_source(file, options = {})
         view_path = Array(options[:view_path] || context_scope.settings.views)
@@ -55,9 +100,7 @@ module Rabl
               context_scope.lookup_context.find(file, [], partial)
             else # Rails 3.2 and higher
               # pull format directly from rails unless it is html
-              request_format = context_scope.request.format.to_sym
-              source_format = request_format unless request_format == :html
-              context_scope.lookup_context.find(file, [], partial, [], { :formats => [source_format] })
+              context_scope.lookup_context.find(file, [], partial, [], { :formats => [rails_source_format] })
             end
           end
           template = lookup_proc.call(false) rescue nil
