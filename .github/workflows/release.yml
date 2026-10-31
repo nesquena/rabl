@@ -8,6 +8,8 @@
 # short-lived trusted-publishing credentials, then creates the tag vX.Y.Z on the built commit. Pushing
 # a vX.Y.Z tag on a master commit runs the same checks. "Re-run failed jobs" (not "Re-run all jobs",
 # which rebuilds) resumes a release that stopped partway.
+# If the gem is pushed but the tag step keeps failing, push the tag by hand at the built commit: that
+# tag push's run skips the push (same sum).
 #
 # Dry run: tick dry_run to check the wiring. Everything runs except the changelog checks, the tag and
 # the push; the credential exchange fails unless the trusted publisher is set up.
@@ -18,6 +20,8 @@
 # publisher on rubygems.org must name the environment. Before approving a deployment, check
 # who started the run, the event, that the commit is the release PR's merge commit, and the build
 # log's "is on master" line. Reject any run you won't approve: a waiting run blocks the next one.
+# A deployment rule for X.Y-stable lets anyone with write access create such a branch carrying its own
+# copy of this file: add one only for a maintenance release, and remove it after.
 
 name: release
 run-name: release ${{ inputs.version || github.ref_name }}${{ inputs.dry_run && ' (dry run)' || '' }}
@@ -83,7 +87,7 @@ jobs:
               *) echo "::error::run this on $TRUNK or ${version%.*}-stable, not $GITHUB_REF"; exit 1 ;;
             esac
             tag="$TAG_PREFIX$version"
-            tagged=$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" | cut -f1)
+            tagged=$(git ls-remote origin "refs/tags/$tag*" | awk -v t="refs/tags/$tag" '$2 == t || $2 == t "^{}" { print $1 }')
             [ -z "$tagged" ] || echo "$tagged" | grep -qx "$GITHUB_SHA" ||
               { echo "::error::tag $tag already exists at another commit"; exit 1; }
           else
@@ -100,13 +104,13 @@ jobs:
             top=$(echo "$heading" | sed -nE "s/$CHANGELOG_TOP.*/\1/p")
             [ "$top" = "$version" ] || { echo "::error::$CHANGELOG starts with '$heading', not release $version: merge the release PR first, and nothing after it"; exit 1; }
             rest="${heading#*"$version"}"
-            [[ "$rest" =~ (19|20)[0-9][0-9] ]] && ! echo "$rest" | grep -qiE 'unreleased|tbd|tba' ||
+            [[ "$rest" =~ (19|20)[0-9][0-9] ]] && ! echo "$rest" | grep -qiwE 'unreleased|tbd|tba' ||
               { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
           fi
           series="${version%.*}-stable"
           on=""
           for b in "$series" "$TRUNK"; do
-            git merge-base --is-ancestor "$GITHUB_SHA" "origin/$b" 2>/dev/null && on="$b"
+            git merge-base --is-ancestor "$GITHUB_SHA" "refs/remotes/origin/$b" 2>/dev/null && on="$b"
           done
           [ -n "$on" ] || { echo "::error::$version ($GITHUB_SHA) is not on $TRUNK or $series"; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -195,7 +199,8 @@ jobs:
           TAG: ${{ needs.build.outputs.tag }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG" "refs/tags/$TAG^{}" | cut -f1)
+          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG*" |
+            awk -v t="refs/tags/$TAG" '$2 == t || $2 == t "^{}" { print $1 }')
           if [ -z "$tagged" ]; then
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
           elif echo "$tagged" | grep -qx "$GITHUB_SHA"; then
