@@ -57,26 +57,33 @@ module Rabl
 
     DEFAULT_XML_OPTIONS = { :dasherize  => true, :skip_types => false }
 
-    # The Oj options rabl renders with. rabl passes them to each Oj.dump (see #oj_dump_options),
-    # so its output does not depend on Oj.default_options (#744). :nan => :word keeps
-    # NaN/Infinity as they were when these were global (a global :compat writes them as words).
+    # True when version (e.g. Oj::VERSION) is at least minimum, compared part by part as
+    # numbers: oj_version_at_least?("3.10.0", [3, 17, 7]) => false
+    def self.oj_version_at_least?(version, minimum)
+      (version.to_s.split('.').map(&:to_i) <=> minimum) >= 0
+    end
+
+    # The Oj options rabl renders with, set globally at load as rabl always did (without :nan).
+    # :nan => :word keeps NaN/Infinity as words when :mode is passed per call (#744); a global
+    # :compat already writes them that way.
     OJ_OPTIONS = { :mode => :compat, :time_format => :ruby, :use_to_json => true, :nan => :word }.freeze
 
-    # What Oj ships for the options rabl sets globally: Oj 3.2+ has mode :object, Oj 3.0/3.1
-    # mode :custom. Oj 2.x ships time_format :unix_zone, so it counts as customized and is left alone.
-    OJ_SHIPPED_OPTIONS = {
-      :mode        => (defined?(::Oj::VERSION) && ::Oj::VERSION.start_with?('3.0.', '3.1.') ? :custom : :object),
-      :time_format => :unix,
-      :use_to_json => false
-    }.freeze
+    # Oj before 3.17.7 hands the options given to Oj.dump on to to_json, which json 3.x rejects
+    # (ArgumentError: unknown keywords). So rabl leaves the app's own Oj options alone and passes
+    # its own per call only from 3.17.7 (#744); with older Oj it behaves as it always did: it sets
+    # OJ_OPTIONS globally at load and calls Oj.dump(obj).
+    OJ_PER_CALL_OPTIONS = !!(defined?(::Oj::VERSION) && oj_version_at_least?(::Oj::VERSION, [3, 17, 7]))
 
-    # When rabl is loaded before the app has chosen any of these, it sets them globally as it
-    # always did (mode :compat, time_format :ruby, use_to_json true), so a json_engine wrapper
-    # or app code calling Oj.dump(obj) without options keeps rabl's settings. If the app (or a
-    # library loaded earlier) has already set one of them, its Oj.default_options are left
-    # alone (#744). An app that sets exactly Oj's shipped values cannot be told apart from
-    # one that set nothing, and gets rabl's settings as before.
-    if defined?(::Oj) && ::Oj.default_options.values_at(*OJ_SHIPPED_OPTIONS.keys) == OJ_SHIPPED_OPTIONS.values
+    # What Oj ships for the options rabl sets globally
+    OJ_SHIPPED_OPTIONS = { :mode => :object, :time_format => :unix, :use_to_json => false }.freeze
+
+    # With Oj 3.17.7+, rabl still sets its options globally when the app (or a library loaded
+    # earlier) has not chosen any of them yet, so a json_engine wrapper or app code calling
+    # Oj.dump(obj) without options keeps rabl's settings; otherwise the app's Oj.default_options
+    # are left alone (#744). An app that sets exactly Oj's shipped values cannot be told apart
+    # from one that set nothing, and gets rabl's settings as before.
+    if defined?(::Oj) &&
+       (!OJ_PER_CALL_OPTIONS || ::Oj.default_options.values_at(*OJ_SHIPPED_OPTIONS.keys) == OJ_SHIPPED_OPTIONS.values)
       ::Oj.default_options = OJ_OPTIONS.reject { |key, _| key == :nan }
     end
 
@@ -130,14 +137,14 @@ module Rabl
     # was when rabl overwrote them.
     #
     # Only options that differ from the current global ones are returned, so with rabl's
-    # globals in place the hash is empty and Oj.dump gets no options, as before: Oj before
-    # 3.17.7 hands the options of Oj.dump to to_json, which json 3.x rejects (ArgumentError).
-    # :nan is only needed with an explicit :mode (a global :compat already writes NaN as words).
-    # ceiling: when the app configured Oj before loading rabl, options are still passed, so
-    # Oj < 3.17.7 with json 3.x can raise on objects with to_json; upgrading Oj avoids it.
+    # globals in place the hash is empty and Oj.dump gets no options, as before. :nan is only
+    # needed with an explicit :mode. With Oj before 3.17.7 it is always empty (see
+    # OJ_PER_CALL_OPTIONS).
     # ceiling: Oj.default_options builds a new Hash on each render (a few microseconds);
     # caching it would miss changes the app makes later.
     def oj_dump_options
+      return {} unless OJ_PER_CALL_OPTIONS
+
       current = ::Oj.default_options
       changed = lambda { |key| OJ_DEFAULTS_AT_LOAD && current[key] != OJ_DEFAULTS_AT_LOAD[key] }
       app_mode = changed.call(:mode) && OJ_APP_MODES.include?(current[:mode])

@@ -108,6 +108,14 @@ context 'Rabl::Configuration' do
       "print $arity.inspect"
     end
 
+    # Older Oj hands Oj.dump's options on to to_json (rejected by json 3.x), so there rabl
+    # keeps setting its options globally at load and calls Oj.dump(obj), as before
+    asserts('with Oj before 3.17.7, rabl overwrites the app options at load and passes none') do
+      rabl_subprocess("require 'oj'; Oj.send(:remove_const, :VERSION); Oj.const_set(:VERSION, '3.16.0'); " \
+                      "Oj.default_options = { :mode => :strict }; " + oj_dump_arity_script('').sub("require 'oj'; ", '') \
+                      .sub("print $arity.inspect", "print [Oj.default_options[:mode], $arity].inspect"))
+    end.equals [:compat, [1]].inspect
+
     asserts('without app options, rabl calls Oj.dump with no options') do
       rabl_subprocess(oj_dump_arity_script(''))
     end.equals '[1]'
@@ -138,6 +146,16 @@ context 'Rabl::Configuration' do
       render_with_oj({}, "object false\nnode(:price) { 1 }\n", engine)
     end.equals 'custom:price'
   end # Oj default options
+
+  context 'oj_version_at_least?' do
+    asserts('compares versions part by part as numbers') do
+      %w[3.1.2 3.1.3 3.10.0 3.17.6 3.17.7 4.0.0].map { |v| Rabl::Configuration.oj_version_at_least?(v, [3, 17, 7]) }
+    end.equals [false, false, false, false, true, true]
+
+    asserts('treats a shorter version as lower') do
+      [Rabl::Configuration.oj_version_at_least?('3.17', [3, 17, 7]), Rabl::Configuration.oj_version_at_least?('3.1.3', [3, 1, 3])]
+    end.equals [false, true]
+  end
 
   context 'raise on missing attributes' do
     setup do
