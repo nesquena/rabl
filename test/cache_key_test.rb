@@ -94,6 +94,10 @@ context 'Rabl cache keys' do
       Rabl.configuration.cache_engine = memory_cache
     end
 
+    asserts('a block keyed by its own cache key renders each run') do
+      render("object @item\n[:id, :name].each { |f| child(:owner => \"o_\#{f}\") { cache [root_object, f]; attributes f } }", item(44, item(45)))
+    end.equals '{"o_id":{"id":45},"o_name":{"name":"item45"}}'
+
     asserts('two templates rendering the same object render their own output') do
       a = item(11)
       first = [render("object @item\nattributes :id", a), render("object @item\nattributes :name", a)]

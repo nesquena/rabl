@@ -381,6 +381,11 @@ module Rabl
       @_cache_read_on_render
     end
 
+    # Returns the key given to `cache` in the template, if any
+    def rabl_cache_key_parts
+      defined?(@_cache_key) ? Array(@_cache_key) : []
+    end
+
     # Identifies the template for cache keys: a digest of its location, the view path its
     # partials resolve from, its source and its block
     def rabl_template_identity

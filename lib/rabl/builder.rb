@@ -254,7 +254,12 @@ module Rabl
       def cache_results(&block)
         if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
           cache_key = [@_object, @options[:root_name], @options[:format]]
-          cache_key << rabl_template_engine.rabl_template_identity if rabl_template_engine
+          engine = rabl_template_engine
+          if engine
+            cache_key << engine.rabl_template_identity
+            # the template's own `cache` key also applies when it renders this object
+            cache_key.concat(engine.rabl_cache_key_parts) if engine.root_object.equal?(@_object)
+          end
           cache_key.concat(CacheKey.shape(@options))
 
           fetch_result_from_cache(cache_key, &block)
