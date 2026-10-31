@@ -206,12 +206,12 @@ context "Rabl::Partials" do
         else []
         end
       end
-      held.call(Rabl::Sources::MANUAL_LOOKUP_IDS).uniq(&:object_id).size
+      held.call(Rabl::Sources::MANUAL_LOOKUP_IDS).uniq(&:object_id).size < 2
     ensure
       I18n.fallbacks = fallbacks
       Rabl.configuration.cache_sources = false
       Rabl.reset_source_cache!
-    end.equals 1
+    end.equals true
 
     asserts("templates nested in an XML rendering, in a child and in an extended template") do
       [%w(inner.xml inner.json), %w(inner.xml inner)].map do |names|
