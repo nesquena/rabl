@@ -26,6 +26,7 @@
 * Fix cached `child` nodes in a collection being flattened (or dropped, for a child collection) on a cache hit (@nesquena)
 * Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back (@nesquena)
 * Fix `escape_all_output` changing the app's own arrays and hashes in place (and re-escaping cached fragments outside Rails on every render), raising `FrozenError` on frozen values, and raising `NameError` for `ERB` outside Rails (@nesquena)
+* Errors raised in a template now point at the template's file and line. Under Rails, the backtrace named `(eval at .../rabl/engine.rb)` instead of the `.rabl` file, so the error page showed the wrong line; with `Rabl::Renderer`, `Rabl.render`, Tilt, Sinatra and Padrino the file was right but the line was one too high. This covers errors at the top level, in `node`, `child` and `glue` blocks, in `extends` and `partial` templates, syntax errors, and the location in the warning for `extends` inside a `node` block (#423, reported by @jontonsoup)
 
 ## 0.17.0 (Nov 26, 2024)
 
