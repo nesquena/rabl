@@ -279,7 +279,10 @@ context 'Rabl cache keys' do
         'base' => "object @item\ncache @item\nattributes :id\n",
         'versioned' => "object @item\ncache ['v1', @item]\nattributes :id\n",
         'aliased' => "object @item => :thing\ncache @item\nattributes :id\n",
-        'cached_first' => "cache ['v1', @item]\nobject @item\nattributes :id\n"
+        'cached_first' => "cache ['v1', @item]\nobject @item\nattributes :id\n",
+        'versioned_list' => "collection @items\ncache ['v1', @items]\nattributes :id\n",
+        'viewer_ro' => "object @item\ncache [root_object, viewer]\nattributes :id\nnode(:mine, :if => lambda { |i| viewer.equal?(i) }) { true }\n",
+        'viewer_ivar' => "object @item\ncache ['v1', @item, viewer]\nattributes :id\nnode(:mine, :if => lambda { |i| viewer.equal?(i) }) { true }\n"
       }.each { |name, source| File.open(File.join(@dir, "#{name}.rabl"), 'w') { |f| f.write(source) } }
       @dir
     end
@@ -288,6 +291,14 @@ context 'Rabl cache keys' do
     helper(:render_for) do |source, object|
       scope = Object.new
       scope.instance_variable_set(:@item, object)
+      Rabl::Engine.new(source, :format => 'json', :view_path => topic).render(scope, :object => object)
+    end
+
+    # Renders with a `viewer` helper (like current_user) and @item set to outer
+    helper(:render_as) do |viewer, outer, source, object|
+      scope = Object.new
+      scope.instance_variable_set(:@item, outer)
+      scope.define_singleton_method(:viewer) { viewer }
       Rabl::Engine.new(source, :format => 'json', :view_path => topic).render(scope, :object => object)
     end
 
@@ -338,6 +349,38 @@ context 'Rabl cache keys' do
         Rabl.configuration.cache_engine = memory_cache
         render("collection @items\nextends 'cached_first'", [item(68), item(69)], :view_path => topic)
       end.equals '[{"id":68},{"id":69}]'
+
+      asserts('a collection rendered as a partial and caching an unset instance variable renders each collection') do
+        Rabl.configuration.cache_engine = memory_cache
+        template = "object @item\nnode(:friends) { |i| partial('versioned_list', :object => i.owner) }"
+        [item(75, [item(76), item(77)]), item(78, [item(79)])].map { |object| render(template, object, :view_path => topic) }
+      end.equals ['{"friends":[{"id":76},{"id":77}]}', '{"friends":[{"id":79}]}']
+
+      asserts('items of a collection are cached apart when the instance variable holds a data hash') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(80), item(81)]
+        render_as(nil, { :theme => 1 }, "collection @items\nextends 'versioned'", items)
+      end.equals '[{"id":80},{"id":81}]'
+
+      asserts('an item keyed with root_object and a nil viewer does not get another viewer\'s output') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(82), item(83)]
+        [items[0], nil].map { |viewer| render_as(viewer, nil, "collection @items\nextends 'viewer_ro'", items) }
+      end.equals ['[{"id":82,"mine":true},{"id":83}]', '[{"id":82},{"id":83}]']
+
+      asserts('an item keyed with the instance variable and a nil viewer does not get another viewer\'s output') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(84), item(85)]
+        [items[0], nil].map { |viewer| render_as(viewer, nil, "collection @items\nextends 'viewer_ivar'", items) }
+      end.equals ['[{"id":84,"mine":true},{"id":85}]', '[{"id":84},{"id":85}]']
+
+      asserts('a child keyed with the viewer stays apart per viewer when the outer object is the viewer') do
+        Rabl.configuration.cache_engine = memory_cache
+        friend = item(86)
+        other, own = item(87, [friend]), item(88, [friend])
+        template = "object @item\nchild(:owner => :owners) { extends 'viewer_ro' }"
+        [render_as(friend, other, template, other), render_as(own, own, template, own)]
+      end.equals ['{"owners":[{"owner":{"id":86,"mine":true}}]}', '{"owners":[{"owner":{"id":86}}]}']
 
       teardown { Rabl.configuration.use_read_multi = true }
     end

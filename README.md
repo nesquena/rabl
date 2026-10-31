@@ -587,9 +587,10 @@ cache ['v1', root_object]
 attribute :id
 ```
 
-There, `object @topic` takes the item, but `@topic` itself keeps the controller's value (or nil). rabl replaces the value the template
-names in `object` with the item in its cache key, so `cache @topic` and `cache ['v1', @topic]` also get one entry per item, but any other
-instance variable in the key keeps its outer value.
+There, `object @topic` takes the item, but `@topic` itself keeps the controller's value (or nil). When a key has the variable the
+template names in `object` but not the item, rabl adds the item to it, so `cache @topic` and `cache ['v1', @topic]` also get one entry
+per item. The other parts of the key are used as they are: any other instance variable keeps its outer value, and a helper such as
+`current_user` keeps the viewer.
 
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
