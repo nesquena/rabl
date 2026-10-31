@@ -658,11 +658,8 @@ module Rabl
         unless self.respond_to? msg then
           src = "def #{msg} locals, &block\n#{@_source}\nend"
 
-          if @_options[:source_location]
-            self.class.class_eval(src, @_options[:source_location])
-          else
-            self.class.class_eval(src)
-          end
+          # Line 0 is the def line, so errors report the template's own line numbers
+          self.class.class_eval(src, @_options[:source_location] || "(eval)", 0)
         end
 
         send msg, locals, &block
