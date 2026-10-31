@@ -9,6 +9,8 @@ module Rabl
     # data_object(@user => :person) => @user
     # data_object(:user => :person) => @_object.public_send(:user)
     def data_object(data)
+      return data if data_item?(data)
+
       data = data.keys.first if data.is_a?(Hash) && data.keys.size == 1
       data = @_object.public_send(data) if data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data)
       data
@@ -38,6 +40,7 @@ module Rabl
 
       if is_collection?(data) # data is a collection
         object_name = collection_root_name if collection_root_name
+        object_name ||= data_token if data_token.is_a?(Symbol) # child :units => "units", whatever the table (#394)
         object_name ||= data.table_name if data.respond_to?(:table_name)
 
         if object_name.nil? && data.respond_to?(:first)
@@ -45,7 +48,6 @@ module Rabl
           object_name = data_name(first).to_s.pluralize if first.present?
         end
 
-        object_name ||= data_token if data_token.is_a?(Symbol)
         object_name
       elsif is_object?(data) # data is an object
         object_name = object_root_name if object_root_name
@@ -86,11 +88,19 @@ module Rabl
     # is_collection?(@user) => false
     # is_collection?([]) => true
     def is_collection?(obj, follow_symbols = true)
+      return false if data_item?(obj)
+
       data_obj = follow_symbols ? data_object(obj) : obj
       data_obj &&
         data_obj.respond_to?(:map) && data_obj.respond_to?(:each) &&
         !(data_obj.is_a?(Struct) ||
           defined?(Hashie::Mash) && data_obj.is_a?(Hashie::Mash))
+    end
+
+    # True for the Hash item that `extends` handed to this engine as its object (#396).
+    # It is data: never `@object => :name` alias syntax, and never a collection.
+    def data_item?(obj)
+      obj.is_a?(Hash) && defined?(@_data_item) && obj.equal?(@_data_item)
     end
 
     # Returns the context_scope wrapping this engine, used for retrieving data, invoking methods, etc

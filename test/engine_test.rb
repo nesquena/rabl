@@ -527,6 +527,46 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"people\":[{\"item\":{\"city\":\"UNO\"}},{\"item\":{\"city\":\"DOS\"}}]}}"
 
+      # #725: the :root form keeps its key like the hash form does
+      asserts "it keeps a child named by :root when the collection is empty or nil" do
+        [[], nil].map do |users|
+          [%{child(@users, :root => "people", :object_root => false) { attribute :city }},
+           %{child({ @users => :people }, :object_root => false) { attribute :city }}].map do |child_line|
+            template = rabl "object @user\nattribute :name\n#{child_line}\n"
+            scope = Object.new
+            scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+            scope.instance_variable_set :@users, users
+            template.render(scope)
+          end
+        end
+      end.equals [["{\"user\":{\"name\":\"leo\",\"people\":[]}}"] * 2, ["{\"user\":{\"name\":\"leo\",\"people\":null}}"] * 2]
+
+      asserts "it still skips a child named by :root when its data is false or an empty string" do
+        [false, ''].map do |data|
+          template = rabl %{
+            object @user
+            attribute :name
+            child(@data, :root => "stats") { node(:total) { |s| s.total } }
+          }
+          scope = Object.new
+          scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+          scope.instance_variable_set :@data, data
+          template.render(scope)
+        end
+      end.equals ["{\"user\":{\"name\":\"leo\"}}"] * 2
+
+      asserts "it still skips a child named by :root when its condition is false" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child(@users, :root => "people", :if => lambda { |u| false }) { attribute :city }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+        scope.instance_variable_set :@users, []
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\"}}"
+
       asserts "that it applies a false condition given with a key alias" do
         template = rabl %{
           object @user
@@ -1105,6 +1145,18 @@ context "Rabl::Engine" do
             node(:city) { "Gotham" } if locals[:show_city]
           }
         end
+        File.open(tmp_path + "friend.json.rabl", "w") do |f|
+          f.puts %q{
+            node(:uid) { |friend| friend['uid'] }
+            node(:keys) { |friend| friend.is_a?(Hash) ? friend.keys.size : friend.class.name }
+          }
+        end
+        File.open(tmp_path + "friend_object.json.rabl", "w") do |f|
+          f.puts %q{
+            object @friend
+            extends 'friend'
+          }
+        end
       end
 
       asserts "that it extends the template with attributes from the file" do
@@ -1139,6 +1191,29 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"name\":\"leo\"}")
+
+      # #396: a Hash item handed down by extends is data, not `@object => :name` syntax
+      asserts "that it extends each Hash item of a collection with its own values" do
+        [%{collection @friends\nextends 'friend'\n},
+         %{extends 'friend'\ncollection @friends\n},
+         %{collection @friends\nextends 'friend_object'\n}].map do |source|
+          scope = Object.new
+          scope.instance_variable_set :@friends, [{ 'uid' => 'a' }, { 'uid' => 'b', 'n' => 2 }]
+          JSON.parse(rabl(source).render(scope))
+        end
+      end.equals [[{ "uid" => "a", "keys" => 1 }, { "uid" => "b", "keys" => 2 }]] * 3
+
+      asserts "that an explicit :object keeps the alias syntax" do
+        template = rabl %{
+          object @user
+          attribute :name
+          extends 'test', :object => { @other => :person }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :age => 12)
+        scope.instance_variable_set :@other, User.new(:name => 'max', :age => 40)
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("{\"name\":\"leo\",\"age\":40}")
     end
 
     teardown do

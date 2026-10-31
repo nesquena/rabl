@@ -62,6 +62,36 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<smors type=\"array\">\n  <smor>\n  </smor>\n  <smor>\n  </smor>\n</smors>\n"
+
+      # #581: each item is wrapped once, in the object root
+      asserts "that it names items after :object_root without wrapping them twice" do
+        template = rabl %{
+          collection @users, :root => "data", :object_root => "TCCategory"
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'drinks'), User.new(:name => 'dining')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<data type=\"array\">\n  <TCCategory>\n    <name>drinks</name>\n  </TCCategory>\n  <TCCategory>\n    <name>dining</name>\n  </TCCategory>\n</data>\n"
+
+      asserts "that it does not repeat a root whose singular is itself" do
+        template = rabl %{
+          collection @users, :root => "list", :object_root => "trip"
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'one')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<list type=\"array\">\n  <trip>\n    <name>one</name>\n  </trip>\n</list>\n"
+
+      asserts "that it renders an empty collection with an object root" do
+        template = rabl %{
+          collection @users, :root => "data", :object_root => "TCCategory"
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, []
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<data type=\"array\"/>\n"
     end
 
     context "#attribute" do
@@ -133,6 +163,21 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <person>\n    <city>LA</city>\n  </person>\n</user>\n"
+
+      # #725: the :root form keeps its key like the hash form does
+      asserts "that it keeps a child named by :root when the collection is empty or nil" do
+        [[], nil].map do |users|
+          [%{child(@users, :root => :people) { attribute :city }},
+           %{child(@users => :people) { attribute :city }}].map do |child_line|
+            template = rabl "object @user\nattribute :name\n#{child_line}\n"
+            scope = Object.new
+            scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
+            scope.instance_variable_set :@users, users
+            template.render(scope)
+          end
+        end
+      end.equals [["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <people type=\"array\"/>\n</user>\n"] * 2,
+                  ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <people nil=\"true\"/>\n</user>\n"] * 2]
     end
 
     context "#glue" do
@@ -200,6 +245,8 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<people type=\"array\">\n  <person>\n    <person>\n    </person>\n  </person>\n  <person>\n    <person>\n    </person>\n  </person>\n</people>\n"
 
+      # An explicit :object_root names each item once (#581); before, Array#to_xml
+      # wrapped every { "person" => ... } item in another <person>.
       asserts "that it sets root node for objects with :root parameter" do
         template = rabl %{
           collection @users, :root => :people, :object_root => :person
@@ -207,7 +254,7 @@ context "Rabl::Engine" do
         scope = Object.new
         scope.instance_variable_set :@users, [User.new, User.new]
         template.render(scope)
-      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<people type=\"array\">\n  <person>\n    <person>\n    </person>\n  </person>\n  <person>\n    <person>\n    </person>\n  </person>\n</people>\n"
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<people type=\"array\">\n  <person>\n  </person>\n  <person>\n  </person>\n</people>\n"
 
     end
 

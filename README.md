@@ -52,7 +52,7 @@ or add to your Gemfile:
 # Gemfile
 gem 'rabl'
 # Also add either `oj` or `yajl-ruby` as the JSON parser
-# If using `oj`, Rabl will set the mode to :compat
+# If using `oj`, Rabl renders with Oj's :compat mode and sets it as Oj's default (with Oj 3.17.7+, only if you haven't configured Oj yet)
 gem 'oj'
 ```
 
@@ -190,7 +190,14 @@ If `exclude_nil_values` is set to `true`, all values that are `nil` and would no
 
 if `exclude_empty_values_in_collections` is set to `true`, all values in a collection that are `{}` and would normally be displayed as `{}` in the response are not included in the response.
 
-If `camelize_keys` is set to `true`, all object keys will be converted to camel case. By default the first character will be lower case. The value can be set to `:upper` to set the first character to upper case.
+If `camelize_keys` is set to `true`, the keys rabl builds from your template (attribute, node and child names) will be converted to camel case. By default the first character will be lower case. The value can be set to `:upper` to set the first character to upper case. Root and object root names (`object @user => :app_user`) are left as written, and so are the keys inside a hash that a `node` block returns, which rabl inserts unchanged. To camelize those, transform the hash in the block (`deep_transform_keys` comes with ActiveSupport, loaded in Rails; elsewhere `require 'active_support/core_ext/hash/keys'`):
+
+```ruby
+node(:preferences) do |user|
+  { has_visible_profile: true }.deep_transform_keys { |key| key.to_s.camelize(:lower) }
+end
+# => "preferences": { "hasVisibleProfile": true }
+```
 
 If you wish to use [oj](https://github.com/ohler55/oj) as
 the primary JSON encoding engine simply add that to your Gemfile:
