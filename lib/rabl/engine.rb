@@ -23,6 +23,7 @@ module Rabl
 
       @_view_path     = options[:view_path]
       @_context_scope = options[:scope]
+      @_data_item     = options[:data_item]
 
       @_cache_read_on_render = true
       @_skip_json_callback   = false
@@ -191,6 +192,13 @@ module Rabl
       xml_options = Rabl.configuration.default_xml_options.merge(:root => collection_root_name || root_name)
 
       result = to_hash(options)
+
+      # Name the items after the object root and unwrap them, or Array#to_xml wraps each
+      # { object_root => ... } item again in the singular collection root (#581)
+      if result.is_a?(Array) && is_name_value?(object_root_name)
+        xml_options[:children] = object_root_name.to_s
+        result = result.map { |item| item.is_a?(Hash) && item.key?(object_root_name) ? item[object_root_name] : item }
+      end
 
       result.to_xml(xml_options)
     end
@@ -480,7 +488,10 @@ module Rabl
       def format_json(json_output)
         unless json_output.is_a?(String)
           json_engine = Rabl.configuration.json_engine
-          json_output = if json_engine.respond_to?(:dump)
+          json_output = if defined?(::Oj) && json_engine.equal?(::Oj)
+            oj_options = Rabl.configuration.oj_dump_options
+            oj_options.empty? ? ::Oj.dump(json_output) : ::Oj.dump(json_output, oj_options)
+          elsif json_engine.respond_to?(:dump)
             json_engine.dump(json_output)
           else
             json_engine.encode(json_output)

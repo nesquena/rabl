@@ -176,7 +176,9 @@ module Rabl
       # child(@user => :person) { ... }
       # child(@users => :people) { ... }
       def child(data, options = {}, &block)
-        return unless data.present? && resolve_condition(options)
+        # A child named by :root keeps its key for nil or an empty collection, like child(@users => :people) (#725)
+        keep_blank = is_name_value?(options[:root]) && (data.nil? || is_collection?(data))
+        return unless (data.present? || keep_blank) && resolve_condition(options)
 
         name   = is_name_value?(options[:root]) ? options[:root] : data_name(data)
         object = data_object(data)
@@ -186,6 +188,7 @@ module Rabl
         engine_options[:object_root_name] = options[:object_root] if is_name_value?(options[:object_root])
 
         object = { object => name } if data.is_a?(Hash) && object # child :users => :people
+        object = { object => data } if data.is_a?(Symbol) && is_collection?(object) # child :units: items are "unit" (#394)
 
         engines << { create_key(name) => object_to_engine(object, engine_options, &block) }
       end
@@ -206,6 +209,7 @@ module Rabl
         return unless resolve_condition(options)
 
         options = @options.slice(:child_root).merge!(:object => @_object).merge!(options)
+        options[:data_item] = @_object if @_object.is_a?(Hash) # a Hash item is data, not alias syntax (#396)
         engines << partial_as_engine(file, options, &block)
       end
 
