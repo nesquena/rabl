@@ -1,0 +1,186 @@
+# Publishes a rabl release to rubygems.org with trusted publishing, gated by the "release"
+# environment (the owner approves each publish).
+#
+# Usual path: merge the release PR (version in lib/rabl/version.rb + the CHANGELOG.md heading stamped
+# with the date), then "Run workflow" on master with the version. The run checks the version, builds
+# the gem, waits for approval, creates the tag vX.Y.Z on the built commit and pushes the gem. Pushing a
+# vX.Y.Z tag on a master commit also starts it. "Re-run failed jobs" resumes a release that stopped
+# partway; a gem already on rubygems.org is skipped.
+#
+# Dry run: tick dry_run to check the wiring without releasing. Everything runs except the changelog
+# stamp check, the tag and the push; the credential exchange fails unless the trusted publisher is set
+# up on rubygems.org.
+#
+# The "release" environment's protection rules are the ONLY gate on publishing: set it up (required
+# reviewer, no admin bypass, deployments only from master and v* tags) BEFORE adding the trusted
+# publisher on rubygems.org.
+
+name: release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (already in the version file of this branch), e.g. 1.2.0'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run: check, build and exchange credentials, but create no tag and push nothing'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'nesquena/rabl'
+    runs-on: ubuntu-latest
+    env:
+      TRUNK: master
+      TAG_PREFIX: v
+      GEMS: 'rabl:.'
+      VERSION_FILE: lib/rabl/version.rb
+      CHANGELOG: CHANGELOG.md
+      # the first release heading, e.g. "## 0.18.0 (Nov 1, 2026)"; group 1 is the version
+      CHANGELOG_TOP: '^## ([0-9]+\.[0-9]+\.[0-9]+)'
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      tag: ${{ steps.check.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          submodules: true
+          persist-credentials: false
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: '3.3'
+      - name: Check the version
+        id: check
+        shell: bash -eo pipefail {0}
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            version="$INPUT_VERSION"
+            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::the version input is not a plain version like 1.2.3"; exit 1; }
+            case "$GITHUB_REF" in
+              "refs/heads/$TRUNK"|"refs/heads/${version%.*}-stable") ;;
+              *) echo "::error::run this on $TRUNK or ${version%.*}-stable, not $GITHUB_REF"; exit 1 ;;
+            esac
+            heading=$(grep -m1 -E "$CHANGELOG_TOP" "$CHANGELOG")
+            top=$(echo "$heading" | sed -E "s/$CHANGELOG_TOP.*/\1/")
+            if [ "$DRY_RUN" = true ]; then
+              echo "::warning::dry run: not checking that $CHANGELOG is stamped ('$heading')"
+            else
+              [ "$top" = "$version" ] || { echo "::error::$CHANGELOG starts with release '$top', not '$version': merge the release PR first, and nothing after it"; exit 1; }
+              ! echo "$heading" | grep -qiE 'unreleased|tbd' || { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
+            fi
+            tag="$TAG_PREFIX$version"
+            tagged=$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" | cut -f1)
+            [ -z "$tagged" ] || echo "$tagged" | grep -qx "$GITHUB_SHA" ||
+              { echo "::error::tag $tag already exists at another commit"; exit 1; }
+          else
+            tag="$GITHUB_REF_NAME"
+            version="${tag#"$TAG_PREFIX"}"
+          fi
+          file_version=$(ruby -e 'puts File.read(ENV["VERSION_FILE"])[/VERSION\s*=\s*["\x27]([^"\x27]+)/, 1]')
+          [ "$version" = "$file_version" ] || { echo "::error::version $version but $VERSION_FILE says $file_version"; exit 1; }
+          series="${version%.*}-stable"
+          on=""
+          for b in "$TRUNK" "$series"; do
+            git merge-base --is-ancestor "$GITHUB_SHA" "origin/$b" 2>/dev/null && on="$b"
+          done
+          [ -n "$on" ] || { echo "::error::$version ($GITHUB_SHA) is not on $TRUNK or $series"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "$version ($GITHUB_SHA) is on $on"
+      - name: Build the gems
+        shell: bash -eo pipefail {0}
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          mkdir dist
+          for spec in $GEMS; do
+            g="${spec%%:*}"; dir="${spec#*:}"; [ "$dir" = "$spec" ] && dir=.
+            (cd "$dir" && gem build "$g.gemspec" --output "$GITHUB_WORKSPACE/dist/$g-$VERSION.gem")
+            echo "$g" >> dist/ORDER
+          done
+          (cd dist && sha256sum *.gem > SHA256SUMS && cat ORDER SHA256SUMS)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gems-${{ steps.check.outputs.version }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write   # creates the tag on a dispatched release
+      id-token: write   # the RubyGems trusted-publishing exchange
+    steps:
+      - name: Refuse a stale run (the tag is somewhere else)
+        shell: bash -eo pipefail {0}
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG*" |
+            awk -v t="refs/tags/$TAG" '$2 == t || $2 == t "^{}" { print $1 }')
+          if [ -z "$tagged" ] && [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            echo "tag $TAG will be created at $GITHUB_SHA"
+          else
+            echo "$tagged" | grep -qx "$GITHUB_SHA" || { echo "::error::tag $TAG is not at $GITHUB_SHA (now: ${tagged:-gone}); this run is stale"; exit 1; }
+          fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: gems-${{ needs.build.outputs.version }}
+          path: dist
+      - name: Check the sums
+        working-directory: dist
+        run: sha256sum -c SHA256SUMS
+      - name: Create the tag
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
+        shell: bash -eo pipefail {0}
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG" "refs/tags/$TAG^{}" | cut -f1)
+          if [ -z "$tagged" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
+          elif echo "$tagged" | grep -qx "$GITHUB_SHA"; then
+            echo "tag $TAG is already at $GITHUB_SHA"
+          else
+            echo "::error::tag $TAG is not at $GITHUB_SHA (now: $tagged)"; exit 1
+          fi
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: '3.3'
+      - uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+      - name: Dry run ends here
+        if: inputs.dry_run
+        run: echo "Credentials exchange succeeded, so the trusted publisher works. No tag created, nothing pushed."
+      - name: Push the gems
+        if: ${{ !inputs.dry_run }}
+        working-directory: dist
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          while read -r g; do
+            if curl -fsS "https://rubygems.org/api/v1/versions/$g.json" | ruby -rjson -e 'exit(JSON.parse($stdin.read).any? { |v| v["number"] == ENV["VERSION"] } ? 0 : 1)'; then
+              echo "$g $VERSION is already on rubygems.org; skipping"
+            else
+              gem push "$g-$VERSION.gem" </dev/null
+            fi
+          done < ORDER
