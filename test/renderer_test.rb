@@ -348,6 +348,27 @@ context "Rabl::Renderer" do
     end.equals JSON.parse("{\"person\":{\"age\":24,\"name\":\"ivan\"} }")
 
     teardown { Rabl.reset_configuration! }
+    asserts 'renders templates saved with a UTF-8 byte order mark' do
+      bom = "\xEF\xBB\xBF".b
+      File.binwrite(tmp_path + "bom_base.rabl", bom + "attribute :name\n")
+      File.binwrite(tmp_path + "bom.rabl", bom + "object @user\nextends 'bom_base'\nnode(:age) { |u| u.age }\n")
+      user = User.new(:name => 'irvine', :age => 20)
+      from_file = Rabl::Renderer.json(user, 'bom', :view_path => tmp_path)
+      # as the Rails and Tilt handlers give it, a UTF-8 String
+      from_string = Rabl::Engine.new("\uFEFFobject @user\nattribute :name\n").render(nil, :object => user)
+      [JSON.parse(from_file), JSON.parse(from_string)]
+    end.equals [{ "user" => { "name" => "irvine", "age" => 20 } }, { "user" => { "name" => "irvine" } }]
+
+    asserts 'renders templates saved with a UTF-8 byte order mark when files are read as US-ASCII (LANG=C)' do
+      File.binwrite(tmp_path + "bom_ascii.rabl", "\xEF\xBB\xBF".b + "object @user\nattribute :name\n")
+      external = Encoding.default_external
+      begin
+        silence_warnings { Encoding.default_external = Encoding::US_ASCII }
+        JSON.parse(Rabl::Renderer.json(User.new(:name => 'irvine'), 'bom_ascii', :view_path => tmp_path))
+      ensure
+        silence_warnings { Encoding.default_external = external }
+      end
+    end.equals({ "user" => { "name" => "irvine" } })
   end # render
 
   context '.json' do

@@ -675,16 +675,23 @@ module Rabl
       end
 
       def eval_source(locals, &block)
-        return unless @_source.present?
+        source = @_source
+        # A UTF-8 byte order mark (as some editors save files) isn't part of the template. It is
+        # checked by its bytes first, as it is invalid in the encoding the source may be read in
+        # (US-ASCII under LANG=C), where reading the source as text raises.
+        source = source.byteslice(3..-1) if source.is_a?(String) && source.getbyte(0) == 0xEF && source.getbyte(1) == 0xBB && source.getbyte(2) == 0xBF
+        return unless source.present?
 
         # One method per source and location, so blocks report the file that defined them
-        msg = "cached_source_#{[@_source, @_options[:source_location]].hash.abs}"
+        line = @_options[:source_line] || 1
+        msg = "cached_source_#{[@_source, @_options[:source_location], line].hash.abs}"
 
         unless self.respond_to? msg then
-          src = "def #{msg} locals, &block\n#{@_source}\nend"
+          src = "def #{msg} locals, &block\n#{source}\nend"
 
-          # Line 0 is the def line, so errors report the template's own line numbers
-          self.class.class_eval(src, @_options[:source_location] || "(eval)", 0)
+          # The def line comes before the template's first line, so errors report the
+          # template's own line numbers
+          self.class.class_eval(src, @_options[:source_location] || "(eval)", line - 1)
         end
 
         send msg, locals, &block

@@ -13,7 +13,8 @@ if defined?(Tilt)
     end
 
     def evaluate(context_scope, locals, &block)
-      options = @options.merge(:source_location => file)
+      # an inline template (Sinatra's __END__ section) starts at line, in its app's file
+      options = @options.merge(:source_location => file, :source_line => line)
       ::Rabl::Engine.new(data, options).apply(context_scope, locals, &block).render
     end
   end

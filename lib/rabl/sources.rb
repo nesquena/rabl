@@ -15,6 +15,14 @@ module Rabl
     # each lookup. Upgrade path: enable it on an engine once its WeakMap holds keys weakly
     # without that cost.
     LOOKUP_IDS_BY_OBJECT = (ObjectSpace::WeakMap.new if RUBY_ENGINE == "ruby" && RUBY_VERSION >= "3.2")
+    # I18n's fallbacks (by identity) => locale => default locale => format => the number standing
+    # for the manual lookup's format and locale chain in source cache keys, worked out once for each.
+    # ceiling: the fallbacks are read once per locale, so fallbacks changed in place later
+    # (I18n.fallbacks.map) aren't seen by the cache until they are assigned anew
+    # (I18n.fallbacks = ...); and an I18n.default_locale reassigned by another thread while an entry
+    # is made can store it under the old default. Upgrade path: key by the fallbacks' contents.
+    MANUAL_LOOKUP_IDS = [nil]
+    MANUAL_LOOKUP_IDS_LOCK = Mutex.new
 
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
@@ -40,7 +48,7 @@ module Rabl
             fetch_padrino_source(file, options)
           when :rails
             _view_paths = view_paths + Array(context_scope.view_paths.to_a)
-            fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file)
+            fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file, rails_lookup_format, rails_lookup_locales)
           when :sinatra
             fetch_sinatra_source(file, options)
           else # generic template resolution
@@ -68,22 +76,46 @@ module Rabl
       # Returns what, besides the file and the :view_path option, the resolver's lookup
       # depends on, so the source cache keeps each lookup's result apart: under Rails the
       # format, the lookup details (formats, locale, variants, handlers, and registered
-      # details such as versioncake's versions) and the view paths; under Sinatra the app's
-      # views. Returns false when a view path has no stable name, so the lookup isn't cached.
+      # details such as versioncake's versions) and the view paths; elsewhere the format
+      # and locales the manual lookup prefers, and under Sinatra the app's views. Returns
+      # false when a view path has no stable name, so the lookup isn't cached.
+      # ceiling: outside Rails the cache (and MANUAL_LOOKUP_IDS) keeps an entry per locale looked
+      # up in, as Rails' details keys do, so it is bounded by I18n.available_locales only while
+      # I18n.enforce_available_locales is on (the default).
       def source_lookup(resolver)
         case resolver
         when :rails
           view_paths = rails_view_paths_id or return false
-          format = begin
-            rails_source_format
-          rescue StandardError
-            nil # fetch_rails_source's lookup fails the same way and falls back to the manual lookup
-          end
           details = rails_details_id
           return false if details == false
-          [format, details, view_paths]
+          [rails_lookup_format, details, view_paths]
         when :sinatra
-          context_scope.settings.views
+          [context_scope.settings.views, manual_lookup_id]
+        else
+          manual_lookup_id
+        end
+      end
+
+      # Returns the number standing for the format and locales the manual lookup prefers.
+      # Nested Hashes of what the locales come from, as this runs on every source cache hit.
+      def manual_lookup_id
+        format = manual_source_format
+        return lookup_id([:manual, format, []]) unless defined?(::I18n) && ::I18n.respond_to?(:config)
+
+        config = ::I18n.config
+        locale, default_locale = config.locale, config.default_locale
+        fallbacks = ::I18n.fallbacks if ::I18n.respond_to?(:fallbacks)
+        table = MANUAL_LOOKUP_IDS[0]
+        ids = table[1] if table && table[0].equal?(fallbacks)
+        ids &&= ids[locale]
+        ids &&= ids[default_locale]
+        (ids && ids[format]) || MANUAL_LOOKUP_IDS_LOCK.synchronize do
+          table = MANUAL_LOOKUP_IDS[0]
+          # only the current fallbacks are kept, so assigning them per request doesn't grow it
+          table = MANUAL_LOOKUP_IDS[0] = [fallbacks, {}] unless table && table[0].equal?(fallbacks)
+          ids = (table[1][locale] ||= {})[default_locale] ||= {}
+          # lookup_id takes its own lock, never the other way round
+          ids[format] ||= lookup_id([:manual, format, manual_source_locales])
         end
       end
 
@@ -152,10 +184,55 @@ module Rabl
       end
 
       # Returns the format Rails 3.2 and higher look templates up in:
-      # the request's format, or request_format for HTML requests
+      # the request's format, or request_format for HTML requests (as a Symbol,
+      # the only form Rails 7.0 and higher match)
       def rails_source_format
         format = context_scope.request.format.to_sym
-        format == :html ? request_format : format
+        format == :html ? request_format.to_sym : format
+      end
+
+      # Returns the format Rails looks the template up in or, when there is none (a view
+      # without a request, or a request format Rails doesn't know, where that lookup fails
+      # and the manual lookup is used), the format being rendered
+      def rails_lookup_format
+        rails_source_format || manual_source_format
+      rescue StandardError
+        manual_source_format
+      end
+
+      # Returns the locale chain of the Rails lookup context, which the source cache key holds
+      # (it can differ from I18n's, e.g. in I18n.with_locale or outside a controller action),
+      # or I18n's chain when the lookup context isn't Rails' own
+      def rails_lookup_locales
+        lookup_context = context_scope.lookup_context if context_scope.respond_to?(:lookup_context)
+        accessors = ActionView::LookupContext::Accessors if defined?(ActionView::LookupContext::Accessors)
+        # Module#=== checks the object itself, not what a delegator forwards to (see rails_details_id)
+        return manual_source_locales unless lookup_context && accessors && accessors === lookup_context && accessors.method_defined?(:locale)
+
+        Array(accessors.instance_method(:locale).bind_call(lookup_context)).map(&:to_s)
+      end
+
+      # Returns the format the manual lookup prefers: the format being rendered (json for hash),
+      # which nested templates are given as :source_format
+      def manual_source_format
+        # Engine keeps its options in @_options, Builder in @options
+        options = (@_options if defined?(@_options)) || (@options if defined?(@options))
+        format = options[:source_format] || options[:format] if options
+        format ||= request_format if defined?(request_format)
+        format = format.to_s
+        format.empty? || format == "hash" ? "json" : format
+      end
+
+      # Returns the locales the manual lookup prefers, best first: like Rails' lookup,
+      # I18n's locale, its fallbacks and the default locale
+      def manual_source_locales
+        return [] unless defined?(::I18n) && ::I18n.respond_to?(:config)
+
+        config = ::I18n.config
+        locales = [config.locale]
+        locales.concat(::I18n.fallbacks[config.locale]) if ::I18n.respond_to?(:fallbacks)
+        locales << config.default_locale
+        locales.uniq.map(&:to_s)
       end
 
       # Returns the rabl template path for padrino views using configured views
@@ -198,9 +275,46 @@ module Rabl
         fetch_manual_template(view_path, file)
       end
 
-      # Returns the rabl template by looking up files within the view_path and specified file path
-      def fetch_manual_template(view_path, file)
-        Dir[File.join("{#{view_path.join(",")}}", "{#{file},#{partialized(file)}}" + ".{*.,}rabl")].first
+      # Returns the rabl template by looking up files within the view_path and specified file path.
+      # Like Rails' lookup, it takes a template named for the format and locales it is given
+      # ("show.json.rabl", "show.fr.json.rabl", "show.fr.rabl" or "show.rabl"), the best named
+      # in the first view path, and the file before the partial, that has one; otherwise the
+      # first file found ("show.xml.rabl" for json), as it always has.
+      # ceiling: other details in a name, such as variants ("show.json+mobile.rabl"), never match
+      # here; Rails' own lookup handles those where it is used.
+      def fetch_manual_template(view_path, file, format = nil, locales = nil)
+        found = Dir[File.join("{#{view_path.join(",")}}", "{#{file},#{partialized(file)}}" + ".{*.,}rabl")]
+        return found.first if found.size < 2 # nothing to choose between, as for most templates
+
+        format ||= manual_source_format
+        locales ||= manual_source_locales
+        format = format.to_s
+        prefixes = [file, partialized(file)].map { |name| "#{File.basename(name)}." }
+        best = best_rank = best_group = nil
+
+        # Dir returns the files of each view path and name together, in the order given
+        found.each do |path|
+          dir, base = File.split(path)
+          prefix = prefixes.find { |name| base.start_with?(name) } or next
+          group = [dir, prefix]
+          break if best && group != best_group
+
+          rank = manual_template_rank(base[prefix.size...-4].split("."), format, locales)
+          best, best_rank, best_group = path, rank, group if rank && (!best || (rank <=> best_rank) < 0)
+        end
+
+        best || found.first
+      end
+
+      # Ranks the details in a template's name ("fr.json" => ["fr", "json"]) the way Rails
+      # sorts them, the locale first: a smaller rank is better, nil means they don't match
+      def manual_template_rank(details, format, locales)
+        format_rank = details.last == format ? 1 : 2
+        details = details[0...-1] if format_rank == 1
+        return [locales.size, format_rank] if details.empty?
+
+        locale_rank = locales.index(details.first)
+        [locale_rank, format_rank] if locale_rank && details.size == 1
       end
 
       # Returns a partialized version of a file path
