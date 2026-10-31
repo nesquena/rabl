@@ -22,13 +22,22 @@ module Rabl
     # the one ActiveSupport applies to the dasherized root. Otherwise the name is left to
     # Array#to_xml, so names that no underscored inflection changes, inflections written with
     # dashes (the workaround in #559) and uncountable words at the end of a name
-    # ("animal-species") are named as before.
+    # ("animal-species") are named as before. The arrays of one rendering share children_names,
+    # so each root's name is worked out once.
     class XmlArray < Array
+      def initialize(items, children_names)
+        super(items)
+        @children_names = children_names
+      end
+
       def to_xml(options = {}, &block)
         root = options[:root].to_s
         unless options[:children] || root.empty?
           renamed = ActiveSupport::XmlMini.rename_key(root, options)
-          options = options.merge(:children => root.singularize) if singular_rule_rank(root) < singular_rule_rank(renamed)
+          children = @children_names.fetch([root, renamed]) do |key|
+            @children_names[key] = (root.singularize if singular_rule_rank(root) < singular_rule_rank(renamed))
+          end
+          options = options.merge(:children => children) if children
         end
         super(options, &block)
       end
@@ -663,14 +672,16 @@ module Rabl
 
       # Returns a copy of the data with each Array in it, at any depth, as an XmlArray; arrays
       # with a to_xml of their own are left as they are
-      def xml_arrays(data)
+      def xml_arrays(data, children_names = {})
         case data
         when Hash
           copy = data.dup
-          data.each { |key, value| copy[key] = xml_arrays(value) }
+          data.each { |key, value| copy[key] = xml_arrays(value, children_names) }
           copy
         when Array
-          data.method(:to_xml).owner == Array ? XmlArray.new(data.map { |value| xml_arrays(value) }) : data
+          return data unless data.method(:to_xml).owner == Array
+
+          XmlArray.new(data.map { |value| xml_arrays(value, children_names) }, children_names)
         else
           data
         end
