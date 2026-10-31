@@ -678,13 +678,15 @@ module Rabl
         return unless @_source.present?
 
         # One method per source and location, so blocks report the file that defined them
-        msg = "cached_source_#{[@_source, @_options[:source_location]].hash.abs}"
+        line = @_options[:source_line] || 1
+        msg = "cached_source_#{[@_source, @_options[:source_location], line].hash.abs}"
 
         unless self.respond_to? msg then
           src = "def #{msg} locals, &block\n#{@_source}\nend"
 
-          # Line 0 is the def line, so errors report the template's own line numbers
-          self.class.class_eval(src, @_options[:source_location] || "(eval)", 0)
+          # The def line comes before the template's first line, so errors report the
+          # template's own line numbers
+          self.class.class_eval(src, @_options[:source_location] || "(eval)", line - 1)
         end
 
         send msg, locals, &block
