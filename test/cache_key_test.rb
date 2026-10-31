@@ -393,6 +393,11 @@ context 'Rabl cache keys' do
         end
       end.equals [%w(xml), %w(json)]
 
+      asserts('child-block extends and node partials rendered as XML in an HTML request use the XML templates') do
+        source = "object @item\nattributes :id\nchild(:itself => :c) { extends 'base' }\nnode(:part) { |i| partial('base', :object => i) }"
+        Rabl::Engine.new(source, :format => 'xml').render(rails_view(:html), :object => item(112)).scan(/<picked>(\w+)</).flatten
+      end.equals %w(xml xml)
+
       teardown do
         Object.send(:remove_const, :Rails)
         Object.send(:remove_const, :ActionPack)
