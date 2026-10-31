@@ -108,6 +108,7 @@ module Rabl
 
       # A cache key belongs to one render; the template sets it again
       remove_instance_variable(:@_cache_key) if defined?(@_cache_key)
+      remove_instance_variable(:@_replaced_data) if defined?(@_replaced_data)
       @_full_cache_key = nil
 
       eval_source(locals, &block)
@@ -141,7 +142,7 @@ module Rabl
       return unless defined?(@_cache_key)
 
       @_full_cache_key ||= begin
-        cache_key = Array(@_cache_key) + [@_options[:root_name], @_options[:format]]
+        cache_key = rabl_cache_key_parts + [@_options[:root_name], @_options[:format]]
         # a nested engine caches its output before it is escaped, so it gets its own key
         cache_key << 'nested' if @_options[:nested]
 
@@ -285,6 +286,12 @@ module Rabl
     # object @users
     def object(template_data)
       current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
+      # Rendered for an item (extends, partial, child), the template gets the item instead of
+      # the data it names, e.g. the outer @user; cache keys then add the item (see #rabl_cache_key_parts)
+      if !current_data.equal?(template_data)
+        alias_form = template_data.is_a?(Hash) && template_data.size == 1 && is_name_value?(template_data.values.first)
+        @_replaced_data = alias_form ? template_data.keys.first : template_data # object @user => :person names @user
+      end
       @_data_object = data_object(current_data)
       @_root_name_data = template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data
       if @_root_name_data.is_a?(Hash)
@@ -335,7 +342,10 @@ module Rabl
 
       @_object_root_name = options[:object_root] if options.has_key?(:object_root)
 
-      object(data_object(data) || [])
+      collection_data = data_object(data)
+      object(collection_data || [])
+      # a nil collection is given to object as [], but the template names nil (see #object)
+      @_replaced_data = collection_data if defined?(@_replaced_data)
     end
 
     # Sets the cache key to be used by ActiveSupport::Cache.expand_cache_key
@@ -445,9 +455,22 @@ module Rabl
       @_cache_read_on_render
     end
 
-    # Returns the key given to `cache` in the template, if any
+    # Returns the key given to `cache` in the template, if any. When the template is rendered
+    # for an item (see #object) and its key has the data the template names (`cache @user`, or
+    # the nil in `cache ['v1', @topic]`) but not the item, the item is added, so each item gets
+    # its own key; the other parts (such as the current user) are kept.
+    # ceiling: only the key's own parts are compared, not those of an array nested in it;
+    # walk nested arrays too if such keys turn up.
     def rabl_cache_key_parts
-      defined?(@_cache_key) ? Array(@_cache_key) : []
+      return [] unless defined?(@_cache_key)
+
+      parts = Array(@_cache_key)
+      return parts unless defined?(@_replaced_data)
+
+      item = root_object
+      return parts if parts.any? { |part| part.equal?(item) } || parts.none? { |part| part.equal?(@_replaced_data) }
+
+      parts + [item]
     end
 
     # Identifies the template for cache keys: a digest of its location, the view path its

@@ -272,6 +272,122 @@ context 'Rabl cache keys' do
     teardown { FileUtils.rm_rf(@dir) }
   end
 
+  context 'with templates rendered for each item' do
+    setup do
+      @dir = Dir.mktmpdir
+      {
+        'base' => "object @item\ncache @item\nattributes :id\n",
+        'versioned' => "object @item\ncache ['v1', @item]\nattributes :id\n",
+        'aliased' => "object @item => :thing\ncache @item\nattributes :id\n",
+        'cached_first' => "cache ['v1', @item]\nobject @item\nattributes :id\n",
+        'versioned_list' => "collection @items\ncache ['v1', @items]\nattributes :id\n",
+        'viewer_ro' => "object @item\ncache [root_object, viewer]\nattributes :id\nnode(:mine, :if => lambda { |i| viewer.equal?(i) }) { true }\n",
+        'viewer_ivar' => "object @item\ncache ['v1', @item, viewer]\nattributes :id\nnode(:mine, :if => lambda { |i| viewer.equal?(i) }) { true }\n"
+      }.each { |name, source| File.open(File.join(@dir, "#{name}.rabl"), 'w') { |f| f.write(source) } }
+      @dir
+    end
+
+    # Renders with @item set to the outer object, as a controller would
+    helper(:render_for) do |source, object|
+      scope = Object.new
+      scope.instance_variable_set(:@item, object)
+      Rabl::Engine.new(source, :format => 'json', :view_path => topic).render(scope, :object => object)
+    end
+
+    # Renders with a `viewer` helper (like current_user) and @item set to outer
+    helper(:render_as) do |viewer, outer, source, object|
+      scope = Object.new
+      scope.instance_variable_set(:@item, outer)
+      scope.define_singleton_method(:viewer) { viewer }
+      Rabl::Engine.new(source, :format => 'json', :view_path => topic).render(scope, :object => object)
+    end
+
+    asserts('a template extended in a child and caching the outer object renders each child') do
+      Rabl.configuration.cache_engine = memory_cache
+      template = "object @item\nextends 'base'\nchild(:owner => :owners) { extends 'base' }"
+      outer = item(50, [item(51), item(52)])
+      2.times.map { render_for(template, outer) }
+    end.equals ['{"id":50,"owners":[{"owner":{"id":51}},{"owner":{"id":52}}]}'] * 2
+
+    asserts('a partial caching the outer object renders each object') do
+      Rabl.configuration.cache_engine = memory_cache
+      render_for("object @item\nnode(:owners) { |i| i.owner.map { |o| partial('base', :object => o) } }", item(56, [item(57), item(58)]))
+    end.equals '{"owners":[{"id":57},{"id":58}]}'
+
+    asserts('items of a collection caching a key with an unset instance variable are cached apart') do
+      Rabl.configuration.cache_engine = memory_cache
+      items = [item(53), item(54), item(55)]
+      first = render("collection @items\nextends 'versioned'", items, :view_path => topic)
+      items.each { |i| i.id += 100 }
+      [first, render("collection @items\nextends 'versioned'", items, :view_path => topic), Rabl.configuration.cache_engine.store.size]
+    end.equals ['[{"id":53},{"id":54},{"id":55}]', '[{"id":53},{"id":54},{"id":55}]', 3]
+
+    asserts('a template caching an instance variable that does not hold the rendered object renders each object') do
+      Rabl.configuration.cache_engine = memory_cache
+      [item(66), item(67)].map { |object| Rabl::Renderer.json(object, 'versioned', :view_path => topic, :scope => Object.new) }
+    end.equals ['{"id":66}', '{"id":67}']
+
+    context 'without read_multi' do
+      setup { Rabl.configuration.use_read_multi = false; topic }
+
+      asserts('items of a collection caching a key with an unset instance variable render each item') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(64), item(65)]
+        first = render("collection @items\nextends 'versioned'", items, :view_path => topic)
+        items.each { |i| i.id += 100 }
+        [first, render("collection @items\nextends 'versioned'", items, :view_path => topic)]
+      end.equals ['[{"id":64},{"id":65}]', '[{"id":64},{"id":65}]']
+
+      asserts('a template naming its object with an alias and caching the outer object renders each child') do
+        Rabl.configuration.cache_engine = memory_cache
+        template = "object @item\nchild(:owner => :owners) { extends 'aliased' }"
+        outer = item(60, [item(61), item(62)])
+        2.times.map { render_for(template, outer) }
+      end.equals ['{"owners":[{"owner":{"id":61}},{"owner":{"id":62}}]}'] * 2
+
+      asserts('items of a collection render each item when the template calls cache before object') do
+        Rabl.configuration.cache_engine = memory_cache
+        render("collection @items\nextends 'cached_first'", [item(68), item(69)], :view_path => topic)
+      end.equals '[{"id":68},{"id":69}]'
+
+      asserts('a collection rendered as a partial and caching an unset instance variable renders each collection') do
+        Rabl.configuration.cache_engine = memory_cache
+        template = "object @item\nnode(:friends) { |i| partial('versioned_list', :object => i.owner) }"
+        [item(75, [item(76), item(77)]), item(78, [item(79)])].map { |object| render(template, object, :view_path => topic) }
+      end.equals ['{"friends":[{"id":76},{"id":77}]}', '{"friends":[{"id":79}]}']
+
+      asserts('items of a collection are cached apart when the instance variable holds a data hash') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(80), item(81)]
+        render_as(nil, { :theme => 1 }, "collection @items\nextends 'versioned'", items)
+      end.equals '[{"id":80},{"id":81}]'
+
+      asserts('an item keyed with root_object and a nil viewer does not get another viewer\'s output') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(82), item(83)]
+        [items[0], nil].map { |viewer| render_as(viewer, nil, "collection @items\nextends 'viewer_ro'", items) }
+      end.equals ['[{"id":82,"mine":true},{"id":83}]', '[{"id":82},{"id":83}]']
+
+      asserts('an item keyed with the instance variable and a nil viewer does not get another viewer\'s output') do
+        Rabl.configuration.cache_engine = memory_cache
+        items = [item(84), item(85)]
+        [items[0], nil].map { |viewer| render_as(viewer, nil, "collection @items\nextends 'viewer_ivar'", items) }
+      end.equals ['[{"id":84,"mine":true},{"id":85}]', '[{"id":84},{"id":85}]']
+
+      asserts('a child keyed with the viewer stays apart per viewer when the outer object is the viewer') do
+        Rabl.configuration.cache_engine = memory_cache
+        friend = item(86)
+        other, own = item(87, [friend]), item(88, [friend])
+        template = "object @item\nchild(:owner => :owners) { extends 'viewer_ro' }"
+        [render_as(friend, other, template, other), render_as(own, own, template, own)]
+      end.equals ['{"owners":[{"owner":{"id":86,"mine":true}}]}', '{"owners":[{"owner":{"id":86}}]}']
+
+      teardown { Rabl.configuration.use_read_multi = true }
+    end
+
+    teardown { FileUtils.rm_rf(@dir) }
+  end
+
   asserts('a template under a non-ASCII directory renders with a binary working directory') do
     stub(Dir).pwd { "/x/caf\xC3\xA9".dup.force_encoding(Encoding::BINARY) }
     render("object @item\ncache @item\nattributes :id", item(25),
