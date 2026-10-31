@@ -597,6 +597,11 @@ and called several times is the same block each time: give each call a distinct 
 called with. On runtimes without `RubyVM::InstructionSequence` (such as JRuby) the start is the line only, so two caching blocks that
 start on the same line need distinct cache keys there.
 
+The key covers the template's own source, but not the templates it uses through `extends` or `partial` (under Rails, the template
+digest looks those up as underscore partials, such as `_base`, so it leaves out templates named without the underscore): after editing
+one of those, the output cached before the edit is still served. Change the cache key of each template that uses it, e.g. from
+`cache ['v1', root_object]` to `cache ['v2', root_object]`.
+
 In a template that is also rendered for each item (through `extends`, `partial` or `child`), key the cache on `root_object`, the item
 being rendered:
 
