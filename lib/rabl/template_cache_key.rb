@@ -66,13 +66,17 @@ module Rabl
 
     # Returns the options that change the shape of a rendering. A nested (hash format)
     # rendering gets its root options from its parent; for other formats only root
-    # options given explicitly are added, so default keys have none.
-    # TemplateCacheKey.shape(:format => "hash", :root => true) => ["root", "no_child_root"]
-    # TemplateCacheKey.shape(:format => "json", :except => :b) => ["except=:b"]
-    def shape(options)
+    # options given explicitly are added, so default keys have none. The format `extends`
+    # and `partial` look templates up in (lookup_format) is added when it isn't the one
+    # rendered, a hash counting as JSON: a nested rendering is a hash for every format.
+    # TemplateCacheKey.shape({ :format => "hash", :root => true }, "json") => ["root", "no_child_root"]
+    # TemplateCacheKey.shape({ :format => "hash", :child_root => true }, "xml") => ["lookup_format=xml"]
+    # TemplateCacheKey.shape({ :format => "json", :except => :b }, "json") => ["except=:b"]
+    def shape(options, lookup_format)
       shape = []
+      format = options[:format].to_s
 
-      if options[:format].to_s == "hash"
+      if format == "hash"
         shape << "root" if options[:root]
         shape << "no_child_root" unless options[:child_root]
         shape << "object_root=#{options[:object_root_name].inspect}" if options[:object_root_name]
@@ -82,6 +86,7 @@ module Rabl
       end
 
       shape << "except=#{Array(options[:except]).map { |name| name.inspect }.join(',')}" if options[:except]
+      shape << "lookup_format=#{lookup_format}" unless lookup_format == (format == "hash" ? "json" : format)
       shape
     end
   end

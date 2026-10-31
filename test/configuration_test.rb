@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rbconfig'
+require 'tmpdir'
 require File.expand_path('../teststrap', __FILE__)
 
 context 'Rabl::Configuration' do
@@ -45,6 +46,20 @@ context 'Rabl::Configuration' do
 
     teardown { Rabl.reset_configuration! }
   end # custom JSON, class
+
+  # A fresh process, as this suite has loaded both Oj and json, without Oj or
+  # bson (which loads json itself)
+  context 'without Oj' do
+    asserts('rendering JSON needs nothing but rabl') do
+      Dir.mktmpdir do |without_gems|
+        %w(oj bson).each do |name|
+          File.open(File.join(without_gems, "#{name}.rb"), 'w') { |f| f.puts "raise LoadError, 'cannot load such file -- #{name}'" }
+        end
+        code = "require 'rabl'; print Rabl::Renderer.json(nil, %{object false\\nnode(:a) { 1 }\\n}), ' ', Rabl.configuration.json_engine"
+        IO.popen([RbConfig.ruby, '-I', without_gems, '-I', File.expand_path('../../lib', __FILE__), '-e', code, { :err => [:child, :out] }], &:read)
+      end
+    end.equals '{"a":1} JSON'
+  end
 
   # #744: rabl leaves the app's Oj.default_options alone and passes its own per call
   context 'Oj default options' do

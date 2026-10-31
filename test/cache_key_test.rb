@@ -301,6 +301,113 @@ context 'Rabl cache keys' do
     teardown { FileUtils.rm_rf(@dir) }
   end
 
+  # Without child roots, a nested rendering has the same shape in JSON and XML
+  context 'with a partial for each format and no child roots' do
+    setup do
+      Rabl.configuration.include_child_root = false
+      @dir = Dir.mktmpdir
+      {
+        'base.json' => "node(:picked) { 'json' }\n",
+        'base.xml' => "node(:picked) { 'xml' }\n",
+        'item' => "object @item\ncache ['v1', root_object]\nattributes :id\nextends 'base'\n",
+        'plain_item' => "object @item\nattributes :id\nextends 'base'\n"
+      }.each { |name, source| File.open(File.join(@dir, "#{name}.rabl"), 'w') { |f| f.write(source) } }
+      @dir
+    end
+
+    # Renders the template in each format in turn, with one cache, and returns
+    # the partial each rendering picked
+    helper(:picked_in) do |formats, template, object|
+      Rabl.configuration.cache_engine = memory_cache
+      formats.map do |format|
+        render(template, object, :format => format, :view_path => topic).scan(/"picked":"(\w+)"|<picked>(\w+)</).flatten.compact.uniq
+      end
+    end
+
+    asserts('cached collection items render each format\'s partial, JSON first') do
+      picked_in(%w(json xml), "collection @items\nextends 'item'", [item(100), item(101)])
+    end.equals [%w(json), %w(xml)]
+
+    asserts('cached collection items render each format\'s partial, XML first') do
+      picked_in(%w(xml json), "collection @items\nextends 'item'", [item(102), item(103)])
+    end.equals [%w(xml), %w(json)]
+
+    asserts('a cached child block renders each format\'s partial') do
+      picked_in(%w(xml json), "object @item\nchild(:owner => :owner) { cache root_object; extends 'base' }", item(104, item(105)))
+    end.equals [%w(xml), %w(json)]
+
+    asserts('a cached partial rendered in a node renders each format\'s partial') do
+      picked_in(%w(json xml), "object @item\nnode(:owner) { |i| partial('item', :object => i.owner) }", item(106, item(107)))
+    end.equals [%w(json), %w(xml)]
+
+    context 'and cache_all_output' do
+      setup { Rabl.configuration.cache_all_output = true; topic }
+
+      asserts('collection items render each format\'s partial') do
+        picked_in(%w(xml json), "collection @items\nextends 'plain_item'", [item(108), item(109)])
+      end.equals [%w(xml), %w(json)]
+    end
+
+    # Rails' lookup takes the request's format, which can differ from the one rendered
+    context 'under Rails' do
+      setup do
+        ::Rails = Module.new
+        ::Rails.define_singleton_method(:version) { "3.2.22" }
+        ::ActionPack = Module.new
+        ::ActionPack::VERSION = Module.new
+        ::ActionPack::VERSION::MAJOR = 3
+        ::ActionPack::VERSION::MINOR = 2
+        ::ActionController = Module.new
+        ::ActionController::Base = Class.new { def self.perform_caching; true; end }
+        topic
+      end
+
+      # A Rails view for a request in the given format, whose lookup finds templates
+      # named for that format or for none
+      helper(:rails_view) do |request_format|
+        dir = topic
+        lookup_context = Object.new
+        lookup_context.define_singleton_method(:find) do |name, prefixes, partial, keys, options|
+          path = ["#{name}.#{options[:formats].first}.rabl", "#{name}.rabl"].map { |file| File.join(dir, file) }.find { |file| File.exist?(file) }
+          path ? Struct.new(:identifier).new(path) : raise("Missing template #{name}")
+        end
+        request = Struct.new(:format).new(request_format)
+        scope = Object.new
+        scope.define_singleton_method(:lookup_context) { lookup_context }
+        scope.define_singleton_method(:view_paths) { [dir] }
+        scope.define_singleton_method(:request) { request }
+        scope
+      end
+
+      asserts('cached collection items render XML with the partials of each request\'s format') do
+        Rabl.configuration.cache_engine = memory_cache
+        [:json, :xml].map do |request_format|
+          Rabl::Engine.new("collection @items\nextends 'item'", :format => 'xml').render(rails_view(request_format), :object => [item(110)]).scan(/<picked>(\w+)</).flatten
+        end
+      end.equals [%w(json), %w(xml)]
+
+      asserts('cached items rendered as XML in an HTML request and in a JSON request render their own partials') do
+        Rabl.configuration.cache_engine = memory_cache
+        [:html, :json].map do |request_format|
+          Rabl::Engine.new("object @item\ncache ['v1', @item]\nattributes :id\nextends 'base'", :format => 'xml').render(rails_view(request_format), :object => item(111)).scan(/<picked>(\w+)</).flatten
+        end
+      end.equals [%w(xml), %w(json)]
+
+      asserts('child-block extends and node partials rendered as XML in an HTML request use the XML templates') do
+        source = "object @item\nattributes :id\nchild(:itself => :c) { extends 'base' }\nnode(:part) { |i| partial('base', :object => i) }"
+        Rabl::Engine.new(source, :format => 'xml').render(rails_view(:html), :object => item(112)).scan(/<picked>(\w+)</).flatten
+      end.equals %w(xml xml)
+
+      teardown do
+        Object.send(:remove_const, :Rails)
+        Object.send(:remove_const, :ActionPack)
+        Object.send(:remove_const, :ActionController)
+      end
+    end
+
+    teardown { FileUtils.rm_rf(@dir) }
+  end
+
   context 'with templates rendered for each item' do
     setup do
       @dir = Dir.mktmpdir

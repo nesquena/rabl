@@ -22,6 +22,7 @@ end
 begin
   require 'oj'
 rescue LoadError
+  require 'json' # the default json_engine without Oj
 end
 
 module Rabl

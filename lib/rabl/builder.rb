@@ -264,7 +264,7 @@ module Rabl
             # the template's own `cache` key also applies when it renders this object
             cache_key.concat(engine.rabl_cache_key_parts) if engine.root_object.equal?(@_object)
           end
-          cache_key.concat(TemplateCacheKey.shape(@options))
+          cache_key.concat(TemplateCacheKey.shape(@options, source_lookup_format))
 
           fetch_result_from_cache(cache_key, &block)
         else # skip cache
