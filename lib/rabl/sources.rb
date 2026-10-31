@@ -5,11 +5,16 @@ module Rabl
     include Helpers
 
     # Each distinct view path list or set of lookup details => the number standing for it in
-    # source cache keys, so a key is quick to compare however many view paths there are
+    # source cache keys, so a key is quick to compare however many view paths there are.
+    # The numbers come from its size, so it must never be cleared without LOOKUP_IDS_BY_OBJECT.
     LOOKUP_IDS = {}
     LOOKUP_IDS_LOCK = Mutex.new
-    # Rails' frozen view path lists and details keys => their numbers, worked out once per object
-    LOOKUP_IDS_BY_OBJECT = ObjectSpace::WeakMap.new
+    # Rails' frozen view path lists and details keys => their numbers, worked out once per object.
+    # ceiling: CRuby 3.2 and higher only (JRuby's WeakMap holds its keys strongly, and before 3.2
+    # CRuby's slows its GC down with many dead keys); elsewhere the numbers are worked out on
+    # each lookup. Upgrade path: enable it on an engine once its WeakMap holds keys weakly
+    # without that cost.
+    LOOKUP_IDS_BY_OBJECT = (ObjectSpace::WeakMap.new if RUBY_ENGINE == "ruby" && RUBY_VERSION >= "3.2")
 
     # Returns source for a given relative file
     # fetch_source("show", :view_path => "...") => "...contents..."
@@ -81,7 +86,7 @@ module Rabl
       end
 
       # Returns the number standing for the Rails view paths, the same for the same paths,
-      # or nil when one of them has no stable name (a resolver without to_path)
+      # or false when one of them has no stable name (a resolver without to_path)
       def rails_view_paths_id
         paths = context_scope.view_paths
         paths = paths.respond_to?(:paths) ? paths.paths : Array(paths.to_a)
@@ -96,7 +101,7 @@ module Rabl
               break
             end
           end
-          lookup_id([:view_paths, names]) if names
+          names ? lookup_id([:view_paths, names]) : false # false is remembered too
         end
       end
 
@@ -109,13 +114,23 @@ module Rabl
         # (in development, when templates change), and the details give the same number again then
         details_key = lookup_context.details_key if lookup_context.respond_to?(:details_key)
         lookup_id_by_object(details_key) do
-          lookup_id([:details, lookup_context.class.registered_details.map { |name| lookup_context.public_send(name) }])
+          # Rails' own accessors: LookupContext#locale returns the first locale, the lookup
+          # uses the whole chain (I18n.locale, its fallbacks and the default locale)
+          accessors = ActionView::LookupContext::Accessors if defined?(ActionView::LookupContext::Accessors)
+          details = lookup_context.class.registered_details.map do |name|
+            if accessors && accessors.method_defined?(name)
+              accessors.instance_method(name).bind(lookup_context).call
+            else
+              lookup_context.public_send(name)
+            end
+          end
+          lookup_id([:details, details])
         end
       end
 
       # Returns the number for object, or the block's number, which it is then kept for
       def lookup_id_by_object(object)
-        return yield unless object
+        return yield unless object && LOOKUP_IDS_BY_OBJECT
 
         id = LOOKUP_IDS_BY_OBJECT[object]
         id.nil? ? (LOOKUP_IDS_BY_OBJECT[object] = yield) : id
@@ -123,7 +138,7 @@ module Rabl
 
       # Returns the number standing for value, the same for an equal value
       def lookup_id(value)
-        LOOKUP_IDS_LOCK.synchronize do
+        LOOKUP_IDS[value] || LOOKUP_IDS_LOCK.synchronize do
           LOOKUP_IDS.fetch(value) { LOOKUP_IDS[Rabl.frozen_copy(value)] = LOOKUP_IDS.size }
         end
       end

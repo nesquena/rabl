@@ -16,26 +16,45 @@ end
 
 # A resolver named by its path, like ActionView::FileSystemResolver
 class TestPathResolver < TestResolver
-  alias_method :to_path, :dir
+  attr_reader :named
+  def to_path; @named = named.to_i + 1; dir; end
+end
+
+# A list of view paths that keeps them frozen, like a PathSet on Rails 7.1 and higher
+class TestPathSet
+  attr_reader :paths
+  def initialize(paths); @paths = paths.freeze; end
+  def to_a; paths.dup; end
 end
 
 # Looks templates up the way ActionView's lookup context does: by name and the
-# requested format, locale and variant ("test.fr.json+mobile.rabl")
+# requested format, locale chain and variant ("test.fr.json+mobile.rabl")
 class TestLookupContext
+  # Like Rails' generated accessors, these return the whole detail
+  module Accessors
+    def locale; @locale; end
+  end
+  include Accessors
+
   def self.registered_details
     [:locale, :formats, :variants]
   end
 
-  attr_accessor :locale, :formats, :variants, :details_key, :lookups
+  attr_accessor :formats, :variants, :details_key, :lookups
 
   def initialize(view_path, details = {})
     @view_path, @lookups = view_path, 0
-    @locale, @formats, @variants = details[:locale] || :en, details[:formats] || [:json], details[:variants] || []
+    @locale, @formats, @variants = Array(details[:locale] || :en), details[:formats] || [:json], details[:variants] || []
+  end
+
+  # Like Rails, the first locale of the chain the lookup uses
+  def locale
+    @locale.first
   end
 
   def find(name, prefixes = [], partial = false, keys = [], options = {})
     @lookups += 1
-    locales = locale == :en ? [""] : [".#{locale}", ""]
+    locales = @locale.map { |l| ".#{l}" } + [""]
     variants = (self.variants.map { |v| "+#{v}" }) + [""]
     format = (options[:formats] || formats).first
     candidates = locales.product(variants).map { |l, v| File.join(@view_path, "#{name}#{l}.#{format}#{v}.rabl") }
@@ -249,7 +268,7 @@ context "Rabl::Partials" do
     helper(:rails_partial) do |format, details = {}, view_paths = []|
       partial = TestPartial.new
       scope = Object.new
-      view_path = view_paths.first || tmp_path
+      view_path = (view_paths.respond_to?(:paths) ? view_paths.paths : view_paths).first || tmp_path
       lookup_context = TestLookupContext.new((view_path.respond_to?(:dir) ? view_path.dir : view_path).to_s, details)
       request = Struct.new(:format).new(Struct.new(:to_sym).new(format))
       scope.define_singleton_method(:lookup_context) { lookup_context }
@@ -272,6 +291,8 @@ context "Rabl::Partials" do
         ::ActionPack::VERSION = Module.new
         ::ActionPack::VERSION::MAJOR = 8
         ::ActionPack::VERSION::MINOR = 1
+        ::ActionView = Module.new
+        ::ActionView::LookupContext = TestLookupContext
         Rabl.configuration.cache_sources = true
 
         write "test.json.rabl", "json"
@@ -299,6 +320,11 @@ context "Rabl::Partials" do
         Rabl.reset_source_cache!
         [rails_partial(:json).fetch_source("test")[0], rails_partial(:json, :locale => :fr).fetch_source("test")[0]]
       end.equals ["json\n", "json fr\n"]
+
+      asserts("each locale chain gets its own template, for the same first locale") do
+        Rabl.reset_source_cache!
+        [rails_partial(:json, :locale => [:de, :fr]).fetch_source("test")[0], rails_partial(:json, :locale => [:de, :en]).fetch_source("test")[0]]
+      end.equals ["json fr\n", "json\n"]
 
       asserts("each set of view paths gets its own template") do
         Rabl.reset_source_cache!
@@ -335,6 +361,21 @@ context "Rabl::Partials" do
         partials.map { |partial| partial.context_scope.lookup_context.lookups }
       end.equals [1, 0]
 
+      asserts("frozen lists of view paths are named once each, and apart") do
+        Rabl.reset_source_cache!
+        other_path = Pathname.new(Dir.mktmpdir)
+        File.open(other_path + "other.json.rabl", "w") { |f| f.puts "other" }
+        write "other.json.rabl", "default"
+        resolvers = [TestPathResolver.new(tmp_path.to_s), TestPathResolver.new(other_path.to_s)]
+        path_sets = resolvers.map { |resolver| TestPathSet.new([resolver]) }
+        sources = [0, 1, 0, 1].map { |i| rails_partial(:json, {}, path_sets[i]).fetch_source("other")[0] }
+        # named once per list where the memo exists (CRuby 3.2 and higher), on each lookup elsewhere
+        [sources, resolvers.map(&:named)]
+      end.equals do
+        named = defined?(Rabl::Sources::LOOKUP_IDS_BY_OBJECT) && Rabl::Sources::LOOKUP_IDS_BY_OBJECT ? 1 : 2
+        [["default\n", "other\n", "default\n", "other\n"], [named, named]]
+      end
+
       asserts("a repeated lookup is served from the cache") do
         Rabl.reset_source_cache!
         partials = [rails_partial(:json, :variants => [:mobile]), rails_partial(:json, :variants => [:mobile])]
@@ -353,6 +394,7 @@ context "Rabl::Partials" do
       teardown do
         Object.send(:remove_const, :Rails)
         Object.send(:remove_const, :ActionPack)
+        Object.send(:remove_const, :ActionView)
       end
     end
 
