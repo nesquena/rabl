@@ -277,19 +277,24 @@ module Rabl
       # first file found ("show.xml.rabl" for json), as it always has.
       # ceiling: other details in a name, such as variants ("show.json+mobile.rabl"), never match
       # here; Rails' own lookup handles those where it is used.
-      def fetch_manual_template(view_path, file, format = manual_source_format, locales = manual_source_locales)
+      def fetch_manual_template(view_path, file, format = nil, locales = nil)
         found = Dir[File.join("{#{view_path.join(",")}}", "{#{file},#{partialized(file)}}" + ".{*.,}rabl")]
-        names = [File.basename(file), File.basename(partialized(file))]
+        return found.first if found.size < 2 # nothing to choose between, as for most templates
+
+        format ||= manual_source_format
+        locales ||= manual_source_locales
+        format = format.to_s
+        prefixes = [file, partialized(file)].map { |name| "#{File.basename(name)}." }
         best = best_rank = best_group = nil
 
         # Dir returns the files of each view path and name together, in the order given
         found.each do |path|
           dir, base = File.split(path)
-          name = names.find { |n| base.start_with?("#{n}.") } or next
-          group = [dir, name]
+          prefix = prefixes.find { |name| base.start_with?(name) } or next
+          group = [dir, prefix]
           break if best && group != best_group
 
-          rank = manual_template_rank(base[(name.size + 1)...-4].split("."), format.to_s, locales)
+          rank = manual_template_rank(base[prefix.size...-4].split("."), format, locales)
           best, best_rank, best_group = path, rank, group if rank && (!best || (rank <=> best_rank) < 0)
         end
 
