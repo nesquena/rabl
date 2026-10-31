@@ -2,6 +2,7 @@
 
 ## 0.18.0 (unreleased)
 
+* Require Ruby 2.7 or newer. rabl hasn't loaded on Ruby 1.9 since 0.16.0, and 2.0–2.6 are long past end of life (@nesquena)
 * Allow BSON >= 2.0 (@tagliala)
 * Support Frozen String Literals (@tagliala)
 * Fix extract_options! not being available (@A1bi)
@@ -12,6 +13,9 @@
 * `require 'rabl'` no longer overwrites Oj options the app has already set. If, when rabl is loaded, `Oj.default_options` still has Oj's shipped `mode`, `time_format` and `use_to_json`, rabl sets them globally as before (`mode: :compat, time_format: :ruby, use_to_json: true`); if the app (or a library loaded earlier) already chose any of them, they are left alone. Either way rabl passes `Oj.dump` only the options that differ from Oj's global ones (none, when rabl's are in place), so rabl's JSON is unchanged, and options the app changes *after* loading rabl still apply to rabl's output as before: `time_format`, `use_to_json`, and `mode` when it is `:compat`, `:rails` (which escapes `<`, `>` and `&`) or `:custom`. What changes for existing apps that set Oj options before loading rabl: their own `Oj.dump` calls, and a custom `config.json_engine` that calls `Oj.dump(obj)` without options, now use the app's options instead of rabl's (pass `Rabl.configuration.oj_dump_options`, or use `config.json_engine = Oj`, to get rabl's). And for any app: a `:strict`, `:null` or `:object` mode set after loading rabl no longer makes rabl's JSON raise or drop values; it stays `:compat`. With json 3.x, use Oj >= 3.17.7 if you configure Oj before loading rabl: older Oj passes rabl's options on to `to_json`, which json 3.x rejects with `ArgumentError: unknown keywords` (#744, reported by @BuonOmo)
 * `extends` on a collection of plain Hashes now renders each Hash's own values. Before, the item handed to the extended template was re-read as rabl's `@object => :name` syntax (one key) or as a collection (several keys), so `collection @friends` + `extends 'friends/show'` rendered `[{"uid":"uid"}]` or `[{}]`, or raised. Existing apps rendering Hash items through `extends` get the real values instead of that output; the alias syntax in `object`, `collection`, `child`, `glue` and an explicit `:object` option to `extends` or `partial` is unchanged. Unchanged too: an unnamed `collection @hashes` still takes its item root from the first Hash (name it, e.g. `collection @friends => :friends`) (#396, reported by @ericgross)
 * README: `camelize_keys` applies to the attribute, node and child names rabl builds, not to root names or to keys inside a hash a `node` block returns; documents the `deep_transform_keys` workaround. No behaviour change (#701, reported by @apuntovanini)
+* Fix cached `child` nodes in a collection being flattened (or dropped, for a child collection) on a cache hit (@nesquena)
+* Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back (@nesquena)
+* Fix `escape_all_output` changing the app's own arrays and hashes in place (and re-escaping cached fragments outside Rails on every render), raising `FrozenError` on frozen values, and raising `NameError` for `ERB` outside Rails (@nesquena)
 
 ## 0.17.0 (Nov 26, 2024)
 
