@@ -1,21 +1,24 @@
 # Publishes a rabl release to rubygems.org with trusted publishing, gated by the "release"
-# environment (the owner approves each publish).
+# environment: the owner approves each publish. Generated from the steward's release-rubygems.yml
+# template; read the notes there before changing the security-relevant parts.
 #
-# Usual path: merge the release PR (version in lib/rabl/version.rb + the CHANGELOG.md heading stamped
-# with the date), then "Run workflow" on master with the version. The run checks the version, builds
-# the gem, waits for approval, creates the tag vX.Y.Z on the built commit and pushes the gem. Pushing a
-# vX.Y.Z tag on a master commit also starts it. "Re-run failed jobs" resumes a release that stopped
-# partway; a gem already on rubygems.org is skipped.
+# Usual path: merge the release PR (the version in lib/rabl/version.rb and the CHANGELOG.md heading
+# stamped with the date, e.g. "## 0.18.0 (Nov 1, 2026)"), then "Run workflow" on master with the
+# version. build checks the version, the changelog's first heading and the branch, and builds the gem
+# reproducibly; publish waits for approval, creates the tag vX.Y.Z on the built commit and pushes the
+# gem with short-lived trusted-publishing credentials. Pushing a vX.Y.Z tag on a master commit runs
+# the same checks. "Re-run failed jobs" resumes a release that stopped partway.
 #
-# Dry run: tick dry_run to check the wiring without releasing. Everything runs except the changelog
-# stamp check, the tag and the push; the credential exchange fails unless the trusted publisher is set
-# up on rubygems.org.
+# Dry run: tick dry_run to check the wiring. Everything runs except the changelog checks, the tag and
+# the push; the credential exchange fails unless the trusted publisher is set up.
 #
-# The "release" environment's protection rules are the ONLY gate on publishing: set it up (required
-# reviewer, no admin bypass, deployments only from master and v* tags) BEFORE adding the trusted
-# publisher on rubygems.org.
+# The "release" environment's protection rules are the ONLY gate on publishing (required reviewer, no
+# admin bypass, deployments only from master and v*.*.* tags). Before approving a deployment, check
+# who started the run, the event, that the commit is the release PR's merge commit, and the build
+# log's "is on master" line. Reject any run you won't approve: a waiting run blocks the next one.
 
 name: release
+run-name: release ${{ inputs.version || github.ref_name }}${{ inputs.dry_run && ' (dry run)' || '' }}
 
 on:
   push:
@@ -49,8 +52,8 @@ jobs:
       GEMS: 'rabl:.'
       VERSION_FILE: lib/rabl/version.rb
       CHANGELOG: CHANGELOG.md
-      # the first release heading, e.g. "## 0.18.0 (Nov 1, 2026)"; group 1 is the version
-      CHANGELOG_TOP: '^## ([0-9]+\.[0-9]+\.[0-9]+)'
+      CHANGELOG_HEADING: '^## '
+      CHANGELOG_TOP: '^## ([0-9]+\.[0-9]+\.[0-9]+)( |$)'
     outputs:
       version: ${{ steps.check.outputs.version }}
       tag: ${{ steps.check.outputs.tag }}
@@ -77,14 +80,6 @@ jobs:
               "refs/heads/$TRUNK"|"refs/heads/${version%.*}-stable") ;;
               *) echo "::error::run this on $TRUNK or ${version%.*}-stable, not $GITHUB_REF"; exit 1 ;;
             esac
-            heading=$(grep -m1 -E "$CHANGELOG_TOP" "$CHANGELOG")
-            top=$(echo "$heading" | sed -E "s/$CHANGELOG_TOP.*/\1/")
-            if [ "$DRY_RUN" = true ]; then
-              echo "::warning::dry run: not checking that $CHANGELOG is stamped ('$heading')"
-            else
-              [ "$top" = "$version" ] || { echo "::error::$CHANGELOG starts with release '$top', not '$version': merge the release PR first, and nothing after it"; exit 1; }
-              ! echo "$heading" | grep -qiE 'unreleased|tbd' || { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
-            fi
             tag="$TAG_PREFIX$version"
             tagged=$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" | cut -f1)
             [ -z "$tagged" ] || echo "$tagged" | grep -qx "$GITHUB_SHA" ||
@@ -92,9 +87,18 @@ jobs:
           else
             tag="$GITHUB_REF_NAME"
             version="${tag#"$TAG_PREFIX"}"
+            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::tag $tag is not ${TAG_PREFIX}X.Y.Z"; exit 1; }
           fi
-          file_version=$(ruby -e 'puts File.read(ENV["VERSION_FILE"])[/VERSION\s*=\s*["\x27]([^"\x27]+)/, 1]')
+          file_version=$(ruby -e 'puts File.read(ENV["VERSION_FILE"])[/\bVERSION\s*=\s*["\x27]([^"\x27]+)/, 1]')
           [ "$version" = "$file_version" ] || { echo "::error::version $version but $VERSION_FILE says $file_version"; exit 1; }
+          if [ "$DRY_RUN" = true ]; then
+            echo "::warning::dry run: not checking $CHANGELOG"
+          else
+            heading=$(grep -m1 -E "$CHANGELOG_HEADING" "$CHANGELOG") || { echo "::error::$CHANGELOG has no heading matching '$CHANGELOG_HEADING'"; exit 1; }
+            top=$(echo "$heading" | sed -nE "s/$CHANGELOG_TOP.*/\1/p")
+            [ "$top" = "$version" ] || { echo "::error::$CHANGELOG starts with '$heading', not release $version: merge the release PR first, and nothing after it"; exit 1; }
+            ! echo "$heading" | grep -qiE 'unreleased|tbd|tba' || { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
+          fi
           series="${version%.*}-stable"
           on=""
           for b in "$TRUNK" "$series"; do
@@ -109,12 +113,17 @@ jobs:
         env:
           VERSION: ${{ steps.check.outputs.version }}
         run: |
+          export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA")
           mkdir dist
           for spec in $GEMS; do
             g="${spec%%:*}"; dir="${spec#*:}"; [ "$dir" = "$spec" ] && dir=.
-            (cd "$dir" && gem build "$g.gemspec" --output "$GITHUB_WORKSPACE/dist/$g-$VERSION.gem")
+            out="$GITHUB_WORKSPACE/dist/$g-$VERSION.gem"
+            (cd "$dir" && gem build "$g.gemspec" --output "$out")
+            [ "$(gem spec "$out" name)" = "--- $g" ] && [ "$(gem spec "$out" version | sed -n 's/^version: //p')" = "$VERSION" ] ||
+              { echo "::error::$out is not $g $VERSION:"; gem spec "$out" name; gem spec "$out" version; exit 1; }
             echo "$g" >> dist/ORDER
           done
+          echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH (ruby $(ruby -e 'print RUBY_VERSION'), rubygems $(gem -v))"
           (cd dist && sha256sum *.gem > SHA256SUMS && cat ORDER SHA256SUMS)
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -173,14 +182,20 @@ jobs:
         run: echo "Credentials exchange succeeded, so the trusted publisher works. No tag created, nothing pushed."
       - name: Push the gems
         if: ${{ !inputs.dry_run }}
+        shell: bash -eo pipefail {0}
         working-directory: dist
         env:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           while read -r g; do
-            if curl -fsS "https://rubygems.org/api/v1/versions/$g.json" | ruby -rjson -e 'exit(JSON.parse($stdin.read).any? { |v| v["number"] == ENV["VERSION"] } ? 0 : 1)'; then
-              echo "$g $VERSION is already on rubygems.org; skipping"
-            else
+            sum=$(sha256sum "$g-$VERSION.gem" | cut -d' ' -f1)
+            published=$(curl -fsS "https://rubygems.org/api/v1/versions/$g.json" 2>/dev/null |
+              ruby -rjson -e 'b = $stdin.read; v = (b.empty? ? [] : JSON.parse(b)).find { |x| x["number"] == ENV["VERSION"] && x["platform"] == "ruby" }; print v ? v["sha"].to_s : ""' || true)
+            if [ -z "$published" ]; then
               gem push "$g-$VERSION.gem" </dev/null
+            elif [ "$published" = "$sum" ]; then
+              echo "$g $VERSION is already on rubygems.org with this sum; skipping"
+            else
+              echo "::error::$g $VERSION is already on rubygems.org with sha256 $published, not this build's $sum"; exit 1
             fi
           done < ORDER
