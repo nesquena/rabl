@@ -190,11 +190,11 @@ module Rabl
       end
 
       # Returns the format Rails 3.2 and higher look templates up in:
-      # the request's format, or request_format for HTML requests (as a Symbol,
-      # the only form Rails 7.0 and higher match)
+      # the request's format, or for HTML requests the format being rendered (json for
+      # the default handler and for hash), as a Symbol, the only form Rails 7.0 and higher match
       def rails_source_format
         format = context_scope.request.format.to_sym
-        format == :html ? request_format.to_sym : format
+        format == :html ? manual_source_format.to_sym : format
       end
 
       # Returns the format Rails looks the template up in or, when there is none (a view

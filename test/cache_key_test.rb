@@ -386,6 +386,13 @@ context 'Rabl cache keys' do
         end
       end.equals [%w(json), %w(xml)]
 
+      asserts('cached items rendered as XML in an HTML request and in a JSON request render their own partials') do
+        Rabl.configuration.cache_engine = memory_cache
+        [:html, :json].map do |request_format|
+          Rabl::Engine.new("object @item\ncache ['v1', @item]\nattributes :id\nextends 'base'", :format => 'xml').render(rails_view(request_format), :object => item(111)).scan(/<picked>(\w+)</).flatten
+        end
+      end.equals [%w(xml), %w(json)]
+
       teardown do
         Object.send(:remove_const, :Rails)
         Object.send(:remove_const, :ActionPack)
