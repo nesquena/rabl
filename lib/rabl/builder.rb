@@ -72,6 +72,11 @@ module Rabl
     end
 
     protected
+      # Returns the engine whose template this builder renders
+      def rabl_template_engine
+        @options[:template_engine]
+      end
+
       def replace_nil_values
         @_result = deep_replace_nil_values(@_result)
       end
@@ -253,6 +258,13 @@ module Rabl
       def cache_results(&block)
         if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
           cache_key = [@_object, @options[:root_name], @options[:format]]
+          engine = rabl_template_engine
+          if engine
+            cache_key << engine.rabl_template_identity
+            # the template's own `cache` key also applies when it renders this object
+            cache_key.concat(engine.rabl_cache_key_parts) if engine.root_object.equal?(@_object)
+          end
+          cache_key.concat(TemplateCacheKey.shape(@options))
 
           fetch_result_from_cache(cache_key, &block)
         else # skip cache

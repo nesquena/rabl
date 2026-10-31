@@ -156,7 +156,8 @@ end
 Each option specifies behavior related to RABL's output.
 
 If `include_json_root` is disabled that removes the root node for each root object in the output, and `enable_json_callbacks` enables support for 'jsonp' style callback
-output if the incoming request has a 'callback' parameter.
+output if the incoming request has a 'callback' parameter. The callback must be a JavaScript function name (letters, digits, `_` and `$`,
+optionally dotted, up to 128 characters) and the output is written as `/**/callback(...)`; any other value renders plain JSON.
 
 If `include_child_root` is set to false then child objects in the response will not include
 a root node by default. This allows you to further fine-tune your desired response structure.
@@ -568,6 +569,13 @@ object @quiz
 cache @quiz # key = rabl/quiz/[cache_key]
 attribute :title
 ```
+
+The full cache key also includes the format and identifies the template (the Rails template digest when available, otherwise a digest of
+the template's source, location and view path), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
+As with Rails fragment caching, anything else the output depends on must be part of the key: a block that runs several times with different
+data (for example inside a loop), locals, or the current user.
+Blocks are told apart by where they start in the template; on runtimes without `RubyVM::InstructionSequence` (such as JRuby) that is
+the line only, so two caching blocks that start on the same line need distinct cache keys there.
 
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 

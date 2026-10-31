@@ -10,6 +10,10 @@ module Rabl
     FORMATS = [:json, :xml, :plist, :bson, :msgpack]
     SAFE_FORMATS = FORMATS + [:mpac, :dumpable, :hash]
 
+    # JSONP callback names that are accepted: identifiers, optionally dotted (e.g. "jQuery_1.cb")
+    RABL_JSON_CALLBACK_NAME = /\A[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\z/
+    RABL_JSON_CALLBACK_MAX_LENGTH = 128
+
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options = {})
@@ -22,6 +26,7 @@ module Rabl
       @_data_item     = options[:data_item]
 
       @_cache_read_on_render = true
+      @_skip_json_callback   = false
       @_rendering = false
     end
 
@@ -39,6 +44,16 @@ module Rabl
       reset_settings!
       reset_options!
 
+      # A block (child, glue, or extends/partial with a block) is identified by its
+      # location and the engine of the template that defined it
+      @_block_identity    = block && [block, @_options[:parent_engine]]
+      @_template_identity = nil
+      @_identity_memo     = nil
+
+      # A cache key belongs to one render; the template sets it again
+      remove_instance_variable(:@_cache_key) if defined?(@_cache_key)
+      @_full_cache_key = nil
+
       eval_source(locals, &block)
 
       instance_exec(root_object, &block) if block_given?
@@ -51,9 +66,19 @@ module Rabl
     def render(context_scope = nil, locals = nil, &block)
       apply(context_scope, locals, &block) if context_scope || locals || block
 
-      cache_results do
-        send("to_#{@_options[:format]}")
+      return cache_results { send("to_#{@_options[:format]}") } unless @_options[:format].to_s == "json"
+
+      # The JSONP callback comes from the request, so it is added after the cache.
+      result = cache_results do
+        begin
+          @_skip_json_callback = true
+          to_json
+        ensure
+          @_skip_json_callback = false
+        end
       end
+
+      rabl_wrap_json_callback(result)
     end
 
     def cache_key
@@ -77,7 +102,18 @@ module Rabl
             end
 
           cache_key << digest
+          # The digest covers the template source, but not the block that defines this engine
+          if @_block_identity
+            block, parent = @_block_identity
+            key = [:block, block, parent && parent.rabl_template_identity]
+            cache_key << rabl_memoized_digest(key) { TemplateCacheKey.digest(rabl_block_identity) }
+          end
+        else
+          cache_key << rabl_template_identity
         end
+
+        cache_key << "collection" if is_collection?(root_object)
+        cache_key.concat(TemplateCacheKey.shape(@_options))
 
         cache_key
       end
@@ -92,6 +128,7 @@ module Rabl
       data = root_object
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
+      options[:template_engine] = self
 
       @_rendering = true
       result =
@@ -122,7 +159,7 @@ module Rabl
     def to_json(options = {})
       options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
       result = to_dumpable(options)
-      format_json(result)
+      rabl_wrap_json_callback(format_json(result))
     end
 
     # Returns a msgpack representation of the data object
@@ -352,7 +389,68 @@ module Rabl
       @_cache_read_on_render
     end
 
+    # Returns the key given to `cache` in the template, if any
+    def rabl_cache_key_parts
+      defined?(@_cache_key) ? Array(@_cache_key) : []
+    end
+
+    # Identifies the template for cache keys: a digest of its location, the view path its
+    # partials resolve from, its source and its block
+    def rabl_template_identity
+      @_template_identity ||= begin
+        location = @_options[:source_location]
+
+        if @_options[:parent_engine] && (location || !@_source)
+          # Within one render, a template's location determines its source
+          # (nested lookups rather than an Array key, as this runs for every item)
+          memo = (rabl_identity_memo[location] ||= {})
+          memo = (memo[view_path] ||= {})
+
+          if @_block_identity
+            block, parent = @_block_identity
+            memo = (memo[block] ||= {})
+            memo[parent && parent.rabl_template_identity] ||= rabl_template_digest
+          else
+            memo[:template] ||= rabl_template_digest
+          end
+        else
+          rabl_template_digest
+        end
+      end
+    end
+
     protected
+      def rabl_template_digest
+        root = TemplateCacheKey.root
+        view_paths = Array(view_path).map { |path| TemplateCacheKey.path(path, root) }
+        TemplateCacheKey.digest([TemplateCacheKey.path(@_options[:source_location], root), view_paths, @_source, rabl_block_identity(root)])
+      end
+
+      # Returns the digest for key, computing it once per render: the memo is kept by the
+      # top-level engine, so the items of a collection share their sub-templates' digests
+      def rabl_memoized_digest(key)
+        rabl_identity_memo[key] ||= yield
+      end
+
+      def rabl_identity_memo
+        @_identity_memo ||= (parent = @_options[:parent_engine]) ? parent.rabl_identity_memo : {}
+      end
+
+      def rabl_template_engine
+        self
+      end
+
+      # Identifies the block that defines this engine, if any: its location and the
+      # template that defined it
+      def rabl_block_identity(root = TemplateCacheKey.root)
+        return unless @_block_identity
+
+        block, parent = @_block_identity
+        location = block.source_location
+        location &&= [TemplateCacheKey.path(location[0], root), location[1], location.size > 2 ? location[2] : TemplateCacheKey.column(block)]
+        [location, parent && parent.rabl_template_identity]
+      end
+
       # Returns a guess at the default object for this template
       # default_object => @user
       def default_object
@@ -385,9 +483,8 @@ module Rabl
         (context_scope.params if context_scope.respond_to?(:params)) || {}
       end
 
-      # Returns data as json embraced with callback when detected
-      # format_json({ :foo => "bar" }) => "test({ foo : 'bar' })"
-      # format_json("{ foo : "bar" }") => "test({ foo : 'bar' })"
+      # Returns data as json
+      # format_json({ :foo => "bar" }) => "{\"foo\":\"bar\"}"
       def format_json(json_output)
         unless json_output.is_a?(String)
           json_engine = Rabl.configuration.json_engine
@@ -401,10 +498,26 @@ module Rabl
           end
         end
 
-        use_callback = Rabl.configuration.enable_json_callbacks && request_params[:callback].present?
-        json_output = "#{request_params[:callback]}(#{json_output})" if use_callback
-
         json_output
+      end
+
+      # Returns json embraced with the request's callback when callbacks are enabled
+      # and the callback name is valid, otherwise the json unchanged
+      # rabl_wrap_json_callback("{}") => "/**/test({})"
+      def rabl_wrap_json_callback(json)
+        callback = rabl_json_callback_name unless @_skip_json_callback
+        callback ? "/**/#{callback}(#{json})" : json
+      end
+
+      # Returns the request's callback parameter if callbacks are enabled and it is a valid name
+      def rabl_json_callback_name
+        return unless Rabl.configuration.enable_json_callbacks
+
+        callback = request_params[:callback]
+        return unless callback.is_a?(String) && callback.length <= RABL_JSON_CALLBACK_MAX_LENGTH
+        return unless callback.ascii_only? && callback =~ RABL_JSON_CALLBACK_NAME
+
+        callback
       end
 
       # Augments respond to supporting context_scope methods
@@ -485,7 +598,8 @@ module Rabl
       def eval_source(locals, &block)
         return unless @_source.present?
 
-        msg = "cached_source_#{@_source.hash.abs}"
+        # One method per source and location, so blocks report the file that defined them
+        msg = "cached_source_#{[@_source, @_options[:source_location]].hash.abs}"
 
         unless self.respond_to? msg then
           src = "def #{msg} locals, &block\n#{@_source}\nend"

@@ -147,6 +147,7 @@ module Rabl
         :nested     => true,
         :root       => (options[:root] || false)
       })
+      options[:parent_engine] = rabl_template_engine
 
       Engine.new(options[:source], options).apply(context_scope, :object => object, :locals => options[:locals], &block)
     end
@@ -173,6 +174,12 @@ module Rabl
         Rabl.configuration.perform_caching
       end
     end
+
+    protected
+      # Returns the engine of the template being rendered, if any (see Engine#rabl_template_identity)
+      def rabl_template_engine
+        nil
+      end
 
     module Escaper
       # Returns escaped copies; the response may be shared with the cache, so it is never changed in place.

@@ -65,7 +65,8 @@ module Rabl
       def process_source(source)
         return source if source.is_a?(String) && source =~ /\n/
 
-        source, _ = engine.fetch_source(source, { :view_path => options[:view_path] })
+        source, location = engine.fetch_source(source, { :view_path => options[:view_path] })
+        options[:source_location] ||= location
         source
       end
 
