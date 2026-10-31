@@ -26,6 +26,7 @@
 * Fix cached `child` nodes in a collection being flattened (or dropped, for a child collection) on a cache hit (@nesquena)
 * Fix caching outside Rails: rendering a cached collection raised `LocalJumpError`, and cached collection fragments were never read back (@nesquena)
 * Fix `escape_all_output` changing the app's own arrays and hashes in place (and re-escaping cached fragments outside Rails on every render), raising `FrozenError` on frozen values, and raising `NameError` for `ERB` outside Rails (@nesquena)
+* Fix XML collection items ignoring inflections the app defines in underscored form: Array#to_xml singularized the dasherized name, so with `inflect.irregular 'lesson_progress', 'lessons_progresses'`, `collection @progresses => :lessons_progresses` rendered `<lessons-progress>` items. They are now `<lesson-progress>`, the same singular as the JSON item root, for child collections and arrays returned by `node` too. Names that no such inflection matches render as before (#559, reported by @passalini)
 
 ## 0.17.0 (Nov 26, 2024)
 

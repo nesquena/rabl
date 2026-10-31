@@ -194,6 +194,53 @@ context "Rabl::Engine" do
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <city>LA</city>\n  <age type=\"integer\">12</age>\n</user>\n"
     end
 
+    # #559: items are named with the app's inflections, which are defined in underscored form
+    context "with an inflection defined by the app" do
+      helper(:inflections) { ActiveSupport::Inflector.inflections(:en) }
+
+      setup do
+        @saved_rules = [inflections.plurals.dup, inflections.singulars.dup]
+        inflections.irregular 'lesson_progress', 'lessons_progresses'
+      end
+
+      asserts "that it names collection items with it" do
+        template = rabl %{
+          collection @users => :lessons_progresses
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessons-progresses type=\"array\">\n  <lesson-progress>\n    <name>intro</name>\n  </lesson-progress>\n</lessons-progresses>\n"
+
+      asserts "that it names child collection items with it" do
+        template = rabl %{
+          object @user
+          child(@users => :lessons_progresses) { attribute :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <lessons-progresses type=\"array\">\n    <lesson-progress>\n      <name>intro</name>\n    </lesson-progress>\n  </lessons-progresses>\n</user>\n"
+
+      # ActiveSupport finds an uncountable word at the end of a name only after a dash
+      asserts "that it keeps names that end in an uncountable word" do
+        template = rabl %{
+          collection @users => :animal_species
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'cat')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<animal-species type=\"array\">\n  <animal-species>\n    <name>cat</name>\n  </animal-species>\n</animal-species>\n"
+
+      teardown do
+        inflections.plurals.replace(@saved_rules[0])
+        inflections.singulars.replace(@saved_rules[1])
+      end
+    end
+
     teardown do
       Rabl.reset_configuration!
     end

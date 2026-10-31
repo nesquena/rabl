@@ -14,6 +14,26 @@ module Rabl
     RABL_JSON_CALLBACK_NAME = /\A[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\z/
     RABL_JSON_CALLBACK_MAX_LENGTH = 128
 
+    # Array#to_xml names its items after the singular of the dasherized root, which misses
+    # inflections the app defines in underscored form, e.g.
+    # inflect.irregular 'lesson_progress', 'lessons_progresses' (#559). An XmlArray names them
+    # after the singular of the root as given, as rabl does for JSON item roots, and to_xml
+    # dasherizes that like any other key. When the dasherized root is its own singular, the
+    # name is left to Array#to_xml: ActiveSupport sees an uncountable word at the end of a name
+    # only after a dash, so "animal-species" stays as it is, while the singular of
+    # "animal_species" is "animal_specy".
+    class XmlArray < Array
+      def to_xml(options = {}, &block)
+        root = options[:root].to_s
+        unless options[:children] || root.empty?
+          renamed = ActiveSupport::XmlMini.rename_key(root, options)
+          options = options.merge(:children => root.singularize) unless renamed.singularize == renamed
+        end
+        super(options, &block)
+      end
+    end
+    private_constant :XmlArray
+
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
     def initialize(source, options = {})
@@ -200,7 +220,7 @@ module Rabl
         result = result.map { |item| item.is_a?(Hash) && item.key?(object_root_name) ? item[object_root_name] : item }
       end
 
-      result.to_xml(xml_options)
+      xml_arrays(result).to_xml(xml_options)
     end
 
     # Returns a bson representation of the data object
@@ -626,6 +646,20 @@ module Rabl
           require 'builder' unless defined?(::Builder::XmlMarkup)
         rescue LoadError
           raise LoadError, "rabl needs the builder gem to render XML; add `gem 'builder'` to your Gemfile"
+        end
+      end
+
+      # Returns a copy of the data with each Array in it, at any depth, as an XmlArray
+      def xml_arrays(data)
+        case data
+        when Hash
+          copy = data.dup
+          data.each { |key, value| copy[key] = xml_arrays(value) }
+          copy
+        when Array
+          XmlArray.new(data.map { |value| xml_arrays(value) })
+        else
+          data
         end
       end
 
