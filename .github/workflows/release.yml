@@ -1,0 +1,205 @@
+# Publishes a rabl release to rubygems.org with trusted publishing, gated by the "release"
+# environment: the owner approves each publish.
+#
+# Usual path: merge the release PR (the version in lib/rabl/version.rb and the CHANGELOG.md heading
+# stamped with the date, e.g. "## 0.18.0 (Nov 1, 2026)"), then "Run workflow" on master with the
+# version. build checks the version, that the changelog's first heading is that version with a date,
+# and the branch, and builds the gem reproducibly; publish waits for approval, pushes the gem with
+# short-lived trusted-publishing credentials, then creates the tag vX.Y.Z on the built commit. Pushing
+# a vX.Y.Z tag on a master commit runs the same checks. "Re-run failed jobs" (not "Re-run all jobs",
+# which rebuilds) resumes a release that stopped partway.
+#
+# Dry run: tick dry_run to check the wiring. Everything runs except the changelog checks, the tag and
+# the push; the credential exchange fails unless the trusted publisher is set up.
+#
+# The "release" environment's protection rules are the ONLY gate on publishing (required reviewer, no
+# admin bypass, deployments only from master and v*.*.* tags): RubyGems trusts any run of this file
+# that uses that environment, and a branch or tag can carry its own modified copy of it. The trusted
+# publisher on rubygems.org must name the environment. Before approving a deployment, check
+# who started the run, the event, that the commit is the release PR's merge commit, and the build
+# log's "is on master" line. Reject any run you won't approve: a waiting run blocks the next one.
+
+name: release
+run-name: release ${{ inputs.version || github.ref_name }}${{ inputs.dry_run && ' (dry run)' || '' }}
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (already in the version file of this branch), e.g. 1.2.0'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run: check, build and exchange credentials, but create no tag and push nothing'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'nesquena/rabl'
+    runs-on: ubuntu-latest
+    env:
+      TRUNK: master
+      TAG_PREFIX: v
+      GEMS: 'rabl:.'
+      VERSION_FILE: lib/rabl/version.rb
+      CHANGELOG: CHANGELOG.md
+      CHANGELOG_HEADING: '^## '
+      CHANGELOG_TOP: '^## ([0-9]+\.[0-9]+\.[0-9]+)( |$)'
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      tag: ${{ steps.check.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          submodules: true
+          persist-credentials: false
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: '3.3'
+      - name: Check the version
+        id: check
+        shell: bash -eo pipefail {0}
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            version="$INPUT_VERSION"
+            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::the version input is not a plain version like 1.2.3"; exit 1; }
+            case "$GITHUB_REF" in
+              "refs/heads/$TRUNK"|"refs/heads/${version%.*}-stable") ;;
+              *) echo "::error::run this on $TRUNK or ${version%.*}-stable, not $GITHUB_REF"; exit 1 ;;
+            esac
+            tag="$TAG_PREFIX$version"
+            tagged=$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" | cut -f1)
+            [ -z "$tagged" ] || echo "$tagged" | grep -qx "$GITHUB_SHA" ||
+              { echo "::error::tag $tag already exists at another commit"; exit 1; }
+          else
+            tag="$GITHUB_REF_NAME"
+            version="${tag#"$TAG_PREFIX"}"
+            [[ "$tag" == "$TAG_PREFIX"* && "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::tag $tag is not ${TAG_PREFIX}X.Y.Z"; exit 1; }
+          fi
+          file_version=$(ruby -e 'puts File.binread(ENV["VERSION_FILE"])[/\bVERSION\s*=\s*["\x27]([^"\x27]+)/, 1]')
+          [ "$version" = "$file_version" ] || { echo "::error::version $version but $VERSION_FILE says $file_version"; exit 1; }
+          if [ "$DRY_RUN" = true ]; then
+            echo "::warning::dry run: not checking $CHANGELOG"
+          else
+            heading=$(grep -m1 -E "$CHANGELOG_HEADING" "$CHANGELOG") || { echo "::error::$CHANGELOG has no heading matching '$CHANGELOG_HEADING'"; exit 1; }
+            top=$(echo "$heading" | sed -nE "s/$CHANGELOG_TOP.*/\1/p")
+            [ "$top" = "$version" ] || { echo "::error::$CHANGELOG starts with '$heading', not release $version: merge the release PR first, and nothing after it"; exit 1; }
+            rest="${heading#*"$version"}"
+            [[ "$rest" =~ (19|20)[0-9][0-9] ]] && ! echo "$rest" | grep -qiE 'unreleased|tbd|tba' ||
+              { echo "::error::$CHANGELOG's '$heading' isn't stamped with a date yet"; exit 1; }
+          fi
+          series="${version%.*}-stable"
+          on=""
+          for b in "$series" "$TRUNK"; do
+            git merge-base --is-ancestor "$GITHUB_SHA" "origin/$b" 2>/dev/null && on="$b"
+          done
+          [ -n "$on" ] || { echo "::error::$version ($GITHUB_SHA) is not on $TRUNK or $series"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "$version ($GITHUB_SHA) is on $on"
+      - name: Build the gems
+        shell: bash -eo pipefail {0}
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          SOURCE_DATE_EPOCH=$(git log -1 --format=%ct "$GITHUB_SHA"); export SOURCE_DATE_EPOCH
+          mkdir dist
+          for spec in $GEMS; do
+            g="${spec%%:*}"; dir="${spec#*:}"; [ "$dir" = "$spec" ] && dir=.
+            out="$GITHUB_WORKSPACE/dist/$g-$VERSION.gem"
+            (cd "$dir" && gem build "$g.gemspec" --output "$out")
+            [ "$(gem spec "$out" name)" = "--- $g" ] && [ "$(gem spec "$out" version | sed -n 's/^version: //p')" = "$VERSION" ] ||
+              { echo "::error::$out is not $g $VERSION:"; gem spec "$out" name; gem spec "$out" version; exit 1; }
+            echo "$g" >> dist/ORDER
+          done
+          echo "SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH (ruby $(ruby -e 'print RUBY_VERSION'), rubygems $(gem -v))"
+          (cd dist && sha256sum *.gem > SHA256SUMS && cat ORDER SHA256SUMS)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gems-${{ steps.check.outputs.version }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write   # creates the tag on a dispatched release
+      id-token: write   # the RubyGems trusted-publishing exchange
+    steps:
+      - name: Refuse a stale run (the tag is somewhere else)
+        shell: bash -eo pipefail {0}
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG*" |
+            awk -v t="refs/tags/$TAG" '$2 == t || $2 == t "^{}" { print $1 }')
+          if [ -z "$tagged" ] && [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            echo "tag $TAG will be created at $GITHUB_SHA"
+          else
+            echo "$tagged" | grep -qx "$GITHUB_SHA" || { echo "::error::tag $TAG is not at $GITHUB_SHA (now: ${tagged:-gone}); this run is stale"; exit 1; }
+          fi
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: gems-${{ needs.build.outputs.version }}
+          path: dist
+      - name: Check the sums
+        working-directory: dist
+        run: sha256sum -c SHA256SUMS
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+        with:
+          ruby-version: '3.3'
+      - uses: rubygems/configure-rubygems-credentials@dc5a8d8553e6ee01fc26761a49e99e733d17954a # v2.1.0
+      - name: Dry run ends here
+        if: inputs.dry_run
+        run: echo "Credentials exchange succeeded, so the trusted publisher works. No tag created, nothing pushed."
+      - name: Push the gems
+        if: ${{ !inputs.dry_run }}
+        shell: bash -eo pipefail {0}
+        working-directory: dist
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          while read -r g; do
+            sum=$(sha256sum "$g-$VERSION.gem" | cut -d' ' -f1)
+            published=$(curl -fsS "https://rubygems.org/api/v1/versions/$g.json" 2>/dev/null |
+              ruby -rjson -e 'b = $stdin.read; v = (b.empty? ? [] : JSON.parse(b)).find { |x| x["number"] == ENV["VERSION"] && x["platform"] == "ruby" }; print v ? v["sha"].to_s : ""' || true)
+            if [ -z "$published" ]; then
+              gem push "$g-$VERSION.gem" </dev/null
+            elif [ "$published" = "$sum" ]; then
+              echo "$g $VERSION is already on rubygems.org with this sum; skipping"
+            else
+              echo "::error::$g $VERSION is already on rubygems.org with sha256 $published, not this build's $sum"; exit 1
+            fi
+          done < ORDER
+      - name: Create the tag
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry_run
+        shell: bash -eo pipefail {0}
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tagged=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" "refs/tags/$TAG" "refs/tags/$TAG^{}" | cut -f1)
+          if [ -z "$tagged" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA"
+          elif echo "$tagged" | grep -qx "$GITHUB_SHA"; then
+            echo "tag $TAG is already at $GITHUB_SHA"
+          else
+            echo "::error::tag $TAG is not at $GITHUB_SHA (now: $tagged)"; exit 1
+          fi
