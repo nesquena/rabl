@@ -6,8 +6,9 @@
 # version. build checks the version, that the changelog's first heading is that version with a date,
 # and the branch, and builds the gem reproducibly; publish waits for approval, pushes the gem with
 # short-lived trusted-publishing credentials, then creates the tag vX.Y.Z on the built commit. Pushing
-# a vX.Y.Z tag on a master commit runs the same checks. "Re-run failed jobs" (not "Re-run all jobs",
-# which rebuilds) resumes a release that stopped partway.
+# a vX.Y.Z tag on a master commit runs the same checks. Then github-release.yml creates the GitHub
+# release page for the tag (run it by hand to create one for an earlier tag). "Re-run failed jobs"
+# (not "Re-run all jobs", which rebuilds) resumes a release that stopped partway.
 # If the gem is pushed but the tag step keeps failing, push the tag by hand at the built commit: that
 # tag push's run skips the push (same sum).
 #
@@ -208,3 +209,12 @@ jobs:
           else
             echo "::error::tag $TAG is not at $GITHUB_SHA (now: $tagged)"; exit 1
           fi
+
+  release-page:
+    needs: [build, publish]
+    if: ${{ !inputs.dry_run }}
+    permissions:
+      contents: write   # github-release.yml creates the release
+    uses: ./.github/workflows/github-release.yml
+    with:
+      tag: ${{ needs.build.outputs.tag }}
