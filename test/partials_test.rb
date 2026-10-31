@@ -520,6 +520,23 @@ context "Rabl::Partials" do
         I18n.available_locales = nil
       end.equals ["json\n", "xml\n", "fr.json\n", "json\n"]
 
+      asserts("a template Rails can't find is looked up in the lookup context's locale, which the cache key holds") do
+        I18n.available_locales = [:en, :fr]
+        other_path = Pathname.new(Dir.mktmpdir)
+        %w(json fr.json).each { |details| File.open(other_path + "extra.#{details}.rabl", "w") { |f| f.puts details } }
+        # I18n's locale differs from the lookup context's, as outside a controller action
+        [[:en, :fr], [:fr, :en]].flat_map do |i18n_locale, context_locale|
+          [true, false].map do |cache|
+            Rabl.configuration.cache_sources = cache
+            Rabl.reset_source_cache!
+            I18n.with_locale(i18n_locale) { rails_partial(:json, :locale => context_locale).fetch_source("extra", :view_path => other_path.to_s)[0] }
+          end
+        end
+      ensure
+        I18n.available_locales = nil
+        Rabl.configuration.cache_sources = true
+      end.equals ["fr.json\n", "fr.json\n", "json\n", "json\n"]
+
       asserts("a view without a request falls back to the manual lookup") do
         Rabl.reset_source_cache!
         write "plain.json.rabl", "plain"

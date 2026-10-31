@@ -40,7 +40,7 @@ module Rabl
             fetch_padrino_source(file, options)
           when :rails
             _view_paths = view_paths + Array(context_scope.view_paths.to_a)
-            fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file, rails_lookup_format)
+            fetch_rails_source(file, options) || fetch_manual_template(_view_paths, file, rails_lookup_format, rails_lookup_locales)
           when :sinatra
             fetch_sinatra_source(file, options)
           else # generic template resolution
@@ -164,6 +164,18 @@ module Rabl
         rails_source_format || manual_source_format
       rescue StandardError
         manual_source_format
+      end
+
+      # Returns the locale chain of the Rails lookup context, which the source cache key holds
+      # (it can differ from I18n's, e.g. in I18n.with_locale or outside a controller action),
+      # or I18n's chain when the lookup context isn't Rails' own
+      def rails_lookup_locales
+        lookup_context = context_scope.lookup_context if context_scope.respond_to?(:lookup_context)
+        accessors = ActionView::LookupContext::Accessors if defined?(ActionView::LookupContext::Accessors)
+        # Module#=== checks the object itself, not what a delegator forwards to (see rails_details_id)
+        return manual_source_locales unless lookup_context && accessors && accessors === lookup_context && accessors.method_defined?(:locale)
+
+        Array(accessors.instance_method(:locale).bind_call(lookup_context)).map(&:to_s)
       end
 
       # Returns the format the manual lookup prefers: the format being rendered (json for hash),
