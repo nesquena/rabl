@@ -145,7 +145,7 @@ context 'Rabl cache keys' do
     asserts('the items of a collection share the digests of their blocks and partials') do
       Rabl.configuration.cache_engine = memory_cache
       digests = 0
-      stub.proxy(Rabl::CacheKey).digest { |digest| digests += 1; digest }
+      stub.proxy(Rabl::TemplateCacheKey).digest { |digest| digests += 1; digest }
       items = (30..35).map { |id| item(id, item(id + 100)) }
       template = "collection @items\nextends 'item_id'\n" \
         "child(:owner => :a) { cache root_object; attributes :id }\nchild(:owner => :b) { cache root_object; attributes :name }"

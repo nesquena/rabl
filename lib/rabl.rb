@@ -18,7 +18,7 @@ require 'rabl/multi_builder'
 require 'rabl/configuration'
 require 'rabl/renderer'
 require 'rabl/cache_engine'
-require 'rabl/cache_key'
+require 'rabl/template_cache_key'
 
 if defined?(Rails) && Rails.respond_to?(:version)
   require 'rabl/tracker'  if Rails.version =~ /^[45678]/

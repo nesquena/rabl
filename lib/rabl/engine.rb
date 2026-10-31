@@ -11,8 +11,8 @@ module Rabl
     SAFE_FORMATS = FORMATS + [:mpac, :dumpable, :hash]
 
     # JSONP callback names that are accepted: identifiers, optionally dotted (e.g. "jQuery_1.cb")
-    JSON_CALLBACK_NAME = /\A[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\z/
-    JSON_CALLBACK_MAX_LENGTH = 128
+    RABL_JSON_CALLBACK_NAME = /\A[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*\z/
+    RABL_JSON_CALLBACK_MAX_LENGTH = 128
 
     # Constructs a new ejs engine based on given vars, handler and declarations
     # Rabl::Engine.new("...source...", { :format => "xml", :root => true, :view_path => "/path/to/views" })
@@ -77,7 +77,7 @@ module Rabl
         end
       end
 
-      wrap_json_callback(result)
+      rabl_wrap_json_callback(result)
     end
 
     def cache_key
@@ -105,14 +105,14 @@ module Rabl
           if @_block_identity
             block, parent = @_block_identity
             key = [:block, block, parent && parent.rabl_template_identity]
-            cache_key << rabl_memoized_digest(key) { CacheKey.digest(rabl_block_identity) }
+            cache_key << rabl_memoized_digest(key) { TemplateCacheKey.digest(rabl_block_identity) }
           end
         else
           cache_key << rabl_template_identity
         end
 
         cache_key << "collection" if is_collection?(root_object)
-        cache_key.concat(CacheKey.shape(@_options))
+        cache_key.concat(TemplateCacheKey.shape(@_options))
 
         cache_key
       end
@@ -158,7 +158,7 @@ module Rabl
     def to_json(options = {})
       options.reverse_merge!({ :root => Rabl.configuration.include_json_root })
       result = to_dumpable(options)
-      wrap_json_callback(format_json(result))
+      rabl_wrap_json_callback(format_json(result))
     end
 
     # Returns a msgpack representation of the data object
@@ -413,9 +413,9 @@ module Rabl
 
     protected
       def rabl_template_digest
-        root = CacheKey.root
-        view_paths = Array(view_path).map { |path| CacheKey.path(path, root) }
-        CacheKey.digest([CacheKey.path(@_options[:source_location], root), view_paths, @_source, rabl_block_identity(root)])
+        root = TemplateCacheKey.root
+        view_paths = Array(view_path).map { |path| TemplateCacheKey.path(path, root) }
+        TemplateCacheKey.digest([TemplateCacheKey.path(@_options[:source_location], root), view_paths, @_source, rabl_block_identity(root)])
       end
 
       # Returns the digest for key, computing it once per render: the memo is kept by the
@@ -434,12 +434,12 @@ module Rabl
 
       # Identifies the block that defines this engine, if any: its location and the
       # template that defined it
-      def rabl_block_identity(root = CacheKey.root)
+      def rabl_block_identity(root = TemplateCacheKey.root)
         return unless @_block_identity
 
         block, parent = @_block_identity
         location = block.source_location
-        location &&= [CacheKey.path(location[0], root), location[1], location.size > 2 ? location[2] : CacheKey.column(block)]
+        location &&= [TemplateCacheKey.path(location[0], root), location[1], location.size > 2 ? location[2] : TemplateCacheKey.column(block)]
         [location, parent && parent.rabl_template_identity]
       end
 
@@ -492,19 +492,19 @@ module Rabl
 
       # Returns json embraced with the request's callback when callbacks are enabled
       # and the callback name is valid, otherwise the json unchanged
-      # wrap_json_callback("{}") => "/**/test({})"
-      def wrap_json_callback(json)
-        callback = json_callback_name unless @_skip_json_callback
+      # rabl_wrap_json_callback("{}") => "/**/test({})"
+      def rabl_wrap_json_callback(json)
+        callback = rabl_json_callback_name unless @_skip_json_callback
         callback ? "/**/#{callback}(#{json})" : json
       end
 
       # Returns the request's callback parameter if callbacks are enabled and it is a valid name
-      def json_callback_name
+      def rabl_json_callback_name
         return unless Rabl.configuration.enable_json_callbacks
 
         callback = request_params[:callback]
-        return unless callback.is_a?(String) && callback.length <= JSON_CALLBACK_MAX_LENGTH
-        return unless callback.ascii_only? && callback =~ JSON_CALLBACK_NAME
+        return unless callback.is_a?(String) && callback.length <= RABL_JSON_CALLBACK_MAX_LENGTH
+        return unless callback.ascii_only? && callback =~ RABL_JSON_CALLBACK_NAME
 
         callback
       end

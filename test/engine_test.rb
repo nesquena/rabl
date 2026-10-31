@@ -1174,7 +1174,8 @@ context "Rabl::Engine" do
   context "with scope helpers" do
     asserts "that templates call scope helpers named like rabl's cache key methods" do
       scope = Object.new
-      names = [:cache_path, :cache_digest, :cache_shape, :block_identity, :template_engine, :template_identity]
+      names = [:cache_path, :cache_digest, :cache_shape, :block_identity, :template_engine, :template_identity,
+        :wrap_json_callback, :json_callback_name]
       names.each { |name| scope.define_singleton_method(name) { |*args| "helper #{name}" } }
       scope.instance_variable_set :@user, User.new
       template = "object @user => :user\n" + names.map { |name| "node(:#{name}) { #{name}('x') }" }.join("\n")
@@ -1182,8 +1183,22 @@ context "Rabl::Engine" do
     end.equals("user" => {
       "cache_path" => "helper cache_path", "cache_digest" => "helper cache_digest", "cache_shape" => "helper cache_shape",
       "block_identity" => "helper block_identity", "template_engine" => "helper template_engine",
-      "template_identity" => "helper template_identity"
+      "template_identity" => "helper template_identity", "wrap_json_callback" => "helper wrap_json_callback",
+      "json_callback_name" => "helper json_callback_name"
     })
+
+    asserts "that templates resolve application constants named like rabl's internal ones" do
+      Object.const_set(:CacheKey, "application CacheKey")
+      Object.const_set(:JSON_CALLBACK_NAME, "application JSON_CALLBACK_NAME")
+      begin
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        JSON.parse(Rabl::Engine.new("object @user => :user\nnode(:a) { CacheKey }\nnode(:b) { JSON_CALLBACK_NAME }", :format => 'json').render(scope))
+      ensure
+        Object.send(:remove_const, :CacheKey)
+        Object.send(:remove_const, :JSON_CALLBACK_NAME)
+      end
+    end.equals("user" => { "a" => "application CacheKey", "b" => "application JSON_CALLBACK_NAME" })
   end
 
   context "with json callbacks" do

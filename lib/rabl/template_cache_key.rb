@@ -5,11 +5,11 @@ require 'digest/sha1'
 module Rabl
   # Builds the parts of template cache keys. These are module functions rather than
   # Engine methods so that they never shadow helpers a template calls.
-  module CacheKey
+  module TemplateCacheKey
     module_function
 
     # Returns a digest of the given parts
-    # CacheKey.digest(["app/views/show.rabl", "object @user"]) => "4a1b..."
+    # TemplateCacheKey.digest(["app/views/show.rabl", "object @user"]) => "4a1b..."
     def digest(parts)
       digest = Digest::SHA1.new
       Array(parts).flatten.each { |part| digest << part.to_s << "\0" }
@@ -21,7 +21,7 @@ module Rabl
     # the parent template tells evaluated sources apart).
     # ceiling: paths outside the working directory stay absolute, so moving them changes
     # the keys; a configurable root would let those move too.
-    # CacheKey.path("/app/views/show.rabl", "/app/") => "views/show.rabl"
+    # TemplateCacheKey.path("/app/views/show.rabl", "/app/") => "views/show.rabl"
     def path(path, root = self.root)
       path = path.to_s.dup.force_encoding(Encoding::BINARY) # paths may differ in encoding
       return if path.empty? || path.start_with?("(eval")
@@ -53,8 +53,8 @@ module Rabl
     # Returns the options that change the shape of a rendering. A nested (hash format)
     # rendering gets its root options from its parent; for other formats only root
     # options given explicitly are added, so default keys have none.
-    # CacheKey.shape(:format => "hash", :root => true) => ["root", "no_child_root"]
-    # CacheKey.shape(:format => "json", :except => :b) => ["except=:b"]
+    # TemplateCacheKey.shape(:format => "hash", :root => true) => ["root", "no_child_root"]
+    # TemplateCacheKey.shape(:format => "json", :except => :b) => ["except=:b"]
     def shape(options)
       shape = []
 
