@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require 'erb'
 require 'json'
+require 'stringio'
+require 'pathname'
+require 'tmpdir'
 require File.expand_path('../teststrap', __FILE__)
 require 'rabl/template'
 require File.expand_path('../models/ormless', __FILE__)
@@ -180,6 +184,25 @@ context "Rabl::Engine" do
         template.render(scope)
       end.equals "{\"person\":{}}"
 
+      asserts "that it can set root node with a string" do
+        template = rabl %q{
+          object @user => 'person'
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        template.render(scope)
+      end.equals "{\"person\":{}}"
+
+      asserts "that it names collection elements after a string root node" do
+        template = rabl %q{
+          object @users => 'people'
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'a')]
+        template.render(scope)
+      end.equals "[{\"person\":{\"name\":\"a\"}}]"
+
       asserts "that it can set root node with a nil object and explicit name" do
         template = rabl %q{
           object @user => :person
@@ -271,6 +294,15 @@ context "Rabl::Engine" do
        template.render(scope)
       end.equals "{\"people\":[{\"user\":{}},{\"user\":{}}]}"
 
+      asserts "that it applies options given with a key alias" do
+       template = rabl %{
+         collection @users => :people, :object_root => false
+       }
+       scope = Object.new
+       scope.instance_variable_set :@users, [User.new, User.new]
+       template.render(scope)
+      end.equals "{\"people\":[{},{}]}"
+
       asserts "that it can use non-ORM objects" do
         template = rabl %q{
           object @others
@@ -291,6 +323,26 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'irvine')
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"user\":{\"name\":\"irvine\"}}")
+
+      asserts "that it reads a method_missing attribute named like a private Kernel method" do
+        template = rabl %{
+          object @doc => :doc
+          attributes :id, :format
+        }
+        scope = Object.new
+        scope.instance_variable_set :@doc, Hashie::Mash.new(:id => 1, :format => 'pdf')
+        template.render(scope)
+      end.equals "{\"doc\":{\"id\":1,\"format\":\"pdf\"}}"
+
+      asserts "that it reads a method_missing child named like a private Kernel method" do
+        template = rabl %{
+          object @doc => :doc
+          child(:format => :fmt) { attributes :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@doc, Hashie::Mash.new(:format => { :name => 'pdf' })
+        template.render(scope)
+      end.equals "{\"doc\":{\"fmt\":{\"name\":\"pdf\"}}}"
 
       asserts "that it can add attribute under a different key name through :as" do
         template = rabl %{
@@ -354,6 +406,18 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA')
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{\"user\":{\"name\":\"leo\",\"user\":{\"city\":\"LA\"}}}")
+
+      asserts "that it can be passed conditionals given no name" do
+        template = rabl %{
+          collection @users
+          code(:if => lambda { |u| u.name == 'a' }) do |user|
+            {:city => user.city}
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'a', :city => 'LA'), User.new(:name => 'b', :city => 'NY')]
+        JSON.parse(template.render(scope))
+      end.equals JSON.parse("[{\"user\":{\"city\":\"LA\"}},{\"user\":{}}]")
     end
 
     context "#child" do
@@ -462,9 +526,71 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@users, [User.new(:name => 'one', :city => 'UNO'), User.new(:name => 'two', :city => 'DOS')]
         template.render(scope)
       end.equals "{\"user\":{\"name\":\"leo\",\"people\":[{\"item\":{\"city\":\"UNO\"}},{\"item\":{\"city\":\"DOS\"}}]}}"
+
+      asserts "that it applies a false condition given with a key alias" do
+        template = rabl %{
+          object @user
+          attribute :name
+          child :hobbies => :interests, :if => lambda { |u| false } do
+            attribute :name
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo')
+        template.render(scope)
+      end.equals "{\"user\":{\"name\":\"leo\"}}"
+
+      asserts "that it renders a child given a key alias and a true condition" do
+        template = rabl %{
+          object @user
+          child :hobbies => :interests, :unless => lambda { |u| false } do
+            attribute :name
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :hobbies => ['Photography'])
+        template.render(scope)
+      end.equals "{\"user\":{\"interests\":[{\"interest\":{\"name\":\"Photography\"}}]}}"
+
+      asserts "that it applies root options given with a key alias" do
+        template = rabl %{
+          object @user
+          child :hobbies => :interests, :object_root => false do
+            attribute :name
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo', :hobbies => ['Photography'])
+        template.render(scope)
+      end.equals "{\"user\":{\"interests\":[{\"name\":\"Photography\"}]}}"
+
+      asserts "that it keeps a hash that is not a single key alias as the data" do
+        template = rabl %{
+          object @user
+          child(@pairs) { node(:key) { |pair| pair.first } }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        scope.instance_variable_set :@pairs, { :name => :pairs, :if => false, :age => 'x' }
+        template.render(scope)
+      end.equals "{\"user\":{\"pairs\":[{\"pair\":{\"key\":\"name\"}},{\"pair\":{\"key\":\"if\"}},{\"pair\":{\"key\":\"age\"}}]}}"
     end
 
     context "#glue" do
+      asserts "that it applies a condition given with a key alias" do
+        template = rabl %{
+          collection @users
+          attribute :name
+          glue @home => :home, :if => lambda { |u| u.name == 'leo' } do
+            attribute :city
+          end
+        }
+        scope = Object.new
+        scope.instance_variable_set :@home, User.new(:city => 'LA')
+        scope.instance_variable_set :@users, [User.new(:name => 'leo'), User.new(:name => 'max')]
+        template.render(scope)
+      end.equals "[{\"user\":{\"name\":\"leo\",\"city\":\"LA\"}},{\"user\":{\"name\":\"max\"}}]"
+
       asserts "that it glues data from a child node" do
         template = rabl %{
           object @user
@@ -508,12 +634,164 @@ context "Rabl::Engine" do
         end
         JSON.parse(template.render(scope))
       end.equals JSON.parse("{ \"foo\" : {\"name\":\"leo\",\"city\":\"LA\",\"age\":12} }")
+
+      # Templates that call attribute, node, child, glue or extends inside a node block (#477)
+      helper(:node_scope) do
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new(:name => 'leo')
+        scope.instance_variable_set :@users, [User.new(:name => 'a'), User.new(:name => 'b')]
+        scope
+      end
+
+      # [output, number of warnings about method_name] of rendering source
+      helper(:render_capturing_warnings) do |source, method_name|
+        stderr, verbose = $stderr, $VERBOSE
+        $stderr, $VERBOSE = StringIO.new, false
+        begin
+          output = rabl(source).render(node_scope)
+          [output, $stderr.string.scan(/^rabl: #{method_name} called while the template renders .*use partial/).size]
+        ensure
+          $stderr, $VERBOSE = stderr, verbose
+        end
+      end
+
+      asserts "that extends inside a node warns and leaves out the template settings" do
+        render_capturing_warnings(%{
+          object false
+          node(:foo) { extends("foo/bar", :object => @user) }
+        }, :extends)
+      end.equals { [rabl("object false\nnode(:foo) { nil }").render(node_scope), 1] }
+
+      asserts "that extends inside a nameless node warns and renders as without it" do
+        render_capturing_warnings(%{
+          object @user
+          attribute :name
+          node { |u| extends 'foo/bar'; { :x => 1 } }
+        }, :extends)
+      end.equals { [rabl("object @user\nattribute :name\nnode { |u| { :x => 1 } }").render(node_scope), 1] }
+
+      asserts "that extends inside a node of a collection doesn't change the template" do
+        render_capturing_warnings(%{
+          collection @users
+          attribute :name
+          node(false) { |u| extends 'foo/bar' }
+        }, :extends)
+      end.equals { [rabl("collection @users\nattribute :name").render(node_scope), 2] }
+
+      asserts "that attribute inside a node warns and renders as before" do
+        render_capturing_warnings(%{
+          object @user
+          node(:foo) { attribute :name }
+        }, :attribute)
+      end.equals { [rabl("object @user\nnode(:foo) { [:name] }").render(node_scope), 1] }
+
+      asserts "that child inside a node warns and renders as before" do
+        render_capturing_warnings(%{
+          object @user
+          node(:foo) { child(:city); 1 }
+        }, :child)
+      end.equals { [rabl("object @user\nnode(:foo) { 1 }").render(node_scope), 1] }
+
+      asserts "that glue inside a node warns and renders as before" do
+        render_capturing_warnings(%{
+          object @user
+          node(:foo) { glue(:city); 1 }
+        }, :glue)
+      end.equals { [rabl("object @user\nnode(:foo) { 1 }").render(node_scope), 1] }
+
+      asserts "that node inside a node warns and renders as before" do
+        render_capturing_warnings(%{
+          object @user
+          node(:foo) { node(:bar) { 1 }; 2 }
+        }, :node)
+      end.equals { [rabl("object @user\nnode(:foo) { 2 }\nnode(:bar) { 1 }").render(node_scope), 1] }
     end
 
     teardown do
       Rabl.reset_configuration!
     end
   end # with json root
+
+  context "with escape_all_output" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    setup do
+      Rabl.configure do |config|
+        config.include_json_root = false
+        config.escape_all_output = true
+        config.view_paths        = tmp_path
+      end
+      File.open(tmp_path + "city.rabl", "w") { |f| f.puts "attributes :city" }
+    end
+
+    asserts "that it escapes values rendered by child, glue, extends and partial once" do
+      template = rabl %{
+        object @user
+        attribute :name
+        child(@user => :person) { attribute :city }
+        glue(@user) { attribute :twitter }
+        extends 'city'
+        node(:partial) { |user| partial('city', :object => user) }
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new(:name => 'a&b', :city => 'c<d', :twitter => '"e"')
+      JSON.parse(template.render(scope))
+    end.equals JSON.parse(%q{{"name":"a&amp;b","person":{"city":"c&lt;d"},"twitter":"&quot;e&quot;","city":"c&lt;d","partial":{"city":"c&lt;d"}}})
+
+    asserts "that it escapes values rendered by a child in a collection once" do
+      template = rabl %{
+        collection @users
+        child(:hobbies) { attribute :name }
+      }
+      scope = Object.new
+      scope.instance_variable_set :@users, [User.new(:hobbies => ['a&b'])]
+      template.render(scope)
+    end.equals %q{[{"hobbies":[{"hobby":{"name":"a&amp;b"}}]}]}
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
+
+  context "with escape_all_output and caching" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    helper(:cached_post) do |id|
+      post = User.new(:name => '<b>')
+      post.define_singleton_method(:cache_key) { "cached_post/#{id}" }
+      post
+    end
+    # the post as a nested template (child + extends), and as a top level :format => 'hash' render
+    helper(:render_post) do |kind, post|
+      if kind == :nested
+        holder = User.new(:first => post)
+        Rabl::Renderer.new("object @holder\nchild(:first => :post) { extends 'cached_post' }\n", holder, :format => 'json', :view_path => tmp_path, :scope => Object.new).render
+      else
+        Rabl::Renderer.new('cached_post', post, :format => 'hash', :view_path => tmp_path).render
+      end
+    end
+    setup do
+      Rabl.configure do |config|
+        config.perform_caching   = true
+        config.escape_all_output = true
+        config.include_json_root = false
+        config.cache_engine      = Rabl::CacheEngine.new
+      end
+      File.open(tmp_path + "cached_post.rabl", "w") { |f| f.puts "object @user\ncache root_object\nattributes :name" }
+    end
+
+    asserts "that a top level hash render after a nested one is escaped" do
+      post = cached_post(1)
+      [render_post(:nested, post), render_post(:hash, post)]
+    end.equals ["{\"post\":{\"name\":\"&lt;b&gt;\"}}", { :name => "&lt;b&gt;" }]
+
+    asserts "that a nested render after a top level hash one is escaped once" do
+      post = cached_post(2)
+      [render_post(:hash, post), render_post(:nested, post)]
+    end.equals [{ :name => "&lt;b&gt;" }, "{\"post\":{\"name\":\"&lt;b&gt;\"}}"]
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
 
   context "without json root" do
     setup do

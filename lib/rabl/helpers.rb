@@ -7,16 +7,17 @@ module Rabl
   module Helpers
     # data_object(data) => <AR Object>
     # data_object(@user => :person) => @user
-    # data_object(:user => :person) => @_object.send(:user)
+    # data_object(:user => :person) => @_object.public_send(:user)
     def data_object(data)
       data = data.keys.first if data.is_a?(Hash) && data.keys.size == 1
-      data = @_object.__send__(data) if data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data)
+      data = @_object.public_send(data) if data.is_a?(Symbol) && defined?(@_object) && @_object && @_object.respond_to?(data)
       data
     end
 
-    # data_object_attribute(data) => @_object.send(data)
+    # data_object_attribute(data) => @_object.public_send(data)
+    # public_send, so a name like :format reaches method_missing (Hashie::Mash) instead of private Kernel#format
     def data_object_attribute(data)
-      attribute = @_object.__send__(data)
+      attribute = @_object.public_send(data)
       attribute = attribute.as_json if
         is_collection?(attribute, false) &&
         attribute.respond_to?(:as_json)
@@ -133,6 +134,7 @@ module Rabl
       options.reverse_merge!({
         :format     => "hash",
         :view_path  => view_path,
+        :nested     => true,
         :root       => (options[:root] || false)
       })
 

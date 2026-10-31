@@ -21,6 +21,7 @@ module Rabl
       @_context_scope = options[:scope]
 
       @_cache_read_on_render = true
+      @_rendering = false
     end
 
     def source=(source)
@@ -59,6 +60,8 @@ module Rabl
 
       @_full_cache_key ||= begin
         cache_key = Array(@_cache_key) + [@_options[:root_name], @_options[:format]]
+        # a nested engine caches its output before it is escaped, so it gets its own key
+        cache_key << 'nested' if @_options[:nested]
 
         if digestor_available? && respond_to?(:lookup_context) && lookup_context
           template = @_options[:template] || @virtual_path
@@ -82,12 +85,14 @@ module Rabl
     # Returns a hash representation of the data object
     # to_hash(:root => true, :child_root => true)
     def to_hash(options = {})
-      options.reverse_merge!(@_options)
+      # options given to the engine (e.g. Rabl::Renderer's :root) win over the format defaults
+      options.merge!(@_options)
 
       data = root_object
 
       options[:root_name] = determine_object_root(data, root_name, options[:root])
 
+      @_rendering = true
       result =
         if is_object?(data) || !data # object @user
           Builder.new(data, @_settings, options).to_hash
@@ -95,9 +100,12 @@ module Rabl
           MultiBuilder.new(data, @_settings, options).to_a
         end
 
-      result = escape_output(result) if Rabl.configuration.escape_all_output
+      # A nested engine (child, glue, extends, partial) is escaped with the engine it is part of
+      result = escape_output(result) if Rabl.configuration.escape_all_output && !@_options[:nested]
 
       result
+    ensure
+      @_rendering = false
     end
 
     def to_dumpable(options = {})
@@ -136,6 +144,8 @@ module Rabl
     # Returns an xml representation of the data object
     # to_xml(:root => true)
     def to_xml(options = {})
+      load_xml_support!
+
       options = {
         :root       => (include_root = Rabl.configuration.include_xml_root),
         :child_root => include_root && Rabl.configuration.include_child_root
@@ -176,7 +186,12 @@ module Rabl
       current_data  = (@_locals[:object].nil? || template_data == false) ? template_data : @_locals[:object]
       @_data_object = data_object(current_data)
       @_root_name_data = template_data.is_a?(Hash) && !current_data.is_a?(Hash) ? template_data : current_data
-      @_root_name_data = @_root_name_data.values.first if @_root_name_data.is_a?(Hash)
+      if @_root_name_data.is_a?(Hash)
+        alias_form = @_root_name_data.size == 1 # object @user => :person
+        @_root_name_data = @_root_name_data.values.first
+        # object @user => "person" names the root the same way
+        @_root_name_data = @_root_name_data.to_sym if alias_form && @_root_name_data.is_a?(String)
+      end
 
       # If we turn this around, `@_root_name_date ==` may trigger data to be loaded unnecessarily.
       # TODO: is nil a different semantic? otherwise don't use `false ==`, use !
@@ -210,7 +225,10 @@ module Rabl
     # collection @users => :people
     # collection @users, :root => :person
     # collection @users, :object_root => :person
+    # collection @users => :people, :object_root => false
     def collection(data, options = {})
+      data, options = split_folded_options(data, options, [:root, :object_root])
+
       @_collection_name = options[:root] if options[:root]
       @_collection_name ||= data.values.first if data.is_a?(Hash)
 
@@ -245,6 +263,8 @@ module Rabl
           attribute(key, conditions.merge(:as => as))
         end
       else # array of attributes i.e :foo, :bar, :baz
+        warn_if_rendering(:attribute)
+
         options = args.extract_options!
         args.each do |name|
           @_settings[:attributes] << { :name => name, :options => options }
@@ -257,25 +277,42 @@ module Rabl
     # node(:foo) { "bar" }
     # node(:foo, :if => lambda { ... }) { "bar" }
     def node(name = nil, options = {}, &block)
+      warn_if_rendering(:node)
+
+      if name.is_a?(Hash) && name.present? && options.blank? && (name.keys - [:if, :unless]).empty?
+        name, options = nil, name # node(:if => lambda { ... }) { ... } has conditions but no name
+      end
+
       @_settings[:node] << { :name => name, :options => options, :block => block }
     end
     alias_method :code, :node
 
     # Creates a child node that is included in json output
     # child(@user) { attribute :full_name }
+    # child(:posts => :items, :if => lambda { ... }) { attribute :title }
     def child(data, options = {}, &block)
+      warn_if_rendering(:child)
+
+      data, options = split_folded_options(data, options, [:if, :unless, :root, :object_root])
+
       @_settings[:child] << { :data => data, :options => options, :block => block }
     end
 
     # Glues data from a child node to the json_output
     # glue(@user) { attribute :full_name => :user_full_name }
     def glue(data, options = {}, &block)
+      warn_if_rendering(:glue)
+
+      data, options = split_folded_options(data, options, [:if, :unless])
+
       @_settings[:glue] << { :data => data, :options => options, :block => block }
     end
 
     # Extends an existing rabl template with additional attributes in the block
     # extends("users/show", :object => @user) { attribute :full_name }
     def extends(file, options = {}, &block)
+      return if warn_if_rendering(:extends)
+
       options.reverse_merge!({ :view_path => options[:view_path] || view_path })
 
       @_settings[:extends] << { :file => file, :options => options, :block => block }
@@ -450,6 +487,51 @@ module Rabl
         end
 
         send msg, locals, &block
+      end
+
+      # Hash#to_xml and Array#to_xml come from ActiveSupport (which uses the builder gem);
+      # Rails loads them, but other apps may not have.
+      def load_xml_support!
+        return if defined?(::Builder::XmlMarkup) && {}.respond_to?(:to_xml) && [].respond_to?(:to_xml)
+
+        require 'active_support/core_ext/array/conversions'
+        require 'active_support/core_ext/hash/conversions'
+
+        begin
+          require 'builder' unless defined?(::Builder::XmlMarkup)
+        rescue LoadError
+          raise LoadError, "rabl needs the builder gem to render XML; add `gem 'builder'` to your Gemfile"
+        end
+      end
+
+      # attribute, node, child, glue and extends build the template's settings, which are read while
+      # it renders (#477). Called then (e.g. inside a node block), they warn; attribute, node, child
+      # and glue work as before, and extends is ignored, since its settings (view path included)
+      # would otherwise be the node's value. Returns true when the template is rendering.
+      # ceiling: warns on every call, so a misuse inside a large collection repeats the warning;
+      # dedupe by call site if that turns out to be noisy.
+      def warn_if_rendering(method_name)
+        return false unless @_rendering
+
+        effect = method_name == :extends ? "is ignored" : "changes the template for the rest of the render"
+        site = caller.find { |line| !line.start_with?(__FILE__) }.to_s.sub(/:in .*\z/m, '')
+        Kernel.warn "rabl: #{method_name} called while the template renders (e.g. inside a node block) at #{site} " \
+                    "#{effect}; to render another template there, use partial(\"template\", :object => object)"
+        true
+      end
+
+      # Ruby folds `child :posts => :items, :if => cond` into a single hash, so the options
+      # arrive inside the data. They are split out only when no options were given separately
+      # and what remains is a single alias (`data => name`); any other hash is left as data.
+      # split_folded_options({ :posts => :items, :if => true }, {}, [:if]) => [{ :posts => :items }, { :if => true }]
+      def split_folded_options(data, options, option_keys)
+        return [data, options] unless data.is_a?(Hash) && options.blank?
+
+        found = data.keys & option_keys
+        alias_data = data.except(*found)
+        return [data, options] unless found.any? && alias_data.size == 1 && is_name_value?(alias_data.values.first)
+
+        [alias_data, data.slice(*found)]
       end
   end
 end
