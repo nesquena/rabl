@@ -119,7 +119,7 @@ module Rabl
           accessors = ActionView::LookupContext::Accessors if defined?(ActionView::LookupContext::Accessors)
           details = lookup_context.class.registered_details.map do |name|
             if accessors && accessors.method_defined?(name)
-              accessors.instance_method(name).bind(lookup_context).call
+              accessors.instance_method(name).bind_call(lookup_context)
             else
               lookup_context.public_send(name)
             end
