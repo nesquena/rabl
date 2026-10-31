@@ -140,6 +140,16 @@ context "Rabl::Engine" do
         }
         template.render(Object.new)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n</hash>\n"
+
+      asserts "that it renders an array with its own to_xml with it" do
+        template = rabl %{
+          code(:tags) { @tags }
+        }
+        tags = Class.new(Array) { def to_xml(options = {}); options[:builder].tag!(options[:root], join(',')); end }
+        scope = Object.new
+        scope.instance_variable_set :@tags, tags.new(%w(a b))
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <tags>a,b</tags>\n</hash>\n"
     end
 
     context "#child" do
@@ -192,6 +202,129 @@ context "Rabl::Engine" do
         scope.instance_variable_set :@user, User.new(:name => 'leo', :city => 'LA', :age => 12)
         template.render(scope)
       end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>leo</name>\n  <city>LA</city>\n  <age type=\"integer\">12</age>\n</user>\n"
+    end
+
+    # #559: items are named with the app's inflections, which are defined in underscored form
+    context "with an inflection defined by the app" do
+      helper(:inflections) { ActiveSupport::Inflector.inflections(:en) }
+
+      setup do
+        @saved_rules = [inflections.plurals.dup, inflections.singulars.dup]
+        inflections.irregular 'lesson_progress', 'lessons_progresses'
+        inflections.irregular 'lesson-note', 'lessons-notes' # the workaround in #559
+        inflections.irregular 'left_foot', 'left_feet'
+        inflections.singular 'lessons_quizzes', 'lesson_quiz'
+        inflections.uncountable 'user_settings'
+      end
+
+      asserts "that it names collection items with it" do
+        template = rabl %{
+          collection @users => :lessons_progresses
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessons-progresses type=\"array\">\n  <lesson-progress>\n    <name>intro</name>\n  </lesson-progress>\n</lessons-progresses>\n"
+
+      asserts "that it names child collection items with it" do
+        template = rabl %{
+          object @user
+          child(@users => :lessons_progresses) { attribute :name }
+        }
+        scope = Object.new
+        scope.instance_variable_set :@user, User.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <lessons-progresses type=\"array\">\n    <lesson-progress>\n      <name>intro</name>\n    </lesson-progress>\n  </lessons-progresses>\n</user>\n"
+
+      asserts "that it names the items of an array from a node with it" do
+        template = rabl %{
+          object false
+          node(:lessons_progresses) { [{ :name => 'intro' }] }
+        }
+        template.render(Object.new)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <lessons-progresses type=\"array\">\n    <lesson-progress>\n      <name>intro</name>\n    </lesson-progress>\n  </lessons-progresses>\n</hash>\n"
+
+      asserts "that it names the items of an array under a false key by their type" do
+        template = rabl %{
+          object false
+          node(:x) { { false => [1, 2] } }
+        }
+        template.render(Object.new)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<hash>\n  <x>\n    <integers type=\"array\">\n      <integer type=\"integer\">1</integer>\n      <integer type=\"integer\">2</integer>\n    </integers>\n  </x>\n</hash>\n"
+
+      asserts "that it names camelized items with it" do
+        template = rabl %{
+          collection @users => :lessons_progresses
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        begin
+          Rabl.configuration.xml_options = { :camelize => :lower }
+          template.render(scope)
+        ensure
+          Rabl.configuration.xml_options = {}
+        end
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessonsProgresses type=\"array\">\n  <lessonProgress>\n    <name>intro</name>\n  </lessonProgress>\n</lessonsProgresses>\n"
+
+      asserts "that it keeps names from an inflection written with dashes" do
+        template = rabl %{
+          collection @users => :lessons_notes
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'intro')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<lessons-notes type=\"array\">\n  <lesson-note>\n    <name>intro</name>\n  </lesson-note>\n</lessons-notes>\n"
+
+      asserts "that it names items with it when no rule matches the dasherized name" do
+        template = rabl %{
+          collection @users => :left_feet
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'l')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<left-feet type=\"array\">\n  <left-foot>\n    <name>l</name>\n  </left-foot>\n</left-feet>\n"
+
+      asserts "that it names items with a rule written as a String" do
+        template = rabl %{
+          collection @users => :my_lessons_quizzes
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'q')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<my-lessons-quizzes type=\"array\">\n  <my-lesson-quiz>\n    <name>q</name>\n  </my-lesson-quiz>\n</my-lessons-quizzes>\n"
+
+      asserts "that it keeps an uncountable name defined in underscored form" do
+        template = rabl %{
+          collection @users => :user_settings
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 's')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user-settings type=\"array\">\n  <user-settings>\n    <name>s</name>\n  </user-settings>\n</user-settings>\n"
+
+      # ActiveSupport finds an uncountable word at the end of a name only after a dash
+      asserts "that it keeps names that end in an uncountable word" do
+        template = rabl %{
+          collection @users => :animal_species
+          attribute :name
+        }
+        scope = Object.new
+        scope.instance_variable_set :@users, [User.new(:name => 'cat')]
+        template.render(scope)
+      end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<animal-species type=\"array\">\n  <animal-species>\n    <name>cat</name>\n  </animal-species>\n</animal-species>\n"
+
+      teardown do
+        inflections.plurals.replace(@saved_rules[0])
+        inflections.singulars.replace(@saved_rules[1])
+        inflections.uncountables.delete('user_settings')
+      end
     end
 
     teardown do
@@ -369,6 +502,24 @@ context "Rabl::Engine" do
     end
   end
 
+  context "with xml_options set after rendering" do
+    asserts "that it renders with the xml_options set last" do
+      template = rabl %{
+        object @user
+        attribute :first_pets_name
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new(:first_pets_name => 'jack')
+      template.render(scope)
+      Rabl.configuration.xml_options = { :dasherize => false }
+      template.render(scope)
+    end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <first_pets_name>jack</first_pets_name>\n</user>\n"
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
+
   # A fresh process, since this suite loads ActiveSupport's XML conversions itself
   context "outside Rails" do
     helper(:render_xml_in_new_process) do |load_path|
@@ -383,6 +534,16 @@ context "Rabl::Engine" do
     asserts "that it loads what it needs to render XML" do
       render_xml_in_new_process(nil)
     end.matches %r{<post>\s*<title>a</title>\s*</post>}
+
+    # In a new process too, since an acronym can't be undone
+    asserts "that it keeps camelized names with an acronym" do
+      code = "require 'rabl'; Post = Struct.new(:title); " \
+             "ActiveSupport::Inflector.inflections(:en) { |inflect| inflect.acronym 'ID' }; " \
+             "Rabl.configuration.xml_options = { :camelize => :lower }; " \
+             "print Rabl::Renderer.xml([Post.new('a')], %{collection @posts => :user_ids\\nattribute :title\\n})"
+      args = [RbConfig.ruby, '-I', File.expand_path('../../lib', __FILE__), '-e', code, { :err => [:child, :out] }]
+      IO.popen(args) { |io| io.read }
+    end.matches %r{<userIds type="array">\s*<userId>\s*<title>a</title>\s*</userId>\s*</userIds>}
 
     asserts "that it explains a missing builder gem" do
       Dir.mktmpdir do |without_builder|

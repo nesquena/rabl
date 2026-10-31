@@ -181,9 +181,9 @@ module Rabl
       __send__(option)
     end
 
-    # Returns merged default and inputted xml options
+    # Returns merged default and inputted xml options, as they are now
     def default_xml_options
-      @_default_xml_options ||= @xml_options.reverse_merge(DEFAULT_XML_OPTIONS)
+      @xml_options.reverse_merge(DEFAULT_XML_OPTIONS)
     end
   end
 end
