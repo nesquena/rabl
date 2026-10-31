@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+require 'erb'
 require 'active_support/core_ext/hash/conversions'
 require 'active_support/time'
+require 'tmpdir'
 
 require File.expand_path('../teststrap', __FILE__)
 require 'rabl/template'
@@ -297,5 +299,49 @@ context "Rabl::Engine" do
     teardown do
       Rabl.reset_configuration!
     end
+  end
+
+  context "with escape_all_output" do
+    setup do
+      Rabl.configure { |config| config.escape_all_output = true }
+    end
+
+    asserts "that it escapes child values once, like top level values" do
+      template = rabl %{
+        object @user
+        attribute :name
+        child(@user => :person) { attribute :city }
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new(:name => 'a&b', :city => 'c&d')
+      template.render(scope)
+    end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <name>a&amp;amp;b</name>\n  <person>\n    <city>c&amp;amp;d</city>\n  </person>\n</user>\n"
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
+
+  # A fresh process, since this suite loads ActiveSupport's XML conversions itself
+  context "outside Rails" do
+    helper(:render_xml_in_new_process) do |load_path|
+      code = "require 'rabl'; Post = Struct.new(:title); " \
+             "print Rabl::Renderer.xml(Post.new('a'), %{object @post\\nattribute :title\\n})"
+      args = [RbConfig.ruby]
+      args += ['-I', load_path] if load_path
+      args += ['-I', File.expand_path('../../lib', __FILE__), '-e', code, { :err => [:child, :out] }]
+      IO.popen(args) { |io| io.read }
+    end
+
+    asserts "that it loads what it needs to render XML" do
+      render_xml_in_new_process(nil)
+    end.matches %r{<post>\s*<title>a</title>\s*</post>}
+
+    asserts "that it explains a missing builder gem" do
+      Dir.mktmpdir do |without_builder|
+        File.open(File.join(without_builder, 'builder.rb'), 'w') { |f| f.puts 'raise LoadError, "cannot load such file -- builder"' }
+        render_xml_in_new_process(without_builder)
+      end
+    end.matches %r{rabl needs the builder gem to render XML}
   end
 end

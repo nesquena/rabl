@@ -346,6 +346,8 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'ivan')
       JSON.parse(Rabl.render({ user => :person }, 'test5', :view_path => tmp_path, :scope => sc))
     end.equals JSON.parse("{\"person\":{\"age\":24,\"name\":\"ivan\"} }")
+
+    teardown { Rabl.reset_configuration! }
   end # render
 
   context '.json' do
@@ -388,5 +390,25 @@ context "Rabl::Renderer" do
       user = User.new(:name => 'ivan')
       clean_plist(Rabl::Renderer.plist(user, 'test', :view_path => tmp_path))
     end.equals clean_plist("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>\n\t<key>user</key>\n\t<dict>\n\t\t<key>age</key>\n\t\t<integer>24</integer>\n\t\t<key>float</key>\n\t\t<real>1234.56</real>\n\t\t<key>name</key>\n\t\t<string>ivan</string>\n\t</dict>\n</dict>\n</plist>\n")
+  end
+
+  context "#render with a :root option and include_json_root disabled" do
+    setup { Rabl.configure { |config| config.include_json_root = false } }
+
+    asserts 'it includes the root' do
+      Rabl::Renderer.new("object @user\nattribute :name\n", User.new(:name => 'irvine'), :root => true).render
+    end.equals "{\"user\":{\"name\":\"irvine\"}}"
+
+    teardown { Rabl.reset_configuration! }
+  end
+
+  context "#render with a :root option and include_json_root enabled" do
+    setup { Rabl.configure { |config| config.include_json_root = true } }
+
+    asserts 'it leaves out the root' do
+      Rabl::Renderer.new("object @user\nattribute :name\n", User.new(:name => 'irvine'), :root => false).render
+    end.equals "{\"name\":\"irvine\"}"
+
+    teardown { Rabl.reset_configuration! }
   end
 end
