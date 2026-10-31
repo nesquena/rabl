@@ -189,6 +189,30 @@ context "Rabl::Partials" do
       Rabl.reset_source_cache!
     end.equals ["base.json", "base.fr.json"]
 
+    asserts("with cache_sources, the fallbacks assigned for each request aren't kept") do
+      Rabl.configuration.cache_sources = true
+      Rabl.reset_source_cache!
+      fallbacks = I18n.fallbacks
+      20.times do
+        I18n.fallbacks = I18n::Locale::Fallbacks.new(:de => :fr)
+        I18n.with_locale(:de) { picked("base") }
+      end
+      # the Fallbacks objects the lookup memo still holds
+      held = lambda do |o|
+        case o
+        when I18n::Locale::Fallbacks then [o]
+        when Hash then o.keys.flat_map { |k| held.call(k) } + o.values.flat_map { |v| held.call(v) }
+        when Array then o.flat_map { |v| held.call(v) }
+        else []
+        end
+      end
+      held.call(Rabl::Sources::MANUAL_LOOKUP_IDS).uniq(&:object_id).size
+    ensure
+      I18n.fallbacks = fallbacks
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end.equals 1
+
     asserts("templates nested in an XML rendering, in a child and in an extended template") do
       [%w(inner.xml inner.json), %w(inner.xml inner)].map do |names|
         path = Pathname.new(Dir.mktmpdir)

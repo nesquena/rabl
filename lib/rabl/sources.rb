@@ -19,8 +19,9 @@ module Rabl
     # for the manual lookup's format and locale chain in source cache keys, worked out once for each.
     # ceiling: the fallbacks are read once per locale, so fallbacks changed in place later
     # (I18n.fallbacks.map) aren't seen by the cache until they are assigned anew
-    # (I18n.fallbacks = ...). Upgrade path: key by the fallbacks' contents.
-    MANUAL_LOOKUP_IDS = {}.compare_by_identity
+    # (I18n.fallbacks = ...); and an I18n.default_locale reassigned by another thread while an entry
+    # is made can store it under the old default. Upgrade path: key by the fallbacks' contents.
+    MANUAL_LOOKUP_IDS = [nil]
     MANUAL_LOOKUP_IDS_LOCK = Mutex.new
 
     # Returns source for a given relative file
@@ -104,11 +105,15 @@ module Rabl
         config = ::I18n.config
         locale, default_locale = config.locale, config.default_locale
         fallbacks = ::I18n.fallbacks if ::I18n.respond_to?(:fallbacks)
-        ids = MANUAL_LOOKUP_IDS[fallbacks]
+        table = MANUAL_LOOKUP_IDS[0]
+        ids = table[1] if table && table[0].equal?(fallbacks)
         ids &&= ids[locale]
         ids &&= ids[default_locale]
         (ids && ids[format]) || MANUAL_LOOKUP_IDS_LOCK.synchronize do
-          ids = ((MANUAL_LOOKUP_IDS[fallbacks] ||= {})[locale] ||= {})[default_locale] ||= {}
+          table = MANUAL_LOOKUP_IDS[0]
+          # only the current fallbacks are kept, so assigning them per request doesn't grow it
+          table = MANUAL_LOOKUP_IDS[0] = [fallbacks, {}] unless table && table[0].equal?(fallbacks)
+          ids = (table[1][locale] ||= {})[default_locale] ||= {}
           # lookup_id takes its own lock, never the other way round
           ids[format] ||= lookup_id([:manual, format, manual_source_locales])
         end
