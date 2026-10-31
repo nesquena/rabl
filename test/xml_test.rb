@@ -416,6 +416,24 @@ context "Rabl::Engine" do
     end
   end
 
+  context "with xml_options set after rendering" do
+    asserts "that it renders with the xml_options set last" do
+      template = rabl %{
+        object @user
+        attribute :first_pets_name
+      }
+      scope = Object.new
+      scope.instance_variable_set :@user, User.new(:first_pets_name => 'jack')
+      template.render(scope)
+      Rabl.configuration.xml_options = { :dasherize => false }
+      template.render(scope)
+    end.equals "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user>\n  <first_pets_name>jack</first_pets_name>\n</user>\n"
+
+    teardown do
+      Rabl.reset_configuration!
+    end
+  end
+
   # A fresh process, since this suite loads ActiveSupport's XML conversions itself
   context "outside Rails" do
     helper(:render_xml_in_new_process) do |load_path|
