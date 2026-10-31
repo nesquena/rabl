@@ -26,8 +26,8 @@ For a breakdown of common misconceptions about RABL, please check out our guide 
 
 ## Breaking Changes ##
 
- * v0.18.0 requires Ruby 2.7 or newer (older Rubies can stay on 0.17.0), changes cache keys (expect a cold cache once
-   after upgrading) and fixes several long-standing output bugs in ways that can change existing output. Check the
+ * v0.18.0 requires Ruby 2.7 or newer (older Rubies can stay on 0.17.0). Every cache key changes once: expect a cold
+   cache after upgrading. It also fixes several long-standing output bugs in ways that can change existing output. Check the
    [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md) before upgrading.
 
  * v0.9.0 (released Oct 14, 2013) changes the [default node name for certain associations](https://github.com/nesquena/rabl/issues/505)
@@ -169,11 +169,13 @@ a root node by default. This allows you to further fine-tune your desired respon
 If `cache_engine` is set, you should assign it to an object with `fetch`, `write` and `read_multi` methods (`read_multi` reads the
 items of a collection at once unless `config.use_read_multi = false`, and must return a hash keyed by the keys it was given).
 See the [default engine](https://github.com/nesquena/rabl/blob/master/lib/rabl/cache_engine.rb) for an example. Outside Rails, the
-default engine keeps entries in memory, in each process.
+default engine keeps entries in memory, in each process, and ignores `expires_in`: entries live until the process ends or the
+100,000-entry limit evicts them. For expiry, use an ActiveSupport store, e.g. `config.cache_engine = ActiveSupport::Cache::MemoryStore.new`.
 
 If `perform_caching` is set to `true` then it will perform caching. You
 can ignore this option if you are using Rails, it's same to Rails
-`config.action_controller.perform_caching`. Outside Rails (Sinatra, Padrino, `Rabl::Renderer`), set it to `true` to turn caching on.
+`config.action_controller.perform_caching`. In a process without Rails (Sinatra, Padrino, plain `Rabl::Renderer`), set it to `true` to
+turn caching on; once Rails is loaded, rabl follows `ActionController::Base.perform_caching` instead, also for `Rabl::Renderer`.
 
 If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
 The cache can be reset manually by running `Rabl.reset_source_cache!` within your application.
@@ -181,9 +183,9 @@ The cache can be reset manually by running `Rabl.reset_source_cache!` within you
 If `cache_all_output` is set to `true`, every template including each individual template used as part of a collection will be cached separately.
 Additionally, anything within child, glue and partial will also be cached separately.
 Those entries are keyed by the object (its `cache_key`), the template and the format only. The template's own `cache` key is added
-to the entry of the object the template renders, but not to the entries of collection items or of what child, glue and partial render,
-so anything else the output depends on (the current user, locals, params) is not part of those keys: don't turn `cache_all_output` on
-for templates whose output differs per viewer or per request.
+to the entry of the object the template renders, but no `cache` key, including one inside a child block, is part of the entries of
+collection items or of what child, glue and partial render, so anything else the output depends on (the current user, locals, params)
+is not part of those keys: don't turn `cache_all_output` on for templates whose output differs per viewer or per request.
 To cache just a single template, see the section titled 'Caching' below.
 
 If `escape_all_output` is set to `true` and ActiveSupport is available, attribute output will be escaped using [ERB::Util.html_escape](http://api.rubyonrails.org/classes/ERB/Util.html).
@@ -572,8 +574,9 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 ### Caching ###
 
-RABL has built-in caching support for templates leveraging fragment caching strategies. It works with Rails (using `Rails.cache`), and
-with Sinatra, Padrino and `Rabl::Renderer` when `config.perform_caching` is `true` (using `config.cache_engine`; see Configuration above).
+RABL has built-in caching support for templates leveraging fragment caching strategies. It works with Rails (using `Rails.cache`, or
+`config.cache_engine` if set), and with Sinatra, Padrino and `Rabl::Renderer` when `config.perform_caching` is `true` (using
+`config.cache_engine`; see Configuration above). Inside a Rails process, `Rabl::Renderer` follows `ActionController::Base.perform_caching`.
 Simplest caching usage is:
 
 ```ruby
@@ -606,8 +609,8 @@ There, `object @topic` takes the item, but `@topic` itself keeps the controller'
 template names in `object` but not the item, rabl adds the item to it, so `cache @topic` and `cache ['v1', @topic]` also get one entry
 per item. When that variable is nil, any nil part of the key counts as it, so a key such as `cache ['v1', current_user]` gets the item
 added for an anonymous (nil) viewer. The other parts of the key are used as they are: any other instance variable keeps its outer value,
-and a helper such as `current_user` keeps the viewer, so `cache ['v1', current_user]` without `root_object` gives every item of a signed-in
-viewer the same entry. Include `root_object` whenever the output depends on the item.
+and a helper such as `current_user` keeps the viewer, so `cache ['v1', current_user]` without `root_object` gives all the items one
+entry per signed-in viewer. Include `root_object` whenever the output depends on the item.
 
 Under Rails, keys include the Rails template digest when the template is rendered through a controller or view. `Rabl.render` and
 `Rabl::Renderer` used outside a request have no view context, so their keys identify the template differently and don't match the keys of
