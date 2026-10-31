@@ -7,19 +7,33 @@ require 'active_support/core_ext/hash/conversions'
 require File.expand_path('../teststrap', __FILE__)
 
 context 'Rabl cache keys' do
-  # A cache engine storing values in a hash, with the fetch/write/read_multi interface
+  # A cache engine storing values in a hash, with the fetch/write/read_multi interface; it
+  # records each call with the namespace of its key (the key's first segment)
   helper(:memory_cache) do
     Class.new do
-      attr_reader :store
-      def initialize; @store = {}; end
-      def fetch(key, options = {}); @store.key?(key) ? @store[key] : (@store[key] = yield); end
-      def write(key, value, options = {}); @store[key] = value; end
+      attr_reader :store, :calls
+      def initialize; @store = {}; @calls = []; end
+      def fetch(key, options = {}); record(:fetch, key); @store.key?(key) ? @store[key] : (@store[key] = yield); end
+      def write(key, value, options = {}); record(:write, key); @store[key] = value; end
       def read_multi(*keys)
         keys.pop if keys.last.is_a?(Hash)
+        keys.each { |key| record(:read_multi, key) }
         keys.inject({}) { |result, key| result[key] = @store[key] if @store.key?(key); result }
       end
+      def record(call, key); @calls << [call, key.split('/').first]; end
     end.new
   end
+
+  # Returns a cache holding the entries of the given one under the "rabl/" namespace that
+  # versions before 0.18.0 used for every key, as if one of them had cached the same parts
+  helper(:earlier_version_cache) do |cache|
+    earlier = memory_cache
+    cache.store.each { |key, value| earlier.store["rabl/#{key.split('/', 2).last}"] = value }
+    earlier
+  end
+
+  # The namespace of the keys this version reads and writes
+  helper(:current_namespace) { "rabl-v#{Rabl::CACHE_KEY_VERSION}" }
 
   helper(:item) do |id, *owner|
     Class.new do
@@ -104,6 +118,21 @@ context 'Rabl cache keys' do
       a.id = 110
       first + [render("object @item\nattributes :id", a)]
     end.equals ['{"id":11}', '{"name":"item11"}', '{"id":11}']
+
+    asserts('the output cache key is in the current namespace') do
+      Rabl.configuration.cache_engine = memory_cache
+      render("object @item\nattributes :id", item(46))
+      Rabl.configuration.cache_engine.calls.uniq
+    end.equals { [[:fetch, current_namespace]] }
+
+    asserts('output cached by an earlier version for the same key parts is not read') do
+      Rabl.configuration.cache_engine = memory_cache
+      a = item(47)
+      render("object @item\nattributes :id", a)
+      Rabl.configuration.cache_engine = earlier_version_cache(Rabl.configuration.cache_engine)
+      a.id = 470
+      render("object @item\nattributes :id", a)
+    end.equals '{"id":470}'
   end
 
   context 'with partials' do
@@ -384,6 +413,55 @@ context 'Rabl cache keys' do
 
       teardown { Rabl.configuration.use_read_multi = true }
     end
+
+    teardown { FileUtils.rm_rf(@dir) }
+  end
+
+  context 'against earlier versions' do
+    setup do
+      Rabl.configuration.cache_engine = memory_cache
+      @dir = Dir.mktmpdir
+      File.open(File.join(@dir, 'cached_item.rabl'), 'w') { |f| f.write("object @item\ncache root_object\nattributes :id\n") }
+      @dir
+    end
+
+    asserts('a template\'s cache key is in the current namespace') do
+      Rabl.configuration.cache_engine = memory_cache
+      render("object @item\ncache @item\nattributes :id", item(90))
+      Rabl.configuration.cache_engine.calls.uniq
+    end.equals { [[:fetch, current_namespace]] }
+
+    asserts('a child block\'s cache key is in the current namespace') do
+      Rabl.configuration.cache_engine = memory_cache
+      render("object @item\nchild(:owner => :owner) { cache root_object; attributes :id }", item(91, item(92)))
+      Rabl.configuration.cache_engine.calls.uniq
+    end.equals { [[:fetch, current_namespace]] }
+
+    asserts('the keys a collection reads together and writes are in the current namespace') do
+      Rabl.configuration.cache_engine = memory_cache
+      render("collection @items\nextends 'cached_item'", [item(93), item(94)], :view_path => topic)
+      Rabl.configuration.cache_engine.calls.uniq
+    end.equals { [[:read_multi, current_namespace], [:write, current_namespace]] }
+
+    asserts('output cached by an earlier version for the same key parts is not read') do
+      Rabl.configuration.cache_engine = memory_cache
+      template = "object @item\ncache @item\nattributes :id\nchild(:owner => :owner) { cache root_object; attributes :id }"
+      a = item(95, item(96))
+      render(template, a)
+      Rabl.configuration.cache_engine = earlier_version_cache(Rabl.configuration.cache_engine)
+      a.id = 950
+      a.owner.id = 960
+      render(template, a)
+    end.equals '{"id":950,"owner":{"id":960}}'
+
+    asserts('collection items cached by an earlier version for the same key parts are not read') do
+      Rabl.configuration.cache_engine = memory_cache
+      items = [item(97), item(98)]
+      render("collection @items\nextends 'cached_item'", items, :view_path => topic)
+      Rabl.configuration.cache_engine = earlier_version_cache(Rabl.configuration.cache_engine)
+      items.each { |i| i.id += 1000 }
+      render("collection @items\nextends 'cached_item'", items, :view_path => topic)
+    end.equals '[{"id":1097},{"id":1098}]'
 
     teardown { FileUtils.rm_rf(@dir) }
   end

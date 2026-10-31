@@ -3,10 +3,23 @@
 require 'digest/sha1'
 
 module Rabl
+  # Marks every cache key rabl reads or writes. Bump it when a release changes rendered output so
+  # that entries cached by earlier versions would be wrong: the keys change once, so no entry
+  # cached by an earlier version, which lacks that release's output fixes, is served.
+  # Keys before 0.18.0 had no marker; 2 is 0.18.0.
+  CACHE_KEY_VERSION = 2
+
   # Builds the parts of template cache keys. These are module functions rather than
   # Engine methods so that they never shadow helpers a template calls.
   module TemplateCacheKey
     module_function
+
+    # Returns the key rabl reads and writes in the cache engine for the given parts. Earlier
+    # versions put their keys under "rabl/", so no key built here can be one of theirs.
+    # TemplateCacheKey.expand([user, "json"]) => "rabl-v2/users/1/json"
+    def expand(parts)
+      ActiveSupport::Cache.expand_cache_key(parts, "rabl-v#{CACHE_KEY_VERSION}")
+    end
 
     # Returns a digest of the given parts
     # TemplateCacheKey.digest(["app/views/show.rabl", "object @user"]) => "4a1b..."

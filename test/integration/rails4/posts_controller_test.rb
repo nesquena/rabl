@@ -184,7 +184,7 @@ context "PostsController" do
 
   context "caching" do
     helper(:cache_hit) do |key|
-      Rails.cache.read(ActiveSupport::Cache.expand_cache_key(key, :rabl))
+      Rails.cache.read(Rabl::TemplateCacheKey.expand(key))
     end
 
     setup do
@@ -233,7 +233,7 @@ context "PostsController" do
 
     context "cache_all_output" do
       helper(:cache_hit) do |key|
-        Rails.cache.read(ActiveSupport::Cache.expand_cache_key([key, 'article', 'json'], :rabl))
+        Rails.cache.read(Rabl::TemplateCacheKey.expand([key, 'article', 'json']))
       end
 
       setup do

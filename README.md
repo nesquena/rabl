@@ -566,7 +566,7 @@ RABL has built-in caching support for templates leveraging fragment caching stra
 ```ruby
 # app/views/users/show.json.rabl
 object @quiz
-cache @quiz # key = rabl/quiz/[cache_key]
+cache @quiz # key = rabl-v2/quiz/[cache_key]
 attribute :title
 ```
 
