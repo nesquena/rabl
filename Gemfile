@@ -28,7 +28,7 @@ group :development, :test do
   gem 'bson'
   # gem 'debugger'
   gem 'msgpack'
-  gem 'oj'
+  gem 'oj', '>= 3.17.7' # the tests of rabl's per-call Oj options (#744) need 3.17.7+
   gem 'plist'
   gem 'rake'
   gem 'riot'

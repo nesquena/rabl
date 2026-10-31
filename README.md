@@ -26,6 +26,10 @@ For a breakdown of common misconceptions about RABL, please check out our guide 
 
 ## Breaking Changes ##
 
+ * v0.18.0 requires Ruby 2.7 or newer (older Rubies can stay on 0.17.0). Every cache key changes once: expect a cold
+   cache after upgrading. It also fixes several long-standing output bugs in ways that can change existing output. Check the
+   [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md) before upgrading.
+
  * v0.9.0 (released Oct 14, 2013) changes the [default node name for certain associations](https://github.com/nesquena/rabl/issues/505)
    especially around STI models. You might want to verify for any breakages as a result and
    be more explicit by specifying an alias i.e `@users => :users`
@@ -56,11 +60,11 @@ gem 'rabl'
 gem 'oj'
 ```
 
-and run `bundle install` to install the dependency.
+and run `bundle install` to install the dependency. RABL needs Ruby 2.7 or newer.
 
 To render XML, also add `gem 'builder'` (Rails apps already include it); RABL loads ActiveSupport's XML conversions itself.
 
-If you are using **Rails 2.3.8 (and up), Rails 3.X or Padrino**, RABL works without configuration.
+If you are using **Rails or Padrino**, RABL works without configuration.
 
 **Important:** With Padrino, be sure that **the rabl gem is listed after the padrino gem in your Gemfile**, otherwise
 Rabl will not register properly as a template engine.
@@ -162,17 +166,26 @@ optionally dotted, up to 128 characters) and the output is written as `/**/callb
 If `include_child_root` is set to false then child objects in the response will not include
 a root node by default. This allows you to further fine-tune your desired response structure.
 
-If `cache_engine` is set, you should assign it to a class with a `fetch` method. See the [default engine](https://github.com/nesquena/rabl/blob/master/lib/rabl/cache_engine.rb) for an example.
+If `cache_engine` is set, you should assign it to an object with `fetch`, `write` and `read_multi` methods (`read_multi` reads the
+items of a collection at once unless `config.use_read_multi = false`, and must return a hash keyed by the keys it was given).
+See the [default engine](https://github.com/nesquena/rabl/blob/master/lib/rabl/cache_engine.rb) for an example. Outside Rails, the
+default engine keeps entries in memory, in each process, and ignores `expires_in`: entries live until the process ends or the
+100,000-entry limit evicts them. For expiry, use an ActiveSupport store, e.g. `config.cache_engine = ActiveSupport::Cache::MemoryStore.new`.
 
 If `perform_caching` is set to `true` then it will perform caching. You
 can ignore this option if you are using Rails, it's same to Rails
-`config.action_controller.perform_caching`
+`config.action_controller.perform_caching`. In a process without Rails (Sinatra, Padrino, plain `Rabl::Renderer`), set it to `true` to
+turn caching on; once Rails is loaded, rabl follows `ActionController::Base.perform_caching` instead, also for `Rabl::Renderer`.
 
 If `cache_sources` is set to `true`, template lookups will be cached for improved performance.
 The cache can be reset manually by running `Rabl.reset_source_cache!` within your application.
 
 If `cache_all_output` is set to `true`, every template including each individual template used as part of a collection will be cached separately.
 Additionally, anything within child, glue and partial will also be cached separately.
+Those entries are keyed by the object (its `cache_key`), the template and the format only. The template's own `cache` key is added
+to the entry of the object the template renders, but no `cache` key, including one inside a child block, is part of the entries of
+collection items or of what child, glue and partial render, so anything else the output depends on (the current user, locals, params)
+is not part of those keys: don't turn `cache_all_output` on for templates whose output differs per viewer or per request.
 To cache just a single template, see the section titled 'Caching' below.
 
 If `escape_all_output` is set to `true` and ActiveSupport is available, attribute output will be escaped using [ERB::Util.html_escape](http://api.rubyonrails.org/classes/ERB/Util.html).
@@ -561,7 +574,10 @@ Note that RABL can be nested arbitrarily deep within child nodes to allow for th
 
 ### Caching ###
 
-RABL has built-in caching support for templates leveraging fragment caching strategies. Note that caching is currently **only available** for Rails but support for other frameworks is planned in a future release. Simplest caching usage is:
+RABL has built-in caching support for templates leveraging fragment caching strategies. It works with Rails (using `Rails.cache`, or
+`config.cache_engine` if set), and with Sinatra, Padrino and `Rabl::Renderer` when `config.perform_caching` is `true` (using
+`config.cache_engine`; see Configuration above). Inside a Rails process, `Rabl::Renderer` follows `ActionController::Base.perform_caching`.
+Simplest caching usage is:
 
 ```ruby
 # app/views/users/show.json.rabl
@@ -574,8 +590,10 @@ The full cache key also includes the format and identifies the template (the Rai
 the template's source, location and view path), so different templates, child blocks, or an object and a collection caching the same key are stored separately.
 As with Rails fragment caching, anything else the output depends on must be part of the key: a block that runs several times with different
 data (for example inside a loop), locals, or the current user.
-Blocks are told apart by where they start in the template; on runtimes without `RubyVM::InstructionSequence` (such as JRuby) that is
-the line only, so two caching blocks that start on the same line need distinct cache keys there.
+Blocks are told apart by where they start in the template, so a block written once in a method (a `def` in the template, or a helper)
+and called several times is the same block each time: give each call a distinct cache key, e.g. by adding the arguments the method was
+called with. On runtimes without `RubyVM::InstructionSequence` (such as JRuby) the start is the line only, so two caching blocks that
+start on the same line need distinct cache keys there.
 
 In a template that is also rendered for each item (through `extends`, `partial` or `child`), key the cache on `root_object`, the item
 being rendered:
@@ -589,8 +607,24 @@ attribute :id
 
 There, `object @topic` takes the item, but `@topic` itself keeps the controller's value (or nil). When a key has the variable the
 template names in `object` but not the item, rabl adds the item to it, so `cache @topic` and `cache ['v1', @topic]` also get one entry
-per item. The other parts of the key are used as they are: any other instance variable keeps its outer value, and a helper such as
-`current_user` keeps the viewer.
+per item. When that variable is nil, any nil part of the key counts as it, so a key such as `cache ['v1', current_user]` gets the item
+added for an anonymous (nil) viewer. The other parts of the key are used as they are: any other instance variable keeps its outer value,
+and a helper such as `current_user` keeps the viewer, so `cache ['v1', current_user]` without `root_object` gives all the items one
+entry per viewer, apart from the nil case above. Include `root_object` whenever the output depends on the item.
+
+Under Rails, keys include the Rails template digest when the template is rendered through a controller or view. `Rabl.render` and
+`Rabl::Renderer` used outside a request have no view context, so their keys identify the template differently and don't match the keys of
+a request. To render outside a request with the same keys, for example to warm the cache in a background job, render through the
+controller (Rails 5 and newer):
+
+```ruby
+PostsController.render(:show, assigns: { post: post }, formats: [:json])
+# or ApplicationController.render(template: 'posts/show', assigns: { post: post }, formats: [:json])
+```
+
+RABL takes the format from the request, so for another format set the request's `Accept` header as well:
+`PostsController.renderer.new('HTTP_ACCEPT' => 'application/xml').render(:show, assigns: { post: post }, formats: [:xml])`.
+The renderer's request has empty params and an empty session, so output that depends on them renders as it would for such a request.
 
 Caching can significantly speed up the rendering of RABL templates in production and is strongly recommended when possible. For more a more detailed look at caching, check out the [Caching](https://github.com/nesquena/rabl/wiki/Caching-in-RABL) guide on the wiki.
 
