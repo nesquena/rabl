@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.18.0 (unreleased)
+## 0.18.0 (Oct 31, 2026)
 
 ### Requirements
 
