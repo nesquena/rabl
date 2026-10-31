@@ -6,7 +6,8 @@ module Rabl
   # Marks every cache key rabl reads or writes. Bump it when a release changes rendered output so
   # that entries cached by earlier versions would be wrong: the keys change once, so no entry
   # cached by an earlier version, which lacks that release's output fixes, is served.
-  # Keys before 0.18.0 had no marker; 2 is 0.18.0.
+  # Keys before 0.18.0 had no marker ("rabl/", and "rabl_build/" in old releases); 2 is 0.18.0.
+  # The README's caching example shows the resulting prefix: update it when this changes.
   CACHE_KEY_VERSION = 2
 
   # Builds the parts of template cache keys. These are module functions rather than
