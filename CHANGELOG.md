@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Fixes
+
+* Load rabl's Rails integration on Rails 9 and later: rabl recognised Rails 3 to 8 by the first digit of `Rails.version`, so on a newer Rails the railtie and the `.rabl` template handler never loaded and actions rendered empty responses. Rails versions are now compared as numbers, with no upper bound; Rails 2 to 8 load the same parts as before (@nesquena)
+
 ## 0.18.0 (Oct 31, 2026)
 
 ### Requirements

@@ -150,7 +150,7 @@ module Rabl
           template = @_options[:template] || @virtual_path
 
           digest =
-            if Rails.version.to_s =~ /^[678]/
+            if Rails.version.to_s.to_i >= 6
               Digestor.digest(name: template, finder: lookup_context, format: :rabl)
             elsif Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
               Digestor.digest(:name => template, :finder => lookup_context)
@@ -648,7 +648,7 @@ module Rabl
       end
 
       def digestor_available?
-        defined?(Rails) && Rails.version =~ /^[45678]/
+        defined?(Rails) && Rails.version.to_s.to_i >= 4
       end
 
       def valid_format?(format)

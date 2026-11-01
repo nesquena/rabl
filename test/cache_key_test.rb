@@ -408,6 +408,33 @@ context 'Rabl cache keys' do
     teardown { FileUtils.rm_rf(@dir) }
   end
 
+  # Under Rails the key holds the digest of the template, which Rails 6 and higher look up
+  # with the template's format
+  context 'under Rails 9' do
+    setup do
+      ::Rails = Module.new
+      ::Rails.define_singleton_method(:version) { "9.0.0" }
+      ::ActionController = Module.new
+      ::ActionController::Base = Class.new { def self.perform_caching; true; end }
+      Rabl::Digestor = Class.new { def self.digest(**options); "digest-of-#{options[:name]}.#{options[:format]}"; end }
+      Rabl.configuration.cache_engine = memory_cache
+    end
+
+    asserts('the key holds the digest of the template looked up as rabl') do
+      lookup_context = Object.new
+      scope = Object.new
+      scope.define_singleton_method(:lookup_context) { lookup_context }
+      Rabl::Engine.new("object @item\ncache @item\nattributes :id", :format => 'json', :template => 'items/show').render(scope, :object => item(120))
+      Rabl.configuration.cache_engine.store.keys.map { |key| key[/digest-of.*/] }
+    end.equals ['digest-of-items/show.rabl']
+
+    teardown do
+      Object.send(:remove_const, :Rails)
+      Object.send(:remove_const, :ActionController)
+      Rabl.send(:remove_const, :Digestor)
+    end
+  end
+
   context 'with templates rendered for each item' do
     setup do
       @dir = Dir.mktmpdir
