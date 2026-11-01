@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Other changes
+
+* README: a `child` block is passed the child's data (e.g. the posts) and a `glue` block the glued object, not the parent, with examples that run; the partial example passes the post (`:object => post`, not `:post`); the JSON engine is Oj when it is loaded and Ruby's JSON otherwise (yajl isn't used); and under Rails, Rails sets the content type from the template's format. No behaviour change (@nesquena; reported by @nirvdrum in #393 and @adie in #580)
+
 ## 0.18.0 (Oct 31, 2026)
 
 ### Requirements
