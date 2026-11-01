@@ -37,3 +37,39 @@ jobs:
         echo "RUBYOPT=--enable=frozen-string-literal --debug=frozen-string-literal" >> $GITHUB_ENV
     - name: Run tests
       run: bundle exec rake
+
+  apps:
+    # Generates fresh Rails and Sinatra apps that use rabl from this checkout, and runs their
+    # tests (test/apps)
+    name: ${{ matrix.app }} app
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: rails-7.2
+            ruby-version: '3.1'
+          - app: rails-8.1
+            ruby-version: '3.4'
+          - app: sinatra
+            ruby-version: '3.4'
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94 # v1.336.0
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+    - name: Install Rails
+      if: startsWith(matrix.app, 'rails-')
+      env:
+        APP: ${{ matrix.app }}
+      run: gem install rails -v "~> ${APP#rails-}.0" --no-document
+    - name: Generate the app and run its tests
+      env:
+        APP: ${{ matrix.app }}
+      run: test/apps/build_and_test.sh "$APP" "$RUNNER_TEMP/app"
