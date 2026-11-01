@@ -256,7 +256,8 @@ module Rabl
       # Caches the results of the block based on object cache_key
       # cache_results { compile_hash(options) }
       def cache_results(&block)
-        if template_cache_configured? && Rabl.configuration.cache_all_output && @_object.respond_to?(:cache_key)
+        # cheap questions first: template_cache_configured? allocates under Rails
+        if Rabl.configuration.cache_all_output && template_cache_configured? && @_object.respond_to?(:cache_key)
           cache_key = [@_object, @options[:root_name], @options[:format]]
           engine = rabl_template_engine
           if engine

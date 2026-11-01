@@ -627,7 +627,8 @@ module Rabl
       # Caches the results of the block based on object cache_key
       # cache_results { compile_hash(options) }
       def cache_results(&block)
-        return yield unless template_cache_configured? && defined?(@_cache_key)
+        # cheap question first: template_cache_configured? allocates under Rails
+        return yield unless defined?(@_cache_key) && template_cache_configured?
 
         if cache_read_on_render?
           fetch_result_from_cache(cache_key, @_cache_options, &block)
