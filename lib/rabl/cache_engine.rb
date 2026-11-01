@@ -7,29 +7,28 @@
 #     config.cache_engine = AdvancedCacheEngine.new
 #
 
-class LRU < Hash
-  attr_accessor :max_size
-
-  def initialize
-    super
-    self.max_size = 100_000
-  end
-
-  def []= k,v
-    r = super
-    limit_size
-    r
-  end
-
-  def limit_size
-    if size > max_size then
-      delete keys.shift while size > max_size
-    end
-  end
-end
-
 module Rabl
   class CacheEngine
+    # A Hash holding at most max_size entries, which drops the entries added first
+    class LRU < Hash
+      attr_accessor :max_size
+
+      def initialize
+        super
+        self.max_size = 100_000
+      end
+
+      def []= k,v
+        r = super
+        limit_size
+        r
+      end
+
+      def limit_size
+        shift while size > max_size
+      end
+    end
+
     def initialize
       unless defined?(Rails)
         @cache = LRU.new

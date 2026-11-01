@@ -12,8 +12,8 @@
 # If the gem is pushed but the tag step keeps failing, push the tag by hand at the built commit: that
 # tag push's run skips the push (same sum).
 #
-# Dry run: tick dry_run to check the wiring. Everything runs except the changelog checks, the tag and
-# the push; the credential exchange fails unless the trusted publisher is set up.
+# Dry run: tick dry_run to check the wiring. Everything runs except the changelog checks, the tag, the
+# push and the release page; the credential exchange fails unless the trusted publisher is set up.
 #
 # The "release" environment's protection rules are the ONLY gate on publishing (required reviewer, no
 # admin bypass, deployments only from master and v*.*.* tags): RubyGems trusts any run of this file

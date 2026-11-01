@@ -2,9 +2,16 @@
 
 ## Unreleased
 
+### Fixes
+
+* Load rabl's Rails integration on Rails 9 and later: rabl recognised Rails 3 to 8 by the first digit of `Rails.version`, so on a newer Rails the railtie and the `.rabl` template handler never loaded and actions rendered empty responses. Rails versions are now compared as numbers, with no upper bound; Rails 2 to 8 load the same parts as before (@nesquena)
+* Fix rabl defining a top-level `LRU` class for its own cache, which raised `TypeError: superclass mismatch for class LRU` in apps with an `LRU` class of their own; it is now `Rabl::CacheEngine::LRU` (use that name if your code used rabl's `LRU`). Once that cache (used outside Rails) held its 100,000 entries, each write also copied every key to drop the oldest one, about 0.5 ms per write; it now drops the same entries in a few µs (@nesquena)
+* Fix `Rabl::Renderer` and `Rabl.render` raising `NoMethodError` (`undefined method 'underscore' for nil`) for an object, or a collection, whose class has no name, such as a `Struct.new` or `Class.new` object. The renderer sets an instance variable named after the object's class (`@post` for a `Post`); for an unnamed class it now sets none, and the template gets the object as for any other (@nesquena)
+
 ### Other changes
 
 * README: a `child` block is passed the child's data (e.g. the posts) and a `glue` block the glued object, not the parent, with examples that run; the partial example passes the post (`:object => post`, not `:post`); the JSON engine is Oj when it is loaded and Ruby's JSON otherwise (yajl isn't used); and under Rails, Rails sets the content type from the template's format. No behaviour change (@nesquena; reported by @nirvdrum in #393 and @adie in #580)
+* The gem's rubygems.org page links the changelog, source code and issue tracker, and pushes to rubygems.org now require MFA (@nesquena)
 
 ## 0.18.0 (Oct 31, 2026)
 

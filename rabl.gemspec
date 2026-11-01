@@ -12,6 +12,12 @@ Gem::Specification.new do |s|
   s.summary     = %q{General ruby templating with json, bson, xml and msgpack support}
   s.description = %q{General ruby templating with json, bson, xml and msgpack support}
   s.license     = 'MIT'
+  s.metadata    = {
+    "changelog_uri"         => "https://github.com/nesquena/rabl/blob/master/CHANGELOG.md",
+    "source_code_uri"       => "https://github.com/nesquena/rabl",
+    "bug_tracker_uri"       => "https://github.com/nesquena/rabl/issues",
+    "rubygems_mfa_required" => "true"
+  }
 
   s.files         = `git ls-files -z`.split("\x0").grep(%r{\A(?:[^./][^/]*\.md|MIT-LICENSE|lib/.+)\z}).sort
   s.require_paths = ["lib"]
