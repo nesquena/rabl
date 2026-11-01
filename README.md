@@ -26,6 +26,9 @@ For a breakdown of common misconceptions about RABL, please check out our guide 
 
 ## Breaking Changes ##
 
+ * v0.19.0 requires ActiveSupport 6.1 or newer (and so Rails 6.1 or newer under Rails). Apps on an older Rails or
+   ActiveSupport can stay on 0.18.x.
+
  * v0.18.0 requires Ruby 2.7 or newer (older Rubies can stay on 0.17.0). Every cache key changes once: expect a cold
    cache after upgrading. It also fixes several long-standing output bugs in ways that can change existing output. Check the
    [CHANGELOG](https://github.com/nesquena/rabl/blob/master/CHANGELOG.md) before upgrading.
