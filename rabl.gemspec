@@ -23,10 +23,5 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.required_ruby_version = '>= 2.7'
 
-
-  if RUBY_VERSION < "1.9"
-    s.add_dependency 'activesupport', '>= 2.3.14', '<= 4'
-  else
-    s.add_dependency "activesupport", '>= 2.3.14'
-  end
+  s.add_dependency "activesupport", '>= 6.1'
 end

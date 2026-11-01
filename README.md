@@ -60,7 +60,7 @@ gem 'rabl'
 gem 'oj'
 ```
 
-and run `bundle install` to install the dependency. RABL needs Ruby 2.7 or newer.
+and run `bundle install` to install the dependency. RABL needs Ruby 2.7 or newer and ActiveSupport 6.1 or newer (on Rails, Rails 6.1 or newer).
 
 To render XML, also add `gem 'builder'` (Rails apps already include it); RABL loads ActiveSupport's XML conversions itself.
 
@@ -625,7 +625,7 @@ entry per viewer, apart from the nil case above. Include `root_object` whenever 
 Under Rails, keys include the Rails template digest when the template is rendered through a controller or view. `Rabl.render` and
 `Rabl::Renderer` used outside a request have no view context, so their keys identify the template differently and don't match the keys of
 a request. To render outside a request with the same keys, for example to warm the cache in a background job, render through the
-controller (Rails 5 and newer):
+controller:
 
 ```ruby
 PostsController.render(:show, assigns: { post: post }, formats: [:json])
@@ -744,6 +744,8 @@ See the [examples](https://github.com/nesquena/rabl/tree/master/examples) direct
 Check out the [Issues](https://github.com/nesquena/rabl/issues) tab for a full list:
 
  * Rigorous benchmarking and performance optimizations
+
+To report a security vulnerability, don't open an issue; see [SECURITY.md](https://github.com/nesquena/rabl/blob/master/SECURITY.md).
 
 ## Authors and Contributors ##
 

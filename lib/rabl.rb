@@ -21,9 +21,9 @@ require 'rabl/cache_engine'
 require 'rabl/template_cache_key'
 
 if defined?(Rails) && Rails.respond_to?(:version)
-  require 'rabl/tracker'  if Rails.version.to_s.to_i >= 4
-  require 'rabl/digestor' if Rails.version.to_s.to_i >= 4
-  require 'rabl/railtie'  if Rails.version.to_s.to_i >= 3
+  require 'rabl/tracker'
+  require 'rabl/digestor'
+  require 'rabl/railtie'
 end
 
 # Rabl.register!
@@ -99,6 +99,4 @@ end
 if defined?(Padrino)
   require 'padrino-core'
   Padrino.after_load { Rabl.register! }
-elsif defined?(Rails.version) && Rails.version.to_s.to_i == 2
-  Rabl.register!
 end

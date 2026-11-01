@@ -189,7 +189,7 @@ module Rabl
         end
       end
 
-      # Returns the format Rails 3.2 and higher look templates up in:
+      # Returns the format Rails looks templates up in:
       # the request's format, or for HTML requests the format being rendered (json for
       # the default handler and for hash), as a Symbol, the only form Rails 7.0 and higher match
       def rails_source_format
@@ -252,26 +252,18 @@ module Rabl
         File.join(view_path.first.to_s, (file_path.to_s + ".rabl"))
       end
 
-      # Returns the rabl template path for Rails, including special lookups for Rails 2 and 3
+      # Returns the rabl template path for Rails, using Rails' own lookup
       def fetch_rails_source(file, options = {})
-        # use Rails template resolution mechanism if possible (find_template)
         source_format = request_format if defined?(request_format)
 
-        if source_format && context_scope.respond_to?(:lookup_context) # Rails 3
+        if source_format && context_scope.respond_to?(:lookup_context)
           lookup_proc = lambda do |partial|
-            if ActionPack::VERSION::MAJOR == 3 && ActionPack::VERSION::MINOR < 2
-              context_scope.lookup_context.find(file, [], partial)
-            else # Rails 3.2 and higher
-              # pull format directly from rails unless it is html
-              context_scope.lookup_context.find(file, [], partial, [], { :formats => [rails_source_format] })
-            end
+            # pull format directly from rails unless it is html
+            context_scope.lookup_context.find(file, [], partial, [], { :formats => [rails_source_format] })
           end
           template = lookup_proc.call(false) rescue nil
           template ||= lookup_proc.call(true) rescue nil
           template.identifier if template
-        elsif source_format && context_scope.respond_to?(:view_paths) # Rails 2
-          template = context_scope.view_paths.find_template(file, source_format, false)
-          template.filename if template
         end
       end
 

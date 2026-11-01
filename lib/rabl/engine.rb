@@ -60,9 +60,7 @@ module Rabl
       # count when no rule matches.
       def singular_rule_rank(word)
         inflections = ActiveSupport::Inflector.inflections
-        uncountables = inflections.uncountables
-        # ActiveSupport < 5 keeps them in a plain Array, checked by the last word
-        return -1 if uncountables.respond_to?(:uncountable?) ? uncountables.uncountable?(word) : uncountables.include?(word.downcase[/\b\w+\Z/])
+        return -1 if inflections.uncountables.uncountable?(word)
 
         rules = inflections.singulars
         rules.index { |(rule, _)| rule.is_a?(Regexp) ? rule.match?(word) : word.include?(rule) } || rules.size
@@ -149,16 +147,7 @@ module Rabl
         if digestor_available? && respond_to?(:lookup_context) && lookup_context
           template = @_options[:template] || @virtual_path
 
-          digest =
-            if Rails.version.to_s.to_i >= 6
-              Digestor.digest(name: template, finder: lookup_context, format: :rabl)
-            elsif Gem::Version.new(Rails.version) >= Gem::Version.new('4.1')
-              Digestor.digest(:name => template, :finder => lookup_context)
-            else
-              Digestor.digest(template, :rabl, lookup_context)
-            end
-
-          cache_key << digest
+          cache_key << Digestor.digest(name: template, finder: lookup_context, format: :rabl)
           # The digest covers the template source, but not the block that defines this engine
           if @_block_identity
             block, parent = @_block_identity
@@ -647,8 +636,9 @@ module Rabl
         end
       end
 
+      # rabl.rb loads Rabl::Digestor with the rest of the Rails integration
       def digestor_available?
-        defined?(Rails) && Rails.version.to_s.to_i >= 4
+        defined?(::Rabl::Digestor)
       end
 
       def valid_format?(format)

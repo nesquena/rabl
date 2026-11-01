@@ -336,10 +336,6 @@ context "Rabl::Partials" do
 
       setup do
         ::Rails = stub(Class.new)
-        ::ActionPack = Module.new
-        ::ActionPack::VERSION = Module.new
-        ::ActionPack::VERSION::MAJOR = 3
-        ::ActionPack::VERSION::MINOR = 2
         @it = TestPartial.new
 
         def @it.context_scope; @context_scope ||= Object.new; end
@@ -368,7 +364,6 @@ context "Rabl::Partials" do
 
       teardown do
         Object.send(:remove_const, :Rails)
-        Object.send(:remove_const, :ActionPack)
         Rabl.configuration.view_paths = []
       end
     end
@@ -401,10 +396,6 @@ context "Rabl::Partials" do
     context "under Rails" do
       setup do
         ::Rails = stub(Class.new)
-        ::ActionPack = Module.new
-        ::ActionPack::VERSION = Module.new
-        ::ActionPack::VERSION::MAJOR = 8
-        ::ActionPack::VERSION::MINOR = 1
         ::ActionView = Module.new
         ::ActionView::LookupContext = TestLookupContext
         Rabl.configuration.cache_sources = true
@@ -586,7 +577,6 @@ context "Rabl::Partials" do
 
       teardown do
         Object.send(:remove_const, :Rails)
-        Object.send(:remove_const, :ActionPack)
         Object.send(:remove_const, :ActionView)
       end
     end
