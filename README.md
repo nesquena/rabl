@@ -55,7 +55,7 @@ or add to your Gemfile:
 ```ruby
 # Gemfile
 gem 'rabl'
-# Also add either `oj` or `yajl-ruby` as the JSON parser
+# Optionally add `oj`: RABL encodes JSON with Oj when it is loaded, and with Ruby's JSON library otherwise
 # If using `oj`, Rabl renders with Oj's :compat mode and sets it as Oj's default (with Oj 3.17.7+, only if you haven't configured Oj yet)
 gem 'oj'
 ```
@@ -135,7 +135,7 @@ Rabl.configure do |config|
   # config.cache_engine = Rabl::CacheEngine.new # Defaults to Rails cache
   # config.perform_caching = false
   # config.escape_all_output = false
-  # config.json_engine = nil # Class with #dump class method (defaults JSON)
+  # config.json_engine = nil # Class with #dump class method (defaults to Oj when it is loaded, else ::JSON)
   # config.msgpack_engine = nil # Defaults to ::MessagePack
   # config.bson_engine = nil # Defaults to ::BSON
   # config.plist_engine = nil # Defaults to ::Plist::Emit
@@ -369,14 +369,17 @@ child :posts => :foobar do
 end
 ```
 
-You can also pass in the current object:
+The block is passed the child's data (here the user's posts, not the user), and the parent is still
+available as `@user`:
 
 ```ruby
 object @user
-child :posts do |user|
-  attribute :title unless user.suspended?
+child :posts do |posts|
+  attribute :title unless @user.suspended?
 end
 ```
+
+To decide for each post, use a condition, which is passed the post: `attribute :title, :if => lambda { |post| post.published? }`.
 
 ### Gluing Attributes ###
 
@@ -391,11 +394,11 @@ end
 
 Use glue to add additional attributes to the parent object.
 
-You can also pass in the current object:
+The block is passed the glued object (here `@post`, not the user):
 
 ```ruby
 object @user
-glue(@post) {|user| attribute :title if user.active? }
+glue(@post) { |post| attribute :title if post.published? }
 ```
 
 ### Custom Nodes ###
@@ -481,7 +484,7 @@ collection @posts
 
 extends('posts/show', :locals => { :hide_comments => true })
 # or using partial instead of extends
-# node(false) { |post| partial('posts/show', :object => :post, :locals => { :hide_comments => true })}
+# node(false) { |post| partial('posts/show', :object => post, :locals => { :hide_comments => true })}
 ```
 
 and then access locals in the sub-template:
@@ -673,13 +676,14 @@ node(:title) { locals[:custom_title] }
 
 ### Content Type Headers ###
 
-Currently in RABL, the content-type of your response is not set automatically. This is because RABL is intended
-to work for any Rack-based framework and as agnostic to format as possible.
-Check [this issue](https://github.com/nesquena/rabl/issues/185#issuecomment-4501232) for more
-details, and if you have any ideas or patches please let me know.
+Under Rails, Rails sets the content type from the template's format: `show.json.rabl` is served as
+`application/json` and `show.xml.rabl` as `application/xml`. A template without a format in its name
+(`show.rabl`) is served as `application/json` whatever it renders, so name templates by format when you
+serve more than JSON.
 
-In the meantime, be sure to set the proper content-types if needed. This is usually pretty simple in both
-Rails and Padrino. I recommend a before_filter on that controller or directly specified in an action.
+Outside Rails, RABL doesn't set the content type, as it is intended to work for any Rack-based framework and
+to be as agnostic to format as possible (see [this issue](https://github.com/nesquena/rabl/issues/185#issuecomment-4501232)).
+Set it in your app, e.g. with Sinatra's `content_type :json` in the route or a `before` filter.
 
 ## Resources ##
 
