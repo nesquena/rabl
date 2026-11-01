@@ -583,7 +583,7 @@ module Rabl
 
         callback = request_params[:callback]
         return unless callback.is_a?(String) && callback.length <= RABL_JSON_CALLBACK_MAX_LENGTH
-        return unless callback.ascii_only? && callback =~ RABL_JSON_CALLBACK_NAME
+        return unless callback.ascii_only? && callback.match?(RABL_JSON_CALLBACK_NAME)
 
         callback
       end
