@@ -352,11 +352,6 @@ context 'Rabl cache keys' do
     context 'under Rails' do
       setup do
         ::Rails = Module.new
-        ::Rails.define_singleton_method(:version) { "3.2.22" }
-        ::ActionPack = Module.new
-        ::ActionPack::VERSION = Module.new
-        ::ActionPack::VERSION::MAJOR = 3
-        ::ActionPack::VERSION::MINOR = 2
         ::ActionController = Module.new
         ::ActionController::Base = Class.new { def self.perform_caching; true; end }
         topic
@@ -400,7 +395,6 @@ context 'Rabl cache keys' do
 
       teardown do
         Object.send(:remove_const, :Rails)
-        Object.send(:remove_const, :ActionPack)
         Object.send(:remove_const, :ActionController)
       end
     end
@@ -408,12 +402,10 @@ context 'Rabl cache keys' do
     teardown { FileUtils.rm_rf(@dir) }
   end
 
-  # Under Rails the key holds the digest of the template, which Rails 6 and higher look up
-  # with the template's format
-  context 'under Rails 9' do
+  # Under Rails the key holds the digest of the template, looked up with the template's format
+  context 'under Rails with the digestor' do
     setup do
       ::Rails = Module.new
-      ::Rails.define_singleton_method(:version) { "9.0.0" }
       ::ActionController = Module.new
       ::ActionController::Base = Class.new { def self.perform_caching; true; end }
       Rabl::Digestor = Class.new { def self.digest(**options); "digest-of-#{options[:name]}.#{options[:format]}"; end }

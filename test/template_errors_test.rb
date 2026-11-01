@@ -104,8 +104,8 @@ context "Template errors" do
   # The ActionView handler's code, compiled into a view method as ActionView does, raises
   # errors that point at the template file and line, which Rails shows on its error page.
   # It runs in its own process, as the handler is defined only when Rails is loaded.
-  ["5.2.0", "8.1.0"].each do |rails_version|
-    asserts "an error in a template rendered by the Rails #{rails_version[0]} handler" do
+  ["8.1.0"].each do |rails_version| # the handler is the same for every Rails version
+    asserts "an error in a template rendered by the Rails handler" do
       write_template("rails", "object @user\nattributes :name\n\nnil.no_such_method\n")
       script = <<-'RUBY'
         require 'rabl'
@@ -113,7 +113,6 @@ context "Template errors" do
         rails_version, path = ARGV
         Rails = Module.new
         Rails.define_singleton_method(:version) { rails_version }
-        Mime = { :json => "application/json" }
         module ActionView
           class Template
             module Handlers; end
@@ -124,7 +123,7 @@ context "Template errors" do
 
         handler = ActionView::Template::Handlers::Rabl
         template = Struct.new(:identifier, :source).new(path, File.read(path))
-        code = handler.method(:call).arity == 1 ? handler.call(template) : handler.call(template, template.source)
+        code = handler.call(template, template.source)
 
         view = Object.new
         view.instance_variable_set(:@user, Object.new)
