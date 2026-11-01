@@ -1,7 +1,0 @@
---- 
-:orm: activerecord
-:test: riot
-:mock: none
-:script: none
-:renderer: haml
-:stylesheet: none

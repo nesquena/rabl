@@ -16,8 +16,6 @@ group :test do
 
   rails_version = RUBY_VERSION =~ /\A(1|2.[01])/ ? '~> 4.0' : '>= 4.0'
   sqlite3_version = RUBY_VERSION >= '2.5' ? '>= 1.5' : '< 1.5'
-  # FIXTURES
-  gem 'rack-test', :require => 'rack/test'
   gem 'activerecord', rails_version, :require => 'active_record'
   gem 'sqlite3', sqlite3_version
   gem 'sinatra', '>= 1.2.0'
