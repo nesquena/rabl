@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Other changes
+
+* `Rabl::Builder#cache_results` and `Rabl::Engine#cache_results` now ask their cheapest question first: whether `cache_all_output` is on, and whether the template set a cache key, before asking whether caching is configured. Under Rails that second question is `ActionController::Base.perform_caching`, a delegated call that allocates an object and takes about 250 ns on Ruby 4.0.7, Rails 8.1.4, YJIT off; with the defaults (`cache_all_output` off, no `cache` in the template) its answer could not change the guard, and it was computed once per object built and once per engine rendered. On Ruby 4.0.7, where the call allocates one object, a 50-item collection whose template has one `child` (100 builders, 51 engines) saves those 151 allocations and about 40 µs per render, about 1.08x; on Ruby 3.3 it allocates two, so the same collection saves 302. A single object saves 4 allocations and about 1 µs. The output is unchanged; with `cache_all_output` on, the builder runs the same checks in the cheap-first order, and an engine whose template sets no cache key still skips the call. Outside Rails both checks are plain configuration reads, so the difference is inside the noise and the allocation count is unchanged (@tagliala)
+
 ## 0.19.0 (Nov 1, 2026)
 
 ### Requirements
