@@ -1,1 +1,0 @@
-../../../../test/integration/rails5/posts_controller_test.rb

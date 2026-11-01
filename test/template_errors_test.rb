@@ -104,8 +104,8 @@ context "Template errors" do
   # The ActionView handler's code, compiled into a view method as ActionView does, raises
   # errors that point at the template file and line, which Rails shows on its error page.
   # It runs in its own process, as the handler is defined only when Rails is loaded.
-  ["6.1.0", "8.1.0"].each do |rails_version|
-    asserts "an error in a template rendered by the Rails #{rails_version[0]} handler" do
+  ["8.1.0"].each do |rails_version| # the handler is the same for every Rails version
+    asserts "an error in a template rendered by the Rails handler" do
       write_template("rails", "object @user\nattributes :name\n\nnil.no_such_method\n")
       script = <<-'RUBY'
         require 'rabl'

@@ -1,1 +1,0 @@
-../../../ashared/controllers_rails_5/posts_controller.rb

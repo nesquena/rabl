@@ -14,11 +14,8 @@ group :test do
   # RABL TEST
   gem 'builder'
 
-  sqlite3_version = RUBY_VERSION >= '2.5' ? '>= 1.5' : '< 1.5'
-  # FIXTURES
-  gem 'rack-test', :require => 'rack/test'
   gem 'activerecord', '>= 6.1', :require => 'active_record'
-  gem 'sqlite3', sqlite3_version
+  gem 'sqlite3', '>= 1.5'
   gem 'sinatra', '>= 1.2.0'
   gem 'hashie'
 end

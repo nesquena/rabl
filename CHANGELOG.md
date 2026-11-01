@@ -14,6 +14,7 @@
 
 ### Other changes
 
+* CI now generates fresh Rails 7.2, Rails 8.1 and Sinatra apps that use rabl from the checkout and runs their tests (`test/apps/build_and_test.sh`), in place of the checked-in fixture apps for Rails 2 to 6 and Padrino under `fixtures/`, which CI never ran. No change to the gem (@nesquena)
 * README: a `child` block is passed the child's data (e.g. the posts) and a `glue` block the glued object, not the parent, with examples that run; the partial example passes the post (`:object => post`, not `:post`); the JSON engine is Oj when it is loaded and Ruby's JSON otherwise (yajl isn't used); and under Rails, Rails sets the content type from the template's format. No behaviour change (@nesquena; reported by @nirvdrum in #393 and @adie in #580)
 * The gem's rubygems.org page links the changelog, source code and issue tracker, and pushes to rubygems.org now require MFA (@nesquena)
 

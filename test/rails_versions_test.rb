@@ -4,9 +4,10 @@ require 'fileutils'
 require 'tmpdir'
 require File.expand_path('../teststrap', __FILE__)
 
-# Which of rabl's Rails integrations load under each Rails version. Each version runs in its
-# own process, as rabl picks them when it is required, with stand-ins for the parts of Rails
-# they use: the railtie runs its initializer and the action_view load hooks, as Rails does.
+# rabl loads the same Rails integrations under every Rails version it supports, and newer ones:
+# it no longer reads Rails.version, and these runs keep it that way. Each version runs in its own
+# process, as rabl loads them when it is required, with stand-ins for the parts of Rails they use:
+# the railtie runs its initializer and the action_view load hooks, as Rails does.
 context "Rabl's Rails integration" do
   helper(:loaded_under) do |rails_version|
     script = <<-'RUBY'
