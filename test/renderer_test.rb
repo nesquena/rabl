@@ -370,6 +370,20 @@ context "Rabl::Renderer" do
       end
     end.equals({ "user" => { "name" => "irvine" } })
 
+    asserts 'raises the same error for a template source that is not valid in its encoding' do
+      # The source is compared by bytes here, so a source with invalid bytes fails further down,
+      # in the template lookup or in Engine#eval_source, instead of at this check
+      broken = "object @user\xFF".dup.force_encoding("UTF-8")
+      [broken, broken + "\nattribute :name\n"].map do |source|
+        begin
+          Rabl::Renderer.json(User.new(:name => 'irvine'), source, :root => false)
+          'no error'
+        rescue ArgumentError => e
+          e.message
+        end
+      end
+    end.equals ['invalid byte sequence in UTF-8', 'invalid byte sequence in UTF-8']
+
     asserts 'renders an object whose class has no name, such as a Struct.new' do
       item = Struct.new(:name).new('irvine')
       Rabl::Renderer.json(item, "object @item\nattribute :name\n", :root => false)
