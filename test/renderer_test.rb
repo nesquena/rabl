@@ -369,6 +369,16 @@ context "Rabl::Renderer" do
         silence_warnings { Encoding.default_external = external }
       end
     end.equals({ "user" => { "name" => "irvine" } })
+
+    asserts 'renders an object whose class has no name, such as a Struct.new' do
+      item = Struct.new(:name).new('irvine')
+      Rabl::Renderer.json(item, "object @item\nattribute :name\n", :root => false)
+    end.equals '{"name":"irvine"}'
+
+    asserts 'renders a collection of objects whose class has no name' do
+      item_class = Class.new { def initialize(name); @name = name; end; attr_reader :name }
+      Rabl::Renderer.json([item_class.new('irvine'), item_class.new('ladera')], "collection @items\nattribute :name\n", :root => false)
+    end.equals '[{"name":"irvine"},{"name":"ladera"}]'
   end # render
 
   context '.json' do

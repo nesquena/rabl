@@ -12,7 +12,20 @@ context 'Rabl::CacheEngine' do
       topic.write('key', 'value')
       topic.fetch('key', {}) { 'fallback' }
     end.equals 'value'
+
+    asserts('keeps the newest 100,000 entries, dropping the oldest first') do
+      100_002.times { |i| topic.write("key#{i}", i) }
+      topic.read_multi('key0', 'key1', 'key2', 'key100001')
+    end.equals('key0' => nil, 'key1' => nil, 'key2' => 2, 'key100001' => 100_001)
   end
+
+  # rabl's store doesn't take the top-level LRU name an app may use for its own class
+  asserts('loads alongside an app\'s own LRU class, defined before or after rabl') do
+    ["class LRU < Array; end; require 'rabl'", "require 'rabl'; class LRU < Array; end"].map do |code|
+      script = "#{code}; cache = Rabl::CacheEngine.new; cache.write('key', 'value'); print LRU.superclass, ' ', cache.fetch('key', {}) { 'fallback' }"
+      IO.popen([RbConfig.ruby, '-I', File.expand_path('../../lib', __FILE__), '-e', script, { :err => [:child, :out] }], &:read)
+    end
+  end.equals ['Array value', 'Array value']
 
   context 'rendering a cached collection without Rails' do
     helper(:item) do |id|

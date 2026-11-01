@@ -24,7 +24,7 @@ module Rabl
         Rabl.register!
 
         # Inject dependency tracker for :rabl
-        if Rails.version =~ /^[45678]/
+        if Rails.version.to_s.to_i >= 4
           require 'action_view/dependency_tracker'
           ActionView::DependencyTracker.register_tracker :rabl, Rabl::Tracker
         end

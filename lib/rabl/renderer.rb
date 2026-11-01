@@ -70,17 +70,19 @@ module Rabl
         source
       end
 
-      # Internal: Sets an instance variable named after the class of `object`
+      # Internal: Sets an instance variable named after the class of `object`,
+      # unless the class has no name (Struct.new or Class.new)
       #
       # Example:
       #   object.class.name # => User
       #   set_object_instance_variable # => @user == object
       #
       def set_object_instance_variable
-        instance_variable_set(:"@#{object_model_name}", object)
+        name = object_model_name
+        instance_variable_set(:"@#{name}", object) if name
       end
 
-      # Internal: Returns the model name for an object
+      # Internal: Returns the model name for an object, or nil when its class has no name
       #
       # Example:
       #   object.class.name # => User
@@ -92,7 +94,10 @@ module Rabl
         is_collection = item.is_a?(Array)
         item = item.first if is_collection
 
-        name = item.class.name.underscore
+        name = item.class.name
+        return unless name
+
+        name = name.underscore
 
         name = name.pluralize if is_collection
 

@@ -23,7 +23,7 @@ if defined?(Tilt)
 end
 
 # Rails 2.X Template
-if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s =~ /^2/
+if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s.to_i == 2
   require 'action_view/base'
   require 'action_view/template'
 
@@ -44,7 +44,7 @@ if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rai
 end
 
 # Rails 3.X / 4.X / 5.X Template
-if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s =~ /^[345]/
+if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s.to_i.between?(3, 5)
   module ActionView
     module Template::Handlers
       class Rabl
@@ -65,8 +65,8 @@ if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rai
   ActionView::Template.register_template_handler :rabl, ActionView::Template::Handlers::Rabl
 end
 
-# Rails 6.X / 7.X / 8.X Template
-if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s =~ /^[678]/
+# Rails 6.X and higher Template
+if defined?(ActionView) && defined?(Rails) && Rails.respond_to?(:version) && Rails.version.to_s.to_i >= 6
   module ActionView
     module Template::Handlers
       class Rabl

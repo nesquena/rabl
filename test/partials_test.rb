@@ -4,6 +4,8 @@ require 'tmpdir'
 require 'delegate'
 require 'pathname'
 require File.expand_path('../teststrap', __FILE__)
+# I18n.fallbacks, which ActiveSupport 7.0 and higher load and earlier versions don't
+require 'i18n/backend/fallbacks'
 
 class TestPartial
   include Rabl::Partials
