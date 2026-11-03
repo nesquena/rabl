@@ -176,6 +176,14 @@ module Rabl
       options[:root_name] = determine_object_root(data, root_name, options[:root])
       options[:template_engine] = self
 
+      # A template the collection uses for each item (extends, partial) is read once per render,
+      # not once per item. The render that starts a collection ends it, so a render started inside
+      # this one (a Rabl::Renderer in a node, a nested render under Rails) uses the collection it
+      # finds, whose keys are complete, and the render around it keeps its own sources. A nested
+      # engine renders inside a collection anyway, so it skips the look for one.
+      owns_source_cache = !@_options[:nested] && Rabl.render_source_cache.nil?
+      Rabl.begin_render_source_cache if owns_source_cache
+
       @_rendering = true
       result =
         if is_object?(data) || !data # object @user
@@ -190,6 +198,7 @@ module Rabl
       result
     ensure
       @_rendering = false
+      Rabl.end_render_source_cache if owns_source_cache
     end
 
     def to_dumpable(options = {})
