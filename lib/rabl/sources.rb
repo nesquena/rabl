@@ -28,7 +28,10 @@ module Rabl
     # fetch_source("show", :view_path => "...") => "...contents..."
     def fetch_source(file, options = {})
       resolver = source_resolver
+      # the process-wide cache keeps a number for each lookup for the life of the process; a
+      # collection that lives for one render only needs the lookup itself
       lookup = source_lookup(resolver) if Rabl.configuration.cache_sources
+      lookup = render_source_lookup(resolver) if lookup.nil? && Rabl.render_source_cache
       # a lookup that can't be told apart from others (see source_lookup) isn't cached
       return resolve_source(file, options, resolver) if lookup == false
 
@@ -85,9 +88,11 @@ module Rabl
       # details such as versioncake's versions) and the view paths; elsewhere the format
       # and locales the manual lookup prefers, and under Sinatra the app's views. Returns
       # false when a view path has no stable name, so the lookup isn't cached.
-      # ceiling: outside Rails the cache (and MANUAL_LOOKUP_IDS) keeps an entry per locale looked
-      # up in, as Rails' details keys do, so it is bounded by I18n.available_locales only while
-      # I18n.enforce_available_locales is on (the default).
+      # ceiling: with cache_sources on, the cache, LOOKUP_IDS and MANUAL_LOOKUP_IDS keep an entry
+      # per distinct set of lookup details and view path list, and per locale looked up in, as
+      # Rails' own registry does, so outside Rails they are bounded by I18n.available_locales only
+      # while I18n.enforce_available_locales is on (the default) and by the locales requests ask
+      # for; under Rails a view path prepended for one request adds one, as it does to Rails.
       def source_lookup(resolver)
         case resolver
         when :rails
@@ -100,6 +105,38 @@ module Rabl
         else
           manual_lookup_id
         end
+      end
+
+      # Returns the lookup of the per-render collection: the same as source_lookup, without the
+      # numbers LOOKUP_IDS, MANUAL_LOOKUP_IDS and I18n.fallbacks keep for the life of the process.
+      # Outside Rails those gain an entry per locale looked up in, which is bounded only while
+      # I18n.enforce_available_locales is on, and a render that ends drops its collection anyway.
+      # Under Rails the numbers come from the lookup details Rails itself keeps, so they are used as
+      # they are. Padrino's lookup depends on the request too (its controller and content type), so
+      # it is not collected per render, as with cache_sources off.
+      def render_source_lookup(resolver)
+        case resolver
+        when :rails
+          source_lookup(resolver)
+        when :sinatra
+          [context_scope.settings.views, manual_lookup]
+        when :padrino
+          false
+        else
+          manual_lookup
+        end
+      end
+
+      # Returns what the manual lookup depends on, as values rather than as the number standing for
+      # it, and where the locale's fallbacks come from rather than the chain itself: asking I18n for
+      # a locale's fallbacks keeps that locale
+      def manual_lookup
+        format = manual_source_format
+        return [:manual, format] unless defined?(::I18n) && ::I18n.respond_to?(:config)
+
+        config = ::I18n.config
+        fallbacks = ::I18n.fallbacks if ::I18n.respond_to?(:fallbacks)
+        [:manual, format, config.locale, config.default_locale, fallbacks && fallbacks.__id__]
       end
 
       # Returns the number standing for the format and locales the manual lookup prefers.

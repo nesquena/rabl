@@ -628,4 +628,95 @@ context "Rabl::Partials" do
       teardown { Object.send(:remove_const, :Sinatra) }
     end
   end
+
+  # A template a collection uses for each item (extends, partial) is read once per render
+  context "the sources a render reads" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+    helper(:write) { |name, *lines| File.open(tmp_path + name, "w") { |f| f.puts lines } }
+    helper(:users) { [User.new, User.new, User.new] }
+    # the collection as a Hash, so the template's values can be compared directly
+    helper(:render) do |name, locals = {}|
+      Rabl::Renderer.new(name, users, :format => "hash", :view_path => tmp_path.to_s, :locals => locals).render
+    end
+
+    setup do
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end
+
+    teardown do
+      Rabl.configuration.cache_sources = false
+      Rabl.reset_source_cache!
+    end
+
+    asserts("a template changed while the collection renders keeps the one the render read") do
+      write "item.rabl", "object @user", "node(:v) { 1 }"
+      # the first item runs the node after it extends, so it rewrites the template for the next one
+      write "index.rabl", "collection @users", "node(:rewrite) { @rewrite.call }", %(extends "item")
+      rewrite = lambda { write "item.rabl", "object @user", "node(:v) { 2 }" }
+      render("index", :rewrite => rewrite).map { |item| item[:v] }
+    end.equals [1, 1, 1]
+
+    # a render is not nested, so it must not replace the collection of the render that made it
+    asserts("a render started inside the collection keeps the sources the outer render read") do
+      write "item.rabl", "object @user", "node(:v) { 1 }"
+      write "index.rabl", "collection @users", "node(:rewrite) { @rewrite.call }", %(extends "item")
+      rewrite = lambda do
+        write "item.rabl", "object @user", "node(:v) { 2 }"
+        Rabl::Renderer.new("object false\n", nil, :format => "hash").render
+      end
+      render("index", :rewrite => rewrite).map { |item| item[:v] }
+    end.equals [1, 1, 1]
+
+    # the numbers in LOOKUP_IDS and MANUAL_LOOKUP_IDS live for the life of the process, and
+    # I18n.fallbacks keeps an entry for every locale it is asked about
+    asserts("a render with cache_sources off numbers no lookups and asks I18n for no fallbacks") do
+      write "item.rabl", "object @user", "node(:v) { 1 }"
+      write "show.rabl", %(extends "item")
+      numbered = Rabl::Sources::LOOKUP_IDS.size
+      fallbacks = I18n.fallbacks
+      begin
+        I18n.enforce_available_locales = false
+        # a fresh object, so a lookup made earlier in the suite can't answer for this render
+        I18n.fallbacks = ::I18n::Locale::Fallbacks.new
+        I18n.with_locale(:zz) { render("show") }
+        [Rabl::Sources::LOOKUP_IDS.size == numbered, I18n.fallbacks.key?(:zz)]
+      ensure
+        I18n.enforce_available_locales = true
+        I18n.fallbacks = fallbacks
+      end
+    end.equals [true, false]
+
+    asserts("a template changed between two renders is read again") do
+      write "item.rabl", "object @user", "node(:v) { 1 }"
+      write "show.rabl", %(extends "item")
+      first = render("show").first[:v]
+      write "item.rabl", "object @user", "node(:v) { 2 }"
+      [first, render("show").first[:v]]
+    end.equals [1, 2]
+
+    asserts("a locale the render switches to in a node gets its own template") do
+      write "plain.rabl", "object false", %(node(:from) { "plain" })
+      write "plain.fr.rabl", "object false", %(node(:from) { "fr" })
+      write "index.rabl", "collection @users",
+            %(node(:plain) { |user| partial("plain", :object => user) }),
+            %(node(:fr) { |user| I18n.with_locale(:fr) { partial("plain", :object => user) } })
+      begin
+        I18n.available_locales = [:en, :fr]
+        item = render("index").first
+        [item[:plain][:from], item[:fr][:from]]
+      ensure
+        I18n.available_locales = nil
+      end
+    end.equals ["plain", "fr"]
+
+    asserts("a render that raises leaves no source cache behind") do
+      write "fail.rabl", "object false", %(node(:boom) { raise "boom" })
+      begin
+        Rabl::Renderer.new("fail", nil, :format => "hash", :view_path => tmp_path.to_s).render
+      rescue RuntimeError
+      end
+      Rabl.render_source_cache
+    end.equals(nil)
+  end
 end # Rabl::Partials

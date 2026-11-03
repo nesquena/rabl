@@ -28,6 +28,10 @@ end
 
 # Rabl.register!
 module Rabl
+  # Fiber-local key of the sources read by the render in progress (see Rabl.begin_render_source_cache)
+  RENDER_SOURCE_CACHE = :_rabl_render_source_cache
+  private_constant :RENDER_SOURCE_CACHE
+
   class << self
 
     # Initialize RABL within an application
@@ -62,19 +66,45 @@ module Rabl
     # everything the lookup depends on (the file, the view path and the lookup details)
     # source_cache("users/index", ["path/to/view"], [:json]) { "/full/path/to/template/users/index" }
     def source_cache(file, view_path, lookup = nil)
-      return yield unless Rabl.configuration.cache_sources
+      if Rabl.configuration.cache_sources
+        @_source_cache ||= {}
 
-      @_source_cache ||= {}
-
-      # stores a frozen copy of the key, so later changes to the caller's strings don't reach it
-      @_source_cache.fetch([file, view_path, lookup]) do
-        @_source_cache[frozen_copy([file, view_path, lookup])] = yield
+        # stores a frozen copy of the key, so later changes to the caller's strings don't reach it
+        return @_source_cache.fetch([file, view_path, lookup]) do
+          @_source_cache[frozen_copy([file, view_path, lookup])] = yield
+        end
       end
+
+      # Within one render, a template the collection uses for each item (extends, partial) is
+      # read and resolved once rather than once per item. The cache belongs to that render,
+      # so with cache_sources off a template changed between renders is still read again.
+      memo = render_source_cache
+      return yield unless memo
+
+      key = [file, view_path, lookup]
+      memo.fetch(key) { memo[key] = yield }
     end
 
     # Resets the RABL source cache
     def reset_source_cache!
       @_source_cache = {}
+    end
+
+    # The template sources read so far by the render running in this fiber, if any
+    def render_source_cache
+      Thread.current[RENDER_SOURCE_CACHE]
+    end
+
+    # Internal: Starts collecting the sources the render about to run reads (see source_cache).
+    # The render that starts a collection ends it, so a render started inside another collects
+    # its own sources for as long as it runs and the render around it reads again afterwards.
+    def begin_render_source_cache
+      Thread.current[RENDER_SOURCE_CACHE] = {}
+    end
+
+    # Internal: Drops the collection the render that returns from it started.
+    def end_render_source_cache
+      Thread.current[RENDER_SOURCE_CACHE] = nil
     end
 
     # Returns a copy of value whose Strings and Arrays are frozen, for cache keys that
