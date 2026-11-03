@@ -122,6 +122,44 @@ module Rabl
       @exclude_nil_values                           = false
       @exclude_empty_values_in_collections          = false
       @camelize_keys                                = false
+      @camelized_keys                               = { false => {}, true => {} }
+    end
+
+    # Names camelized in each style, by whether the first letter is upper case: a collection
+    # builds the same keys for each of its items, and camelizing one takes about 0.5 µs.
+    # ceiling: one entry per distinct key name, so a template that names keys at runtime
+    # (node(field.key)) keeps them for the life of the process until a new name arrives and the
+    # map is already full, when it is emptied; a name over CAMELIZED_KEY_LENGTH_LIMIT bytes isn't
+    # kept at all; and a name keeps the acronyms it was first camelized with, so an inflection
+    # added later doesn't reach a name that was already seen.
+    CAMELIZED_KEYS_LIMIT = 10_000
+    # A name longer than this, in bytes, is camelized each time instead of being kept, so a map
+    # holds at most CAMELIZED_KEYS_LIMIT names of up to this many bytes each
+    CAMELIZED_KEY_LENGTH_LIMIT = 128
+
+    # Returns name camelized in the given style, camelizing each kept name once
+    def camelized_key(name, upper = false)
+      keys = @camelized_keys[upper]
+      cached = keys[name]
+      return cached if cached
+
+      string = name.to_s
+      style = upper ? :upper : :lower
+      return string.camelize(style).to_sym if string.bytesize > CAMELIZED_KEY_LENGTH_LIMIT
+
+      # a Hash freezes a plain String key and copies it, but keeps an unfrozen String subclass,
+      # such as ActiveSupport::SafeBuffer, as it is: a caller that changes the name in place would
+      # file another name under the camelized value, so the key is copied and frozen here
+      key = Rabl.frozen_copy(name)
+      keys.fetch(key) do
+        keys.clear if keys.size >= camelized_keys_limit
+        keys[key] = string.camelize(style).to_sym
+      end
+    end
+
+    # How many names a style's map keeps before a new name empties it
+    def camelized_keys_limit
+      CAMELIZED_KEYS_LIMIT
     end
 
     # @return The JSON engine used to encode Rabl templates into JSON

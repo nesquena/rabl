@@ -274,11 +274,9 @@ module Rabl
       end
 
       def create_key(name)
-        if Rabl.configuration.camelize_keys
-          name.to_s.camelize(Rabl.configuration.camelize_keys == :upper ? :upper : :lower).to_sym
-        else
-          name.to_sym
-        end
+        config = Rabl.configuration
+        style = config.camelize_keys
+        style ? config.camelized_key(name, style == :upper) : name.to_sym
       end
   end
 end
