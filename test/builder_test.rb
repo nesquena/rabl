@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'active_support/core_ext/string/output_safety' # SafeBuffer, for a key's name changed later
 require File.expand_path('../teststrap',   __FILE__)
 
 context "Rabl::Builder" do
@@ -119,6 +120,80 @@ context "Rabl::Builder" do
         Rabl.configuration.camelize_keys = false
       end
     end
+  end
+
+  context "when a key's name is camelized more than once" do
+    setup do
+      Rabl.configuration.camelize_keys = :lower
+      # an empty map makes the first render in the frozen-copy test store the name it is given;
+      # the rehash there is what keeps that test honest about a name changed in place
+      Rabl.configuration.instance_variable_get(:@camelized_keys).each_value(&:clear)
+      @render = lambda do |name|
+        Rabl::Renderer.new("object false\nnode(locals[:name]) { 1 }", nil,
+                           :format => "hash", :locals => { :name => name }).render
+      end
+    end
+
+    teardown do
+      Rabl.configuration.camelize_keys = false
+    end
+
+    # a Hash keeps an unfrozen String subclass as it is, so a name changed in place must not
+    # reach the value remembered for it
+    asserts("a name changed after the render doesn't answer the new name") do
+      name = "first_name".html_safe
+      first = @render.call(name)
+      name << "_extra"
+      Rabl.configuration.instance_variable_get(:@camelized_keys)[false].rehash
+      [first, @render.call("first_name_extra")]
+    end.equals [{ :firstName => 1 }, { :firstNameExtra => 1 }]
+
+    asserts("a name longer than the limit is camelized each time, and not kept") do
+      long = "x" * (Rabl::Configuration::CAMELIZED_KEY_LENGTH_LIMIT + 1) + "_name"
+      camelized = Rabl.configuration.camelized_key(long, false)
+      remembered = Rabl.configuration.instance_variable_get(:@camelized_keys)[false]
+      [camelized == long.camelize(:lower).to_sym, remembered.key?(Rabl.frozen_copy(long))]
+    end.equals [true, false]
+
+    # the limit is a byte count, so a name that fits in characters but not in bytes is not kept
+    asserts("a name under the limit in characters and over it in bytes is not kept either") do
+      long = "é" * (Rabl::Configuration::CAMELIZED_KEY_LENGTH_LIMIT / 2 + 1)
+      camelized = Rabl.configuration.camelized_key(long, false)
+      remembered = Rabl.configuration.instance_variable_get(:@camelized_keys)[false]
+      [camelized == long.camelize(:lower).to_sym, remembered.key?(Rabl.frozen_copy(long))]
+    end.equals [true, false]
+
+    asserts("a full map is emptied when a new name arrives") do
+      config = Rabl.configuration
+      config.instance_variable_get(:@camelized_keys)[false].clear
+      config.define_singleton_method(:camelized_keys_limit) { 2 }
+      begin
+        names = (1..3).map { |i| config.camelized_key("kept_#{i}", false) }
+        [names, config.instance_variable_get(:@camelized_keys)[false].size]
+      ensure
+        config.singleton_class.send(:remove_method, :camelized_keys_limit)
+      end
+    end.equals [[:kept1, :kept2, :kept3], 1]
+
+    # a name the map holds is answered from it, without camelizing it again: a Symbol name costs
+    # one String for `to_s` on every call that misses the map
+    asserts("a name the map holds is answered without allocating for it") do
+      config = Rabl.configuration
+      config.camelized_key(:seen_name, false)
+      GC.disable
+      before = GC.stat(:total_allocated_objects)
+      1000.times { config.camelized_key(:seen_name, false) }
+      allocated = GC.stat(:total_allocated_objects) - before
+      GC.enable
+      allocated < 100
+    end.equals true
+
+    # the limit is a maximum, so a name of exactly that many bytes is kept
+    asserts("a name of exactly the limit in bytes is kept") do
+      name = "x" * Rabl::Configuration::CAMELIZED_KEY_LENGTH_LIMIT
+      Rabl.configuration.camelized_key(name, false)
+      Rabl.configuration.instance_variable_get(:@camelized_keys)[false].key?(Rabl.frozen_copy(name))
+    end.equals true
   end
 
   context "#attribute" do
