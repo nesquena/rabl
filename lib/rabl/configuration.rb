@@ -123,7 +123,6 @@ module Rabl
       @exclude_empty_values_in_collections          = false
       @camelize_keys                                = false
       @camelized_keys                               = { false => {}, true => {} }
-      @camelized_keys_lock                          = Mutex.new
     end
 
     # Names camelized in each style, by whether the first letter is upper case: a collection
@@ -137,6 +136,9 @@ module Rabl
     # A name longer than this, in bytes, is camelized each time instead of being kept, so a map
     # holds at most CAMELIZED_KEYS_LIMIT names of up to this many bytes each
     CAMELIZED_KEY_LENGTH_LIMIT = 128
+
+    # Files a new name in a style's map: the maps are shared by every thread
+    CAMELIZED_KEYS_LOCK = Mutex.new
 
     # Returns name camelized in the given style, camelizing each kept name once
     def camelized_key(name, upper = false)
@@ -153,7 +155,7 @@ module Rabl
       # file another name under the camelized value, so the key is copied and frozen here
       # the map is shared by every thread, so a new name is filed under the lock, as in LOOKUP_IDS
       key = Rabl.frozen_copy(name)
-      @camelized_keys_lock.synchronize do
+      CAMELIZED_KEYS_LOCK.synchronize do
         keys.fetch(key) do
           keys.clear if keys.size >= camelized_keys_limit
           keys[key] = string.camelize(style).to_sym
