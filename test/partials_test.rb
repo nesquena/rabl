@@ -710,6 +710,20 @@ context "Rabl::Partials" do
       end
     end.equals ["plain", "fr"]
 
+    # a Hash rehashes its keys by their contents once it outgrows 8 entries
+    asserts("a name the template changes in place after a partial uses it keeps its own source") do
+      write "item.rabl", "object false", %(node(:which) { "item" })
+      write "loc.rabl", "object false", %(node(:which) { "loc" })
+      (1..9).each { |i| write "f#{i}.rabl", "object false", %(node(:which) { "f#{i}" }) }
+      write "index.rabl", "object false",
+            %(node(:first) { partial(@name, :object => 1) }),
+            %(node(:rename) { @name.replace("loc"); 0 }),
+            %(node(:fill) { (1..9).map { |i| partial("f\#{i}", :object => 1) } }),
+            %(node(:second) { partial(String.new("loc"), :object => 1) })
+      Rabl::Renderer.new("index", nil, :format => "hash", :view_path => tmp_path.to_s,
+                         :locals => { :name => String.new("item") }).render[:second][:which]
+    end.equals "loc"
+
     asserts("a render that raises leaves no source cache behind") do
       write "fail.rabl", "object false", %(node(:boom) { raise "boom" })
       begin

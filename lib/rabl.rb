@@ -81,8 +81,10 @@ module Rabl
       memo = render_source_cache
       return yield unless memo
 
+      # a frozen copy here too: a template that changes a name in place later in the render would
+      # otherwise file this source under the new name once the Hash rehashes its keys
       key = [file, view_path, lookup]
-      memo.fetch(key) { memo[key] = yield }
+      memo.fetch(key) { memo[frozen_copy(key)] = yield }
     end
 
     # Resets the RABL source cache

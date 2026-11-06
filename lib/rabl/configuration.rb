@@ -123,6 +123,7 @@ module Rabl
       @exclude_empty_values_in_collections          = false
       @camelize_keys                                = false
       @camelized_keys                               = { false => {}, true => {} }
+      @camelized_keys_lock                          = Mutex.new
     end
 
     # Names camelized in each style, by whether the first letter is upper case: a collection
@@ -150,10 +151,13 @@ module Rabl
       # a Hash freezes a plain String key and copies it, but keeps an unfrozen String subclass,
       # such as ActiveSupport::SafeBuffer, as it is: a caller that changes the name in place would
       # file another name under the camelized value, so the key is copied and frozen here
+      # the map is shared by every thread, so a new name is filed under the lock, as in LOOKUP_IDS
       key = Rabl.frozen_copy(name)
-      keys.fetch(key) do
-        keys.clear if keys.size >= camelized_keys_limit
-        keys[key] = string.camelize(style).to_sym
+      @camelized_keys_lock.synchronize do
+        keys.fetch(key) do
+          keys.clear if keys.size >= camelized_keys_limit
+          keys[key] = string.camelize(style).to_sym
+        end
       end
     end
 
