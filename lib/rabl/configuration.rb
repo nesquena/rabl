@@ -137,6 +137,9 @@ module Rabl
     # holds at most CAMELIZED_KEYS_LIMIT names of up to this many bytes each
     CAMELIZED_KEY_LENGTH_LIMIT = 128
 
+    # Files a new name in a style's map: the maps are shared by every thread
+    CAMELIZED_KEYS_LOCK = Mutex.new
+
     # Returns name camelized in the given style, camelizing each kept name once
     def camelized_key(name, upper = false)
       keys = @camelized_keys[upper]
@@ -150,10 +153,13 @@ module Rabl
       # a Hash freezes a plain String key and copies it, but keeps an unfrozen String subclass,
       # such as ActiveSupport::SafeBuffer, as it is: a caller that changes the name in place would
       # file another name under the camelized value, so the key is copied and frozen here
+      # the map is shared by every thread, so a new name is filed under the lock, as in LOOKUP_IDS
       key = Rabl.frozen_copy(name)
-      keys.fetch(key) do
-        keys.clear if keys.size >= camelized_keys_limit
-        keys[key] = string.camelize(style).to_sym
+      CAMELIZED_KEYS_LOCK.synchronize do
+        keys.fetch(key) do
+          keys.clear if keys.size >= camelized_keys_limit
+          keys[key] = string.camelize(style).to_sym
+        end
       end
     end
 

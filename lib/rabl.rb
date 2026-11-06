@@ -66,23 +66,15 @@ module Rabl
     # everything the lookup depends on (the file, the view path and the lookup details)
     # source_cache("users/index", ["path/to/view"], [:json]) { "/full/path/to/template/users/index" }
     def source_cache(file, view_path, lookup = nil)
-      if Rabl.configuration.cache_sources
-        @_source_cache ||= {}
+      # With cache_sources off, a template the collection uses for each item (extends, partial) is
+      # still read and resolved once per render rather than once per item. That cache belongs to
+      # the render, so a template changed between renders is still read again.
+      cache = Rabl.configuration.cache_sources ? (@_source_cache ||= {}) : render_source_cache
+      return yield unless cache
 
-        # stores a frozen copy of the key, so later changes to the caller's strings don't reach it
-        return @_source_cache.fetch([file, view_path, lookup]) do
-          @_source_cache[frozen_copy([file, view_path, lookup])] = yield
-        end
-      end
-
-      # Within one render, a template the collection uses for each item (extends, partial) is
-      # read and resolved once rather than once per item. The cache belongs to that render,
-      # so with cache_sources off a template changed between renders is still read again.
-      memo = render_source_cache
-      return yield unless memo
-
+      # stores a frozen copy of the key, so later changes to the caller's strings don't reach it
       key = [file, view_path, lookup]
-      memo.fetch(key) { memo[key] = yield }
+      cache.fetch(key) { cache[frozen_copy(key)] = yield }
     end
 
     # Resets the RABL source cache
