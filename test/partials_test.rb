@@ -748,4 +748,25 @@ context "Rabl::Partials" do
       Rabl.render_source_cache
     end.equals(nil)
   end
+
+  context "partial error handling and nil object" do
+    helper(:tmp_path) { @tmp_path ||= Pathname.new(Dir.mktmpdir) }
+
+    asserts("partial_as_engine raises ArgumentError when :object is omitted") do
+      TestPartial.new.partial_as_engine("users/show")
+    end.raises(ArgumentError, "Must provide an :object option to render a partial")
+
+    asserts("fetch_source raises when the template file cannot be found") do
+      TestPartial.new.fetch_source("missing/template", :view_path => tmp_path.to_s)
+    end.raises(RuntimeError, /Cannot find rabl template 'missing\/template'/)
+
+    asserts("Engine#partial returns nil when :object is nil") do
+      File.write(tmp_path + "item.json.rabl", "attribute :name\n")
+      engine = Rabl::Engine.new('node(:sub) { partial("item", :object => nil) }',
+        :format => "hash", :view_path => tmp_path.to_s)
+      engine.render(Object.new)
+    end.equals({ :sub => nil })
+
+    teardown { FileUtils.rm_rf(@tmp_path) if @tmp_path }
+  end
 end # Rabl::Partials

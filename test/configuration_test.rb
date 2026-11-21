@@ -232,6 +232,7 @@ context 'Rabl::Configuration' do
     end
 
     asserts(:exclude_empty_values_in_collections).equals true
+    asserts('reads options with #[]') { topic[:exclude_empty_values_in_collections] }.equals true
 
     teardown { Rabl.reset_configuration! }
   end # exclude empty values in collections

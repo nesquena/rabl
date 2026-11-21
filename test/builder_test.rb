@@ -85,11 +85,11 @@ context "Rabl::Builder" do
     context "when nil values are excluded" do
       setup do
         Rabl.configuration.exclude_nil_values = true
-        builder(nil, { :attributes => [ { :name => :name } ] })
+        builder(nil, { :attributes => [ { :name => :name }, { :name => :age } ] })
       end
-      asserts "that an nil attribute is not returned" do
-        topic.to_hash(User.new(:name => nil))
-      end.equivalent_to({ })
+      asserts "that a nil attribute is not returned while non-nil attributes are kept" do
+        topic.to_hash(User.new(:name => nil, :age => 30))
+      end.equivalent_to({ :age => 30 })
       teardown do
         Rabl.configuration.exclude_nil_values = false
       end
@@ -489,5 +489,24 @@ context "Rabl::Builder" do
       scope = Rabl::Builder.new(ArbObj.new)
       scope.send(:resolve_condition, { :if => { some: 'data' } })
     end.equals({some: 'data'})
+  end
+
+  context "#glue with nil resolved data" do
+    asserts "skips glue when a symbol resolves to nil on the object" do
+      obj = Struct.new(:profile).new(nil)
+      b = builder(obj, { :glue => [{ :data => :profile, :block => proc { attribute :name } }] })
+      b.to_hash
+    end.equals({})
+  end
+
+  context "#attribute with collection responding to #as_json" do
+    asserts "calls #as_json on a collection attribute" do
+      list = Object.new
+      list.define_singleton_method(:map) { |&blk| [1, 2].map(&blk) }
+      list.define_singleton_method(:each) { |&blk| [1, 2].each(&blk) }
+      list.define_singleton_method(:as_json) { ["custom-1", "custom-2"] }
+      obj = Struct.new(:items).new(list)
+      builder(obj, { :attributes => [{ :name => :items }] }).to_hash
+    end.equals({ :items => ["custom-1", "custom-2"] })
   end
 end

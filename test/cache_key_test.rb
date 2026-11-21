@@ -600,5 +600,13 @@ context 'Rabl cache keys' do
 
   asserts('Dir.pwd is restored after the stub') { Dir.pwd == Dir.getwd }
 
+  asserts('cached child collections with different :object_root names are cached apart') do
+    Rabl.configuration.cache_engine = memory_cache
+    outer = item(120, [item(121)])
+    first = render("object @item\nchild(:owner => :owners, :object_root => :person) { cache 'c'; attributes :id }", outer)
+    second = render("object @item\nchild(:owner => :owners, :object_root => :member) { cache 'c'; attributes :id }", outer)
+    [first, second]
+  end.equals ['{"owners":[{"person":{"id":121}}]}', '{"owners":[{"member":{"id":121}}]}']
+
   teardown { Rabl.reset_configuration! }
 end
