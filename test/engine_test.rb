@@ -105,6 +105,36 @@ context "Rabl::Engine" do
 
       asserts_topic.equivalent_to(expected_json)
     end
+
+    context "with an unsupported request.format" do
+      asserts "falls back to json when request.format has no to_<format> method" do
+        scope = Object.new
+        req = Struct.new(:format).new(:csv)
+        scope.define_singleton_method(:request) { req }
+        Rabl::Engine.new('node(:foo) { "bar" }').render(scope)
+      end.equals '{"foo":"bar"}'
+    end
+  end
+
+  context "#format_json" do
+    asserts "uses #encode when json_engine does not respond to #dump" do
+      encoder = Object.new
+      encoder.define_singleton_method(:encode) { |obj| "encoded:#{obj[:foo]}" }
+      Rabl.configuration.json_engine = encoder
+      Rabl::Engine.new('node(:foo) { "bar" }', :format => 'json').render(Object.new)
+    end.equals "encoded:bar"
+
+    asserts "returns a String input unchanged" do
+      Rabl::Engine.new("", :format => 'json').send(:format_json, '{"already":"json"}')
+    end.equals '{"already":"json"}'
+
+    teardown { Rabl.reset_configuration! }
+  end
+
+  context "#method_missing" do
+    asserts "raises NoMethodError when context_scope does not respond to the method" do
+      Rabl::Engine.new('node(:x) { no_such_helper_method() }', :format => 'json').render(Object.new)
+    end.raises(NoMethodError)
   end
 
   context "#cache" do

@@ -29,6 +29,24 @@ context "Rabl::MultiBuilder" do
     asserts "returns an array" do
       topic.to_a
     end.is_a?(Array)
+
+    context "with exclude_empty_values_in_collections enabled" do
+      setup do
+        Rabl.configuration.exclude_nil_values = true
+        Rabl.configuration.exclude_empty_values_in_collections = true
+        users = [User.new(:name => nil), User.new(:name => 'alice'), User.new(:name => nil)]
+        Rabl::MultiBuilder.new(users, { :attributes => [{ :name => :name }] })
+      end
+
+      asserts "drops empty hashes from the rendered collection" do
+        topic.to_a
+      end.equals([{ :name => 'alice' }])
+
+      teardown do
+        Rabl.configuration.exclude_nil_values = false
+        Rabl.configuration.exclude_empty_values_in_collections = false
+      end
+    end
   end
 
   context "#map_cache_key_to_engine" do
