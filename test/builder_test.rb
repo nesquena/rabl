@@ -494,7 +494,7 @@ context "Rabl::Builder" do
   context "#glue with nil resolved data" do
     asserts "skips glue when a symbol resolves to nil on the object" do
       obj = Struct.new(:profile).new(nil)
-      b = builder(obj, { :glue => [{ :data => :profile, :block => proc { attribute :name } }] })
+      b = builder(obj, { :glue => [{ :data => :profile, :block => proc { node(:x) { 1 } } }] })
       b.to_hash
     end.equals({})
   end

@@ -603,8 +603,9 @@ context 'Rabl cache keys' do
   asserts('cached child collections with different :object_root names are cached apart') do
     Rabl.configuration.cache_engine = memory_cache
     outer = item(120, [item(121)])
-    first = render("object @item\nchild(:owner => :owners, :object_root => :person) { cache 'c'; attributes :id }", outer)
-    second = render("object @item\nchild(:owner => :owners, :object_root => :member) { cache 'c'; attributes :id }", outer)
+    src = "object @item\nchild(:owner => :owners, :object_root => @r) { cache 'c'; attributes :id }"
+    first = Rabl::Engine.new(src, :format => "json").render(Object.new, :object => outer, :r => :person)
+    second = Rabl::Engine.new(src, :format => "json").render(Object.new, :object => outer, :r => :member)
     [first, second]
   end.equals ['{"owners":[{"person":{"id":121}}]}', '{"owners":[{"member":{"id":121}}]}']
 
