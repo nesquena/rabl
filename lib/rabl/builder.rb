@@ -82,14 +82,7 @@ module Rabl
       end
 
       def deep_replace_nil_values(hash)
-        hash.inject({}) do |new_hash, (k, v)|
-          new_hash[k] = if v.is_a?(Hash)
-            deep_replace_nil_values(v)
-          else
-            v.nil? ? '' : v
-          end
-          new_hash
-        end
+        deep_replace_values(hash) { |v| v.nil? ? '' : v }
       end
 
       def replace_empty_string_values
@@ -97,15 +90,22 @@ module Rabl
       end
 
       def deep_replace_empty_string_values(hash)
-        hash.inject({}) do |new_hash, (k, v)|
-          new_hash[k] = if v.is_a?(Hash)
-            deep_replace_empty_string_values(v)
-          else
-            (!v.nil? && v != "") ? v : nil
-          end
+        deep_replace_values(hash) { |v| (!v.nil? && v != "") ? v : nil }
+      end
 
-          new_hash
+      # The hash with each value the block replaces, at any depth. A hash is copied only when one of
+      # its values changes, so a hash with nothing to replace costs no allocations, and a hash a node
+      # returned is never changed in place.
+      def deep_replace_values(hash, &replace)
+        result = hash
+        hash.each_pair do |k, v|
+          replaced = v.is_a?(Hash) ? deep_replace_values(v, &replace) : yield(v)
+          next if replaced.equal?(v)
+
+          result = result.dup if result.equal?(hash)
+          result[k] = replaced
         end
+        result
       end
 
       def remove_nil_values

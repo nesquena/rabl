@@ -82,6 +82,42 @@ context "Rabl::Builder" do
       end
     end
 
+    context "when values are replaced in a hash a node returns" do
+      helper(:settings) { @settings ||= { :note => '', :missing => nil, :kept => 'x' } }
+
+      setup do
+        hash = settings
+        builder(nil, { :node => [{ :name => :settings, :options => {}, :block => lambda { |_| hash } }] })
+      end
+
+      asserts "that replacing empty strings leaves the node's hash as it was" do
+        Rabl.configuration.replace_empty_string_values_with_nil_values = true
+        result = topic.to_hash(User.new)
+        Rabl.configuration.replace_empty_string_values_with_nil_values = false
+        [result, settings]
+      end.equals [{ :settings => { :note => nil, :missing => nil, :kept => 'x' } }, { :note => '', :missing => nil, :kept => 'x' }]
+
+      asserts "that replacing nil values leaves the node's hash as it was" do
+        Rabl.configuration.replace_nil_values_with_empty_strings = true
+        result = topic.to_hash(User.new)
+        Rabl.configuration.replace_nil_values_with_empty_strings = false
+        [result, settings]
+      end.equals [{ :settings => { :note => '', :missing => '', :kept => 'x' } }, { :note => '', :missing => nil, :kept => 'x' }]
+    end
+
+    # a hash with nothing to replace is used as it is, rather than copied at every level
+    asserts("replacing empty strings in a hash that has none allocates nothing") do
+      hash = { :a => 1, :b => 'b', :c => { :d => 2, :e => { :f => 'f' } } }
+      builder = Rabl::Builder.new(nil)
+      builder.send(:deep_replace_empty_string_values, hash)
+      GC.disable
+      before = GC.stat(:total_allocated_objects)
+      100.times { builder.send(:deep_replace_empty_string_values, hash) }
+      allocated = GC.stat(:total_allocated_objects) - before
+      GC.enable
+      allocated < 100
+    end.equals true
+
     context "when nil values are excluded" do
       setup do
         Rabl.configuration.exclude_nil_values = true

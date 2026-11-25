@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+### Other changes
+
+* With `replace_empty_string_values_with_nil_values` or `replace_nil_values_with_empty_strings` on, a rendered hash is copied only when one of its values is replaced, rather than rebuilt at every level for every object. Measured outside Rails on a 50-item collection whose template has three `attributes`, one `node` returning a hash and one `child`, with nothing to replace, Ruby 4.0.10, YJIT off: either option went from 3220 allocations per render to 1970, the same as with both off; the render time moved within the noise (about 1.1 ms). A hash with values to replace is copied as before, and a hash a `node` returns is still never changed in place. The values are unchanged; a hash with nothing to replace is now the one the template built (or the `node` returned) rather than a copy of it, as when both options are off (@basex)
+
 ## 0.19.1 (Nov 5, 2026)
 
 ### Other changes
